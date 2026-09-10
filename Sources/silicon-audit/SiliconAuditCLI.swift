@@ -10,7 +10,7 @@ struct SiliconAuditCLI: ParsableCommand {
         abstract: "Report which CPU security features this device's kernel exposes.",
         discussion: "Every fact carries its provenance: measured (read from this kernel), documented (Apple's published claim for the chip family), or inferred (the app's reasoning). The app never conflates them.",
         version: SiliconAuditCore.version,
-        subcommands: [Audit.self, Export.self, Keys.self, Import.self, Raw.self],
+        subcommands: [Audit.self, Documented.self, DataInfo.self, Export.self, Keys.self, Import.self, Raw.self],
         defaultSubcommand: Audit.self
     )
 }
@@ -45,6 +45,48 @@ struct Audit: ParsableCommand {
         let report = try source.makeAuditor().audit()
         if json { print(String(decoding: try report.jsonData(), as: UTF8.self)); return }
         Table.print(report, all: all)
+    }
+}
+
+struct Documented: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Apple's published claims for this chip family, with the chain that gets there.")
+
+    @OptionGroup var source: SourceOptions
+
+    func run() throws {
+        let report = try source.makeAuditor().audit()
+        let dev = report.device
+        print("1. measured   kernel target      \(dev.socId ?? "none")  (kern.version)")
+        print("2. inferred   SoC                \(dev.socInferenceConfidence == "none" ? "not in soc-map.json" : "\(dev.socNameInferred) [\(dev.socInferenceConfidence)]")")
+        let column = report.documentedFacts.first { $0.state != .unknown }?.source?.note
+            .flatMap { n in n.range(of: #"column [A-Za-z0-9\-]+"#, options: .regularExpression).map { String(n[$0].dropFirst(7)) } }
+        print("3. documented Apple's table column \(column ?? "none")")
+        print("")
+        if dev.socInferenceConfidence == "none" {
+            print("Apple hasn't documented this chip yet: target \(dev.socId ?? "?") is not in the app's map. Documented rows read unknown; measured facts are unaffected.")
+            print("")
+        }
+        for f in report.documentedFacts {
+            print("  \(Table.glyph(f.state)) \((f.displayName ?? f.id).padding(toLength: 44, withPad: " ", startingAt: 0)) \(f.state.rawValue.padding(toLength: 12, withPad: " ", startingAt: 0)) \(f.source?.note ?? "")")
+        }
+        if let s = report.documentedFacts.first?.source {
+            print("")
+            print("Source: \(s.url) (published \(s.published), verified \(s.verified))")
+        }
+    }
+}
+
+struct DataInfo: ParsableCommand {
+    static let configuration = CommandConfiguration(commandName: "data", abstract: "Bundled data files and when each was last verified.")
+
+    func run() throws {
+        let d = DataStore.shared
+        func row(_ name: String, _ verified: String, _ detail: String) { print("  \(name.padding(toLength: 20, withPad: " ", startingAt: 0)) \(verified.isEmpty ? "-" : verified)  \(detail)") }
+        row("known-keys", d.knownKeys.verified, "\(d.knownKeys.entries.count) annotated keys, \(d.knownKeys.entries.filter(\.securityRelevant).count) security-relevant")
+        row("caps-bits", d.capsBits.verified, "\(d.capsBits.entries.count) bits, CAP_BIT_NB \(d.capsBits.capBitNB)")
+        row("cpufamily-names", d.cpufamilies.verified, "\(d.cpufamilies.entries.count) families, \(d.cpufamilies.subfamilies.count) subfamilies")
+        row("soc-map", d.socMap.verified, "\(d.socMap.entries.filter { $0.confidence == .verified }.count) verified, \(d.socMap.entries.filter { $0.confidence == .reported }.count) reported")
+        row("documented-matrix", d.matrix.verified, "\(d.matrix.entries.count) rows × \(d.matrix.columns.count) columns: \(d.matrix.columns.joined(separator: ", "))")
     }
 }
 

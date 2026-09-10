@@ -40,15 +40,30 @@ public struct ReportListContent: View {
                     OverviewList(report: report)
                 } header: {
                     Text(String(localized: "What this chip protects", bundle: .module))
+                }
+                Section {
+                    NavigationLink { DocumentedView(report: report) } label: {
+                        Label(String(localized: "Apple's documentation for this chip", bundle: .module), systemImage: "doc.text")
+                    }
+                    NavigationLink { AboutDataView(report: report) } label: {
+                        Label(String(localized: "About the data", bundle: .module), systemImage: "info.circle")
+                    }
                 } footer: {
                     Text(ReportListContent.footer(for: report))
                 }
             } else {
                 ForEach(model.securitySections) { section in
-                    Section(section.title) {
+                    Section {
+                        if section.category == "kernel_integrity" {
+                            NavigationLink { DocumentedView(report: report) } label: {
+                                Label(String(localized: "How this device maps to Apple's table", bundle: .module), systemImage: "arrow.triangle.branch")
+                            }
+                        }
                         ForEach(section.facts) { fact in
                             NavigationLink(value: fact.id) { FactRow(fact) }
                         }
+                    } header: {
+                        Text(section.title)
                     }
                 }
                 Section {

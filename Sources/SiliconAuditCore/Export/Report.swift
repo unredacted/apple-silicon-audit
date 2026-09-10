@@ -11,6 +11,8 @@ public struct Report: Codable, Equatable, Sendable {
         public var walkFailure: String?
         public var knownKeysVersion: String
         public var kernelFormatsAvailable: Bool
+        /// `verified` date of every bundled data file that annotated this export (SPEC §5).
+        public var dataVersions: DataVersions?
 
         enum CodingKeys: String, CodingKey {
             case walkSucceeded = "walk_succeeded"
@@ -18,6 +20,32 @@ public struct Report: Codable, Equatable, Sendable {
             case walkFailure = "walk_failure"
             case knownKeysVersion = "known_keys_version"
             case kernelFormatsAvailable = "kernel_formats_available"
+            case dataVersions = "data_versions"
+        }
+    }
+
+    public struct DataVersions: Codable, Equatable, Sendable {
+        public var knownKeys: String
+        public var capsBits: String
+        public var cpufamilyNames: String
+        public var socMap: String
+        public var documentedMatrix: String
+
+        enum CodingKeys: String, CodingKey {
+            case knownKeys = "known_keys"
+            case capsBits = "caps_bits"
+            case cpufamilyNames = "cpufamily_names"
+            case socMap = "soc_map"
+            case documentedMatrix = "documented_matrix"
+        }
+
+        public init(_ data: DataStore) {
+            func d(_ s: String) -> String { s.isEmpty ? "1970-01-01" : s }
+            knownKeys = d(data.knownKeys.verified)
+            capsBits = d(data.capsBits.verified)
+            cpufamilyNames = d(data.cpufamilies.verified)
+            socMap = d(data.socMap.verified)
+            documentedMatrix = d(data.matrix.verified)
         }
     }
 

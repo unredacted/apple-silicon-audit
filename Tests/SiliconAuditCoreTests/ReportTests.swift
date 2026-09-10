@@ -205,6 +205,10 @@ struct ExportTests {
         #expect(raw["format_source"] as? String == "inventory")
         #expect(raw["value"] as? Int == 1)
         #expect(object["collected_at"] as? String == "2027-01-15T08:00:00Z")
+        let collection = try #require(object["collection"] as? [String: Any])
+        let versions = try #require(collection["data_versions"] as? [String: String])
+        #expect(versions["documented_matrix"] == "2026-09-10")
+        #expect(versions.count == 5)
 
         // `description` is UI-only and never exported; compare with it stripped.
         var exported = report

@@ -47,7 +47,7 @@ public struct AuditRootView: View {
             List {
                 ReportListContent(model: model, mode: mode, afterSummary: companion)
             }
-            .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
+            .navigationDestination(for: String.self) { route($0) }
             .navigationTitle("Silicon Audit")
             .toolbar {
                 modePicker
@@ -124,14 +124,14 @@ public struct AuditRootView: View {
                         if let companion { companion() }
                     }
                 }
-                .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
+                .navigationDestination(for: String.self) { route($0) }
                 .frame(maxWidth: 820)
                 .navigationTitle(mode == .overview ? String(localized: "Overview", bundle: .module) : String(localized: "Summary", bundle: .module))
             } else if let section = model.sections.first(where: { $0.id == selection }) {
                 List {
                     sectionView(section)
                 }
-                .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
+                .navigationDestination(for: String.self) { route($0) }
                 .navigationTitle(section.title)
             }
         } else {
@@ -175,7 +175,18 @@ public struct AuditRootView: View {
     }
 
     private var exportButton: some ToolbarContent {
-        ToolbarItem(placement: .primaryAction) {
+        ToolbarItemGroup(placement: .primaryAction) {
+            Menu {
+                NavigationLink(value: AuditRootView.documentedRoute) {
+                    Label(String(localized: "Apple's documentation", bundle: .module), systemImage: "doc.text")
+                }
+                NavigationLink(value: AuditRootView.aboutDataRoute) {
+                    Label(String(localized: "About the data", bundle: .module), systemImage: "info.circle")
+                }
+            } label: {
+                Label(String(localized: "Sources", bundle: .module), systemImage: "info.circle")
+            }
+            .disabled(model.report == nil)
             Button {
                 showingExport = true
             } label: {
@@ -183,6 +194,21 @@ public struct AuditRootView: View {
             }
             .disabled(model.report == nil)
             .accessibilityHint(Text(String(localized: "Share or save the JSON export.", bundle: .module)))
+        }
+    }
+
+    static let documentedRoute = "__documented__"
+    static let aboutDataRoute = "__about_data__"
+
+    /// Routes for the two information screens plus fact ids.
+    @ViewBuilder
+    private func route(_ id: String) -> some View {
+        if id == AuditRootView.documentedRoute, let report = model.report {
+            DocumentedView(report: report)
+        } else if id == AuditRootView.aboutDataRoute, let report = model.report {
+            AboutDataView(report: report)
+        } else {
+            ReportListContent.destination(for: id, in: model.report)
         }
     }
 

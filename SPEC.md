@@ -200,7 +200,7 @@ Schema per entry: feature ID, chip families it applies to, source URL, source pu
 
 Two requirements:
 
-1. **Every documented claim shows its source and date in the UI.** Users should be able to tell that a claim is four months old.
+1. **Every documented claim shows its source and date in the UI.** Users should be able to tell that a claim is four months old. The app has an "Apple's documentation" screen that shows the three-step chain (measured kernel target → inferred SoC family with the map's confidence → Apple's table column), each step badged with its provenance, and an explicit "Apple hasn't documented this chip yet" state when the chain breaks. An "About the data" screen lists every bundled data file's last-verified date; the export records the same dates in `collection.data_versions`.
 2. **Updating the matrix must not require a code change.** It is data: a maintainer edits JSON, nothing in Swift moves. v1 ships without networking, so data updates reach users as app updates; bundle the data and display the bundled `verified` date prominently. An optional user-initiated signed refresh from the repo is a later decision, not a v1 requirement. Do not silently fetch — see privacy, §10.
 
 ---

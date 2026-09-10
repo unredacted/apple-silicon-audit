@@ -252,6 +252,14 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## J. From Phase 6 implementation (documented matrix and provenance UI)
+
+84. **`DocumentedView`** renders the three-step chain with a provenance badge per step and an explicit empty state for unmapped chips; reachable from Overview, from the Details "Apple's documented protections" section, and from the toolbar Sources menu. (§5, §6.4)
+85. **`AboutDataView`** shows the provenance legend, each data file's `verified` date with counts, and the sources. The export gains `collection.data_versions` so a result in the database says which data annotated it. (§5, §8)
+86. **CLI** gains `documented` and `data` to print the same. (§6)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.

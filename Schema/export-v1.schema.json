@@ -64,6 +64,35 @@
         "kernel_formats_available": {
           "type": "boolean",
           "description": "False when CTL_SYSCTL_OIDFMT was refused and every type came from the inventory (iOS, watchOS)."
+        },
+        "data_versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "known_keys",
+            "caps_bits",
+            "cpufamily_names",
+            "soc_map",
+            "documented_matrix"
+          ],
+          "properties": {
+            "known_keys": {
+              "$ref": "#/$defs/calendar_date"
+            },
+            "caps_bits": {
+              "$ref": "#/$defs/calendar_date"
+            },
+            "cpufamily_names": {
+              "$ref": "#/$defs/calendar_date"
+            },
+            "soc_map": {
+              "$ref": "#/$defs/calendar_date"
+            },
+            "documented_matrix": {
+              "$ref": "#/$defs/calendar_date"
+            }
+          },
+          "description": "verified dates of the bundled data files that annotated this export."
         }
       }
     },
