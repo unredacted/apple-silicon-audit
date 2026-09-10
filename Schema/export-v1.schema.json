@@ -81,7 +81,7 @@
   "$defs": {
     "state": {
       "type": "string",
-      "enum": ["present", "not_present", "key_absent", "restricted", "error", "unknown"]
+      "enum": ["present", "not_present", "key_absent", "restricted", "not_applicable", "error", "unknown"]
     },
     "provenance": {
       "type": "string",

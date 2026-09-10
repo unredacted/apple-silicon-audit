@@ -3,7 +3,7 @@
 **Working name:** Silicon Audit (the shipped app name must not contain "Apple"; the repo name is fine)
 **Bundle identifier root:** `org.unredacted.siliconaudit`
 **Purpose:** An open-source app that reports which CPU-level security features the kernel actually exposes on the exact Apple device it runs on, across every Apple platform.
-**Status:** Spec v0.2, reviewed against a live M5-class Mac, the public SDK headers, the macOS sandbox profiles, and XNU source. See [docs/spec-review.md](docs/spec-review.md) for every change from v0.1 and its evidence. No code written yet.
+**Status:** Spec v0.2, reviewed against a live M5-class Mac, the public SDK headers, the macOS sandbox profiles, and XNU source. See [docs/spec-review.md](docs/spec-review.md) for every change from v0.1 and its evidence. Implementation in progress; see open PRs.
 **Audience:** The implementing engineer or agent. Assumes Swift, Xcode 26.6+, and basic Darwin/POSIX familiarity.
 
 ---
@@ -67,6 +67,7 @@ enum ProbeOutcome: Equatable {
     case value(SysctlValue)   // returned 0; see SysctlValue for interpretation
     case absent               // returned -1, errno == ENOENT: kernel does not know this key
     case restricted           // returned -1, errno == EPERM or EACCES: sandbox or kernel denied
+    case notApplicable        // returned -1, errno == ENOTSUP: registered for another architecture
     case error(Int32)         // returned -1, some other errno
 }
 
@@ -80,6 +81,8 @@ struct SysctlValue: Equatable {
 For `hw.optional.*` integer keys the display state is derived from the value: nonzero → `present`, zero → `not_present`. `absent` and `not_present` mean genuinely different things. Absent means this kernel doesn't know the key at all — typically an older OS or a platform where the concept doesn't apply. Not present means the kernel knows the key and reports it off. On a question like "did EMTE make it into this chip," the distinction is the whole answer.
 
 **Not every integer key is a flag.** `hw.optional.breakpoint` (6), `hw.optional.watchpoint` (4), and `hw.optional.arm.sme_max_svl_b` (64) are counts. The inventory (§4.3) marks each key's `kind` as `flag`, `count`, `bitmask`, or `string`; only `flag` keys get a present/not-present state.
+
+**`ENOTSUP` is its own state.** On an arm64 kernel the walk finds 29 legacy x86 keys (`hw.optional.sse4_2`, `hw.optional.avx512f`, `hw.optional.x86_64`, …) that are registered but answer `ENOTSUP` when read; `sysctl -a` silently drops them, which is why they never appear in a plain listing. Export them as `not_applicable`, never as `error`: they say the kernel carries the other architecture's key table and nothing about this chip. Expect the mirror image on Intel Macs.
 
 **Handle variable width, and do not trust the declared format alone.** Query with a zero-length buffer first to get the size, then allocate, then record the actual returned length. The live example: `hw.optional.arm.caps` reports format `int64_t` via OIDFMT but returns **12 bytes** (`CAP_BIT_NB` = 92 bits, rounded up to bytes). A 4- or 8-byte assumption silently truncates it. Store raw bytes and decode after.
 
@@ -141,7 +144,7 @@ Keys to annotate, grouped by what they tell you. Names below are the exact sysct
 **Everything else under `hw.optional.arm`** (SIMD, SHA, SME, FP) is annotated as "ISA feature, not security-relevant" so the UI can fold it into a secondary section rather than dropping it.
 
 **OS-level memory tagging state (measured, see §4.4)**
-`vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, `kern.mte_tag_storage_inactive_target`. Read these by name only; never walk `vm.*` or `kern.*`.
+`vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`. (`kern.mte_tag_storage_inactive_target` appears in kernel strings but is a boot tunable, not a sysctl.) Read these by name only; never walk `vm.*` or `kern.*`.
 
 **Context**
 `hw.product` (primary device identifier — see below), `hw.machine`, `hw.model`, `hw.target`, `hw.targettype`, `hw.cputype`, `hw.cpusubtype`, `hw.cpufamily`, `hw.cpusubfamily`, `hw.ncpu`, `hw.nperflevels` and the per-level `hw.perflevelN.*` keys, `hw.memsize`, `hw.pagesize`, `hw.features.allows_security_research` (Security Research Device indicator), `hw.engineering_sample`, `kern.osversion` (build, e.g. `25G83`), `kern.osproductversion`, `kern.osreleasetype`, `kern.version`, `kern.hv_support`, `sysctl.proc_translated` (Rosetta).
@@ -156,7 +159,7 @@ Keys to annotate, grouped by what they tell you. Names below are the exact sysct
 
 ### 4.4 What can and cannot be probed
 
-**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6: `vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, …) and `kern.mte_tag_storage_inactive_target`. Nonzero counters are **measured** evidence that this kernel is actively tagging memory system-wide. `absent` on an older kernel is also informative. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
+**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6: `vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, …). Nonzero counters are **measured** evidence that this kernel is actively tagging memory system-wide. `absent` on an older kernel is also informative. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
 
 **Not probeable.** These appear in Apple's security documentation but are **not** exposed via any public interface. They must be surfaced as `documented`, never `measured`:
 
@@ -346,7 +349,7 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
 
 Design notes:
 
-- **`state` is one enum for every fact:** `present | not_present | key_absent | restricted | error | unknown`. Measured facts use the first five; documented and inferred facts use `present`, `not_present`, or `unknown`.
+- **`state` is one enum for every fact:** `present | not_present | key_absent | restricted | not_applicable | error | unknown`. Measured facts use the first six; documented and inferred facts use `present`, `not_present`, or `unknown`.
 - `unrecognized_keys` is deliberately a top-level field, not buried. It's where new discoveries show up. It is scoped to the walk root (`hw.optional`), never to `kern.*` or `vm.*`.
 - `collection.walk_succeeded: false` means the result is not evidence of absence for keys outside the inventory.
 - Everything under `device` ending in `_inferred` is a lookup, not a measurement, and the app has no way to verify it. `soc_id` and `cpufamily` are measured.
@@ -431,7 +434,7 @@ silicon-audit/
 
 ## 13. Milestones
 
-**M0 — Feasibility spike (do this first).** A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged` and `kern.mte_tag_storage_inactive_target`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
+**M0 — Feasibility spike (do this first).** A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
 
 **M1 — Core engine.** `SiliconAuditCore` with the five-way probe, MIB walk unioned with the known list, `Environment` detection (simulator, Rosetta, iOS-on-Mac, Intel), known-key inventory generated from the two public headers, `soc_id` parsing, fact model, JSON export plus compact variant. Unit tested against recorded fixtures, starting with `docs/evidence/Mac17,7-25G83.txt`.
 

@@ -66,7 +66,7 @@ Each finding below states what v0.1 said, what is actually true, the evidence, a
 
 ### 9. OS-level MTE activity *is* partially observable
 - **v0.1 §4.4:** "Memory Integrity Enforcement as a whole" cannot be probed; nothing about OS state.
-- **True:** This kernel exposes 60+ `vm.mte.*` counters (`vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, …) and `kern.mte_tag_storage_inactive_target`. Nonzero values are measured evidence the kernel is tagging memory system-wide. Not proof of per-process protection or synchronous mode. Not registered in `bsd/vm/vm_unix.c` (osfmk side). iOS/watchOS readability unverified.
+- **True:** This kernel exposes 60+ `vm.mte.*` counters (`vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, …). Nonzero values are measured evidence the kernel is tagging memory system-wide. Not proof of per-process protection or synchronous mode. Not registered in `bsd/vm/vm_unix.c` (osfmk side). iOS/watchOS readability unverified.
 - **Evidence:** `sysctl -a | grep -E '^(vm\.mte\.|kern\.mte_)'`; kernel strings (`MTE_MASK_*`, `mte_ts_*`).
 - **Edit:** §4.4 split into "partially probeable" and "not probeable"; new measured fact with strict copy; added to M0 checklist.
 
@@ -161,6 +161,16 @@ User question answered in the spec: a 26.6-built app runs on OS 27 and new hardw
 
 ### 34. Milestones
 M1 now includes `Environment`; M5 CI rejects all three environment flags; M0 has a checklist and drops macOS. (§13)
+
+---
+
+## C. Found during Phase 1 implementation
+
+### 35. `ENOTSUP` is a distinct outcome, and `sysctl -a` hides it
+The first live MIB walk returned 115 leaves under `hw.optional` where `sysctl hw.optional` prints 86. The 29 extra keys are the legacy x86 table (`hw.optional.sse4_2`, `avx512f`, `x86_64`, …), registered on the arm64 kernel but answering errno 45 (`ENOTSUP`); sysctl(8) drops any key whose read fails. v0.2 mapped this to `error`. **Edit:** new `notApplicable` outcome and `not_applicable` export state (§4.1, §8, schema). The reviewed evidence dump is therefore the sysctl(8) view, not the full subtree; the CLI's `raw --all` is.
+
+### 36. `kern.mte_tag_storage_inactive_target` is not a sysctl
+It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.6.2; it is a boot tunable. **Edit:** removed from §4.3, §4.4, and the M0 checklist. The `vm.mte.*` counters remain and read fine unsandboxed (`vm.mte.tagged` = 313452 at the time of the run).
 
 ---
 
