@@ -1,12 +1,12 @@
 import Foundation
 
 /// How and where the audit ran. This is the only file in the core allowed to use
-/// `#if os(...)`, `#if arch(...)`, or `#if targetEnvironment(...)` (spec §6.1).
+/// `#if os(...)`, `#if arch(...)`, or `#if targetEnvironment(...)` (spec §6.1). Named `AuditEnvironment` to stay clear of SwiftUI's `AuditEnvironment`.
 ///
 /// Every field here exists because it changes how a result must be read:
 /// a simulator, a translated process, or an iOS app on a Mac reports the host's
 /// chip, not the device the user thinks they are auditing (spec §6.2, §14).
-public struct Environment: Equatable, Hashable, Sendable {
+public struct AuditEnvironment: Equatable, Hashable, Sendable {
     public enum Platform: String, Codable, Sendable {
         case iOS, iPadOS, macOS, watchOS, tvOS, visionOS, unknown
     }
@@ -47,12 +47,12 @@ public struct Environment: Equatable, Hashable, Sendable {
 
     /// Detects the current environment. Compile-time facts come from the build;
     /// everything else is read through `sysctl` so fixtures can drive it.
-    public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> Environment {
+    public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> AuditEnvironment {
         let productName = sysctl.read("hw.product").value?.payload.stringValue
             ?? sysctl.read("hw.machine").value?.payload.stringValue
             ?? ""
 
-        return Environment(
+        return AuditEnvironment(
             platform: compiledPlatform(productName: productName),
             arch: compiledArch,
             osVersion: sysctl.read("kern.osproductversion").value?.payload.stringValue

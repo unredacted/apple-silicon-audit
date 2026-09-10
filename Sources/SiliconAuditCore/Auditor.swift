@@ -3,13 +3,13 @@ import Foundation
 /// Everything the engine collected, before annotation. This is what the Phase 2
 /// spike displays; the annotated `Report` arrives in Phase 3.
 public struct RawAuditResult: Equatable, Sendable {
-    public let environment: Environment
+    public let environment: AuditEnvironment
     public let walk: WalkResult
     /// Keys read by name regardless of the walk (spec §4.2: walk ∪ known list).
     public let namedReads: [String: ProbeOutcome]
     public let collectedAt: Date
 
-    public init(environment: Environment, walk: WalkResult, namedReads: [String: ProbeOutcome], collectedAt: Date) {
+    public init(environment: AuditEnvironment, walk: WalkResult, namedReads: [String: ProbeOutcome], collectedAt: Date) {
         self.environment = environment
         self.walk = walk
         self.namedReads = namedReads
@@ -65,7 +65,7 @@ public struct Auditor: Sendable {
     }
 
     public func rawAudit(now: Date = Date()) -> RawAuditResult {
-        let environment = Environment.detect(using: sysctl)
+        let environment = AuditEnvironment.detect(using: sysctl)
         let walk = MIBWalker(sysctl: sysctl).walk()
         var named: [String: ProbeOutcome] = [:]
         for key in Auditor.namedKeys {

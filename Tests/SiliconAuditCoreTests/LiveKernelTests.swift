@@ -50,7 +50,7 @@ struct LiveKernelTests {
 
     @Test("environment reflects this Mac")
     func environment() {
-        let env = Environment.detect(using: live)
+        let env = AuditEnvironment.detect(using: live)
         #expect(env.platform == .macOS)
         #expect(env.arch == .arm64 || env.arch == .arm64e)
         #expect(!env.osBuild.isEmpty)

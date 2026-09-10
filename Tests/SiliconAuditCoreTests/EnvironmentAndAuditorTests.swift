@@ -2,13 +2,13 @@ import Foundation
 import Testing
 @testable import SiliconAuditCore
 
-@Suite("Environment detection")
+@Suite("AuditEnvironment detection")
 struct EnvironmentTests {
     @Test("reads version, build, kernel string, and translation flag through sysctl")
     func detectFromFake() {
         var entries = Trees.device().entries
         entries.append(.int([8, 1], "sysctl.proc_translated", 1))
-        let env = Environment.detect(using: FakeSysctl(entries: entries, nodes: ["hw.optional": Trees.hwOptional]))
+        let env = AuditEnvironment.detect(using: FakeSysctl(entries: entries, nodes: ["hw.optional": Trees.hwOptional]))
         #expect(env.osVersion == "26.6.2")
         #expect(env.osBuild == "25G83")
         #expect(env.kernelVersion.hasSuffix("RELEASE_ARM64_T6050"))
@@ -18,13 +18,13 @@ struct EnvironmentTests {
 
     @Test("absent proc_translated means not translated")
     func notTranslated() {
-        let env = Environment.detect(using: Trees.device())
+        let env = AuditEnvironment.detect(using: Trees.device())
         #expect(!env.isTranslated)
     }
 
     @Test("iPad product prefix selects iPadOS only when compiled for iOS")
     func ipadDetection() {
-        let p = Environment.compiledPlatform(productName: "iPad16,3")
+        let p = AuditEnvironment.compiledPlatform(productName: "iPad16,3")
         #if os(iOS)
         #expect(p == .iPadOS)
         #else
