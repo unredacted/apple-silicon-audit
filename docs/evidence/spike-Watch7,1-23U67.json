@@ -1,0 +1,88 @@
+{
+  "arch" : "arm64",
+  "capsHex" : "ffeffffb9f000e0c00020000",
+  "capsLength" : 12,
+  "collectedAt" : "2026-09-10T14:16:43Z",
+  "cpufamilyHex" : "0x8765edea",
+  "hwMachine" : "Watch7,1",
+  "hwModel" : "N207sAP",
+  "hwProduct" : "Watch7,1",
+  "hwTarget" : "N207sAP",
+  "isSimulator" : false,
+  "isTranslated" : false,
+  "isVirtualMachine" : false,
+  "isiOSAppOnMac" : false,
+  "kernelFormatsAvailable" : false,
+  "kernelVersion" : "Darwin Kernel Version 25.6.0: Sat Jul 11 14:47:13 PDT 2026; root:xnu-12377.164.4~3\/RELEASE_ARM64_T8310",
+  "keyCount" : 0,
+  "maskedCount" : 0,
+  "memoryTagging" : [
+    {
+      "key" : "hw.optional.arm.caps",
+      "result" : "0xffeffffb9f000e0c00020000 [int64_t*, 12B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE2",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE3",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE4",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_ASYNC",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_CANONICAL_TAGS",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_STORE_ONLY",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS",
+      "result" : "0 [integer*, 4B]"
+    }
+  ],
+  "notApplicableCount" : 0,
+  "osBuild" : "23U67",
+  "osTagging" : [
+    {
+      "key" : "vm.mte.tagged",
+      "result" : "absent (ENOENT)"
+    },
+    {
+      "key" : "vm.mte.cell.active",
+      "result" : "absent (ENOENT)"
+    },
+    {
+      "key" : "vm.mte.tag_storage.activations",
+      "result" : "absent (ENOENT)"
+    }
+  ],
+  "osVersion" : "26.6",
+  "platform" : "watchOS",
+  "restrictedCount" : 3,
+  "restrictedKeys" : [
+    "hw.engineering_sample",
+    "hw.features.allows_security_research",
+    "kern.hv_support"
+  ],
+  "socID" : "T8310",
+  "unnamedCount" : 0,
+  "walkFailure" : "CTL_SYSCTL_NEXT failed with errno 1 after 0 keys",
+  "walkSucceeded" : false,
+  "walked" : [
+
+  ]
+}

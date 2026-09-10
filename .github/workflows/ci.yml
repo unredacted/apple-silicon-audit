@@ -1,0 +1,53 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  swift:
+    name: Build and test (macOS 26, arm64)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+      - name: CLI smoke
+        run: swift run silicon-audit --version
+      - name: Export fixtures and validate against the schema
+        run: |
+          swift run silicon-audit export --fixture docs/evidence/Mac17,7-25G83.txt > /tmp/mac.json
+          swift run silicon-audit export --fixture docs/evidence/Mac17,7-25G83.txt --walk-refused > /tmp/mac-refused.json
+          swift run silicon-audit export --compact --fixture docs/evidence/Mac17,7-25G83.txt | swift run silicon-audit import > /tmp/mac-compact.json
+          Scripts/validate-export.sh /tmp/mac.json /tmp/mac-refused.json /tmp/mac-compact.json
+      - name: Live export (carries the self-test fact) validates; self-test runs unsigned and hardened
+        # The runner is a VM (is_virtual_machine true) without tagging hardware, so both self-tests read
+        # not_applicable there; the point is that the probe runs, exports, and validates.
+        run: |
+          swift run silicon-audit export > /tmp/live.json
+          Scripts/validate-export.sh /tmp/live.json
+          swift run silicon-audit self-test --fault
+          Scripts/sign-hardened.sh .build/debug/silicon-audit
+          .build/debug/silicon-audit self-test --fault
+          .build/debug/silicon-audit export --fault-test > /tmp/live-hardened.json
+          Scripts/validate-export.sh /tmp/live-hardened.json
+
+  simulators:
+    name: Build UI for tvOS, visionOS, watchOS simulators
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build SiliconAuditUI for each simulator SDK
+        # The package's own schemes, no XcodeGen needed: this catches SwiftUI availability differences
+        # (no glassEffect on tvOS/visionOS, no textSelection or size classes on tvOS, and so on).
+        run: |
+          for dest in "tvOS Simulator" "visionOS Simulator" "watchOS Simulator"; do
+            echo "::group::$dest"
+            xcodebuild build -scheme SiliconAuditUI -destination "generic/platform=$dest" CODE_SIGNING_ALLOWED=NO -quiet
+            echo "::endgroup::"
+          done

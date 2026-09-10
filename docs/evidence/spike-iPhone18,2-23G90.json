@@ -1,0 +1,91 @@
+{
+  "arch" : "arm64",
+  "capsHex" : "ffefffffd77ffebfdb030008",
+  "capsLength" : 12,
+  "collectedAt" : "2026-09-10T09:52:20Z",
+  "cpufamilyHex" : "0xab345f09",
+  "hwMachine" : "iPhone18,2",
+  "hwModel" : "V54AP",
+  "hwProduct" : "iPhone18,2",
+  "hwTarget" : "V54AP",
+  "isSimulator" : false,
+  "isTranslated" : false,
+  "isVirtualMachine" : false,
+  "isiOSAppOnMac" : false,
+  "kernelFormatsAvailable" : false,
+  "kernelVersion" : "Darwin Kernel Version 25.6.0: Thu Jul 30 12:43:49 PDT 2026; root:xnu-12377.162.14~4\/RELEASE_ARM64_T8150",
+  "keyCount" : 0,
+  "maskedCount" : 0,
+  "memoryTagging" : [
+    {
+      "key" : "hw.optional.arm.caps",
+      "result" : "0xffefffffd77ffebfdb030008 [int64_t*, 12B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE",
+      "result" : "1 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE2",
+      "result" : "1 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE3",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE4",
+      "result" : "1 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_ASYNC",
+      "result" : "0 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_CANONICAL_TAGS",
+      "result" : "1 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_STORE_ONLY",
+      "result" : "1 [integer*, 4B]"
+    },
+    {
+      "key" : "hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS",
+      "result" : "1 [integer*, 4B]"
+    }
+  ],
+  "notApplicableCount" : 0,
+  "osBuild" : "23G90",
+  "osTagging" : [
+    {
+      "key" : "vm.mte.tagged",
+      "result" : "restricted (EPERM\/EACCES)"
+    },
+    {
+      "key" : "vm.mte.cell.active",
+      "result" : "restricted (EPERM\/EACCES)"
+    },
+    {
+      "key" : "vm.mte.tag_storage.activations",
+      "result" : "restricted (EPERM\/EACCES)"
+    }
+  ],
+  "osVersion" : "26.6.2",
+  "platform" : "iOS",
+  "restrictedCount" : 6,
+  "restrictedKeys" : [
+    "hw.engineering_sample",
+    "hw.features.allows_security_research",
+    "kern.hv_support",
+    "vm.mte.cell.active",
+    "vm.mte.tag_storage.activations",
+    "vm.mte.tagged"
+  ],
+  "socID" : "T8150",
+  "unnamedCount" : 0,
+  "walkFailure" : "CTL_SYSCTL_NEXT failed with errno 1 after 0 keys",
+  "walkSucceeded" : false,
+  "walked" : [
+
+  ]
+}

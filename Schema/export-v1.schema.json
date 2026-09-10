@@ -1,0 +1,993 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/unredacted/apple-silicon-audit/Schema/export-v1.schema.json",
+  "title": "Silicon Audit export, schema 1.x",
+  "description": "One device's audit result. additionalProperties is false everywhere and raw sysctl keys are restricted to an allowlist: the schema is also the privacy guard enforced by CI.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "app_version",
+    "collected_at",
+    "collection",
+    "environment",
+    "device",
+    "facts",
+    "unrecognized_keys"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "variant": {
+      "type": "string",
+      "enum": [
+        "full",
+        "compact"
+      ],
+      "default": "full"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "collection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "walk_succeeded",
+        "walk_root",
+        "known_keys_version",
+        "kernel_formats_available"
+      ],
+      "properties": {
+        "walk_succeeded": {
+          "type": "boolean"
+        },
+        "walk_root": {
+          "type": "string",
+          "const": "hw.optional"
+        },
+        "walk_failure": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "known_keys_version": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/calendar_date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "kernel_formats_available": {
+          "type": "boolean",
+          "description": "False when CTL_SYSCTL_OIDFMT was refused and every type came from the inventory (iOS, watchOS)."
+        },
+        "data_versions": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "known_keys",
+            "caps_bits",
+            "cpufamily_names",
+            "soc_map",
+            "documented_matrix"
+          ],
+          "properties": {
+            "known_keys": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "caps_bits": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "cpufamily_names": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "soc_map": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "documented_matrix": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "description": "verified dates of the bundled data files that annotated this export; null when a file could not be loaded (never a fabricated date)."
+        }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "platform",
+        "arch",
+        "os_version",
+        "os_build",
+        "kernel_version",
+        "is_simulator",
+        "is_translated",
+        "is_ios_app_on_mac",
+        "is_catalyst",
+        "is_virtual_machine"
+      ],
+      "properties": {
+        "platform": {
+          "type": "string",
+          "enum": [
+            "iOS",
+            "iPadOS",
+            "macOS",
+            "watchOS",
+            "tvOS",
+            "visionOS",
+            "unknown"
+          ]
+        },
+        "arch": {
+          "type": "string",
+          "enum": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+            "unknown"
+          ]
+        },
+        "os_version": {
+          "type": "string"
+        },
+        "os_build": {
+          "type": "string"
+        },
+        "kernel_version": {
+          "type": "string"
+        },
+        "is_simulator": {
+          "type": "boolean"
+        },
+        "is_translated": {
+          "type": "boolean"
+        },
+        "is_ios_app_on_mac": {
+          "type": "boolean"
+        },
+        "is_catalyst": {
+          "type": "boolean"
+        },
+        "is_virtual_machine": {
+          "type": "boolean"
+        }
+      }
+    },
+    "device": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "identity",
+        "hw_product",
+        "hw_machine",
+        "hw_model",
+        "cpufamily",
+        "cpufamily_name",
+        "soc_id",
+        "soc_name_inferred",
+        "marketing_name_inferred"
+      ],
+      "properties": {
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "description": "First non-empty of hw_product, hw_model (Macs), hw_machine. Results and conflict key."
+        },
+        "hw_product": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_machine": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cpufamily": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^0x[0-9a-f]{8}$"
+        },
+        "cpufamily_name": {
+          "type": "string"
+        },
+        "cpusubfamily": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "cpusubfamily_name": {
+          "type": "string"
+        },
+        "soc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^T[0-9]{4,5}$"
+        },
+        "soc_name_inferred": {
+          "type": "string"
+        },
+        "soc_inference_confidence": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "reported",
+            "none"
+          ]
+        },
+        "marketing_name_inferred": {
+          "type": "string"
+        }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "byte_count",
+        "popcount",
+        "named_bits",
+        "unnamed_bits",
+        "mismatches"
+      ],
+      "properties": {
+        "byte_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "popcount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "named_bits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unnamed_bits": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "mismatches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "hw.optional.arm.caps decoded with <arm/cpu_capabilities_public.h>; mismatches against FEAT_* keys are listed, never hidden."
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    },
+    "unrecognized_keys": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unrecognized_fact"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "Compact variant (watch ShareLink, tvOS QR): measured facts only, display names omitted.",
+      "if": {
+        "required": [
+          "variant"
+        ],
+        "properties": {
+          "variant": {
+            "const": "compact"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "facts": {
+            "items": {
+              "properties": {
+                "provenance": {
+                  "const": "measured"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "unrecognized_keys": {
+            "items": {
+              "properties": {
+                "provenance": {
+                  "const": "measured"
+                }
+              },
+              "type": "object"
+            },
+            "type": "array"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "facts": {
+            "items": {
+              "required": [
+                "display_name"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          },
+          "unrecognized_keys": {
+            "items": {
+              "required": [
+                "display_name"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "calendar_date": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^\\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01])$"
+    },
+    "allowed_sysctl_key": {
+      "description": "The export allowlist (SPEC.md §4.3, §10). Anything else, including kern.hostname, kern.boottime, kern.uuid and kern.bootsessionuuid, is rejected.",
+      "type": "string",
+      "pattern": "^(hw\\.optional\\.[A-Za-z0-9_.]+|hw\\.(product|machine|model|target|targettype|cputype|cpusubtype|cpufamily|cpusubfamily|ncpu|nperflevels|memsize|pagesize|engineering_sample|features\\.allows_security_research|perflevel[0-9]+\\.(physicalcpu|physicalcpu_max|logicalcpu|logicalcpu_max|l1icachesize|l1dcachesize|l2cachesize|cpusperl2|l3cachesize|cpusperl3|name))|kern\\.(version|osversion|osproductversion|osreleasetype|hv_support)|vm\\.mte\\.[A-Za-z0-9_.]+|sysctl\\.proc_translated)$"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "present",
+        "not_present",
+        "value",
+        "key_absent",
+        "restricted",
+        "not_applicable",
+        "error",
+        "unknown"
+      ]
+    },
+    "measured_state": {
+      "type": "string",
+      "enum": [
+        "present",
+        "not_present",
+        "value",
+        "key_absent",
+        "restricted",
+        "not_applicable",
+        "error"
+      ]
+    },
+    "claim_state": {
+      "type": "string",
+      "enum": [
+        "present",
+        "not_present",
+        "unknown"
+      ]
+    },
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "measured",
+        "documented",
+        "inferred",
+        "unknown"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "flag",
+        "count",
+        "bitmask",
+        "string",
+        "unknown",
+        "claim"
+      ]
+    },
+    "raw": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "format",
+        "length",
+        "errno"
+      ],
+      "properties": {
+        "key": {
+          "$ref": "#/$defs/allowed_sysctl_key"
+        },
+        "format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "value_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]*$"
+        },
+        "errno": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "masked": {
+          "type": "boolean"
+        },
+        "format_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "kernel",
+            "inventory",
+            null
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "published",
+        "verified"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "published": {
+          "$ref": "#/$defs/calendar_date"
+        },
+        "verified": {
+          "$ref": "#/$defs/calendar_date"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "fact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "provenance",
+        "state"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "discovered_by": {
+          "type": "string",
+          "enum": [
+            "walk",
+            "known_list",
+            "both",
+            "self_test"
+          ]
+        },
+        "raw": {
+          "$ref": "#/$defs/raw"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "reasoning": {
+          "type": "string"
+        },
+        "probe": {
+          "$ref": "#/$defs/probe"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "measured"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "discovered_by"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/measured_state"
+              }
+            },
+            "oneOf": [
+              {
+                "description": "A sysctl reading.",
+                "required": [
+                  "raw"
+                ],
+                "properties": {
+                  "discovered_by": {
+                    "enum": [
+                      "walk",
+                      "known_list",
+                      "both"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "probe"
+                  ]
+                }
+              },
+              {
+                "description": "A self-test measured inside the exporting process (SPEC §11); only these two facts.",
+                "required": [
+                  "probe"
+                ],
+                "properties": {
+                  "discovered_by": {
+                    "const": "self_test"
+                  },
+                  "category": {
+                    "const": "enforcement"
+                  },
+                  "id": {
+                    "enum": [
+                      "self_test.tagged_pointers",
+                      "self_test.tag_check_fault"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tagged_pointers"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "samples",
+                            "tagged",
+                            "distinct_tags"
+                          ],
+                          "properties": {
+                            "method": {
+                              "const": "tagged_pointer_observation"
+                            }
+                          },
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "child_signal"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "child_exit_status"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "properties": {
+                            "method": {
+                              "const": "child_process_tag_mismatch_store"
+                            }
+                          },
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "samples"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "tagged"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "distinct_tags"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        },
+                        "state": {
+                          "const": "present"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "child_signal"
+                          ],
+                          "not": {
+                            "required": [
+                              "child_exit_status"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        },
+                        "state": {
+                          "const": "not_present"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "child_exit_status"
+                          ],
+                          "not": {
+                            "required": [
+                              "child_signal"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "documented"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/claim_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "inferred"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reasoning"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/claim_state"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "unknown"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "unknown"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "flag"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "const": "value"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "count",
+                  "bitmask",
+                  "string",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "enum": [
+                    "present",
+                    "not_present"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unrecognized_fact": {
+      "description": "A key the walk found that the inventory does not annotate: an ordinary measured fact with its own provenance and read outcome, constrained to the walk root.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fact"
+        },
+        {
+          "properties": {
+            "provenance": {
+              "const": "measured"
+            },
+            "discovered_by": {
+              "const": "walk"
+            },
+            "kind": {
+              "const": "unknown"
+            },
+            "category": {
+              "const": "unrecognized"
+            },
+            "raw": {
+              "properties": {
+                "key": {
+                  "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "kind",
+            "discovered_by",
+            "raw"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "probe": {
+      "description": "A measurement made inside the exporting process (SPEC §11), instead of a sysctl reading. Per-process facts: they describe the build that exported, not the device.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "entitlement"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "tagged_pointer_observation",
+            "child_process_tag_mismatch_store"
+          ]
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tagged": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinct_tags": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "entitlement": {
+          "type": "string",
+          "enum": [
+            "declared",
+            "not_declared",
+            "unknown"
+          ]
+        },
+        "child_signal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "child_exit_status": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}
