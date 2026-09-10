@@ -228,6 +228,17 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## H. From Phase 4 implementation (iOS/iPadOS and macOS apps)
+
+71. **One multiplatform target** (`supportedDestinations: [iOS, macOS]`) with the watch app embedded under an iOS destination filter; App Sandbox, hardened runtime and user-selected file access apply only to the macOS SDK via `[sdk=macosx*]` settings. (§6.1)
+72. **`SiliconAuditUI` is shared by every target including the watch**, so views that use `FileDocument`, `fileExporter`, size classes or `textSelection` are excluded from watchOS with `#if !os(watchOS)`; the watch keeps the Phase 2 spike UI until Phase 5. (§6.1, §7)
+73. **The headline count is the security view's flag count** (`securityFacts`, which honors `security_relevant`), so the app shows 17/26 on the M5 Mac where the CLI's category-only view showed 16/21; both are right for what they count. The app is the reference. (§6.4)
+74. **`navigationDestination` must hang off the `List`**, not a `Section`: attached to a section, value-based links silently fail with a SwiftUI "no matching navigationDestination" fault. (implementation note)
+76. **Two modes.** User feedback on the first build: non-technical readers need meaning first. Added an Overview mode of eight plain-language topics with verdict words and a provenance line, and kept the fact-level view as Details; the mode persists via `@AppStorage`. (§6.4)
+75. **Verified in the simulator:** persistent banner, glass summary card, glyph + text state + provenance badge per row, detail view with raw reading and provenance chain, and the export sheet; the app-written JSON validates against the schema with `is_simulator: true`. macOS built and launched natively (no screenshot: screen capture is disabled on the dev Mac by policy). (§14)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.

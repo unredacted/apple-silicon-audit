@@ -1,12 +1,13 @@
 # XcodeGen spec. Regenerate with Scripts/gen-project.sh; the .xcodeproj is gitignored.
-# Phase 2 scope: iOS app + embedded watchOS app for the M0 hardware spike.
-# macOS/visionOS/tvOS destinations join the app target in Phases 4 and 8.
+# SiliconAudit is a multiplatform target (iOS/iPadOS + macOS, visionOS/tvOS join in Phase 8);
+# SiliconAuditWatch is embedded in the iOS build.
 name: SiliconAudit
 options:
   bundleIdPrefix: org.unredacted
   xcodeVersion: "26.0"
   deploymentTarget:
     iOS: "18.0"
+    macOS: "15.0"
     watchOS: "11.0"
   createIntermediateGroups: true
   groupSortPosition: top
@@ -34,15 +35,16 @@ packages:
 targets:
   SiliconAudit:
     type: application
-    platform: iOS
+    supportedDestinations: [iOS, macOS]
     sources:
       - path: Apps/SiliconAudit
-      - path: Apps/Shared
+      - path: Apps/Shared/Resources
     dependencies:
       - package: SiliconAuditPackage
         products: [SiliconAuditCore, SiliconAuditUI]
       - target: SiliconAuditWatch
         embed: true
+        destinationFilters: [iOS]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit
@@ -55,7 +57,12 @@ targets:
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_NSHumanReadableCopyright: "Apache-2.0"
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS.entitlements
+        "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": YES
+        "ENABLE_APP_SANDBOX[sdk=macosx*]": YES
 
+  # Phase 2 spike UI stays on the watch until Phase 5 replaces it with the shared views.
   SiliconAuditWatch:
     type: application
     platform: watchOS

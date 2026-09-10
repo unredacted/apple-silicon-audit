@@ -25,7 +25,8 @@ let package = Package(
         // Shared SwiftUI views.
         .target(
             name: "SiliconAuditUI",
-            dependencies: ["SiliconAuditCore"]
+            dependencies: ["SiliconAuditCore"],
+            resources: [.process("Resources")]
         ),
         // macOS command-line tool linking the same core.
         .executableTarget(
@@ -38,6 +39,10 @@ let package = Package(
         .testTarget(
             name: "SiliconAuditCoreTests",
             dependencies: ["SiliconAuditCore"]
+        ),
+        .testTarget(
+            name: "SiliconAuditUITests",
+            dependencies: ["SiliconAuditUI", "SiliconAuditCore"]
         ),
     ],
     swiftLanguageModes: [.v6]
