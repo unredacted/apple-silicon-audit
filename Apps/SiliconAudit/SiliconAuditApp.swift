@@ -62,7 +62,7 @@ struct WatchReportsSection: View {
                     }
                 }
                 .onDelete { offsets in
-                    for i in offsets { received.delete(received.entries[i]) }
+                    received.delete(at: offsets)
                 }
                 if let status = transfer.status {
                     Text(status).font(.caption2).foregroundStyle(.secondary)

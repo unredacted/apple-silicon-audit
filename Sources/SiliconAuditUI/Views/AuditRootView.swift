@@ -45,8 +45,7 @@ public struct AuditRootView: View {
     private var compactLayout: some View {
         NavigationStack {
             List {
-                if let companion, model.report != nil { companion() }
-                ReportListContent(model: model, mode: mode)
+                ReportListContent(model: model, mode: mode, afterSummary: companion)
             }
             .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
             .navigationTitle("Silicon Audit")
@@ -109,9 +108,8 @@ public struct AuditRootView: View {
         if let report = model.report {
             if selection == nil || selection == AuditRootView.summaryID || mode == .overview {
                 List {
-                    if let companion { companion() }
                     if mode == .overview {
-                        ReportListContent(model: model, mode: .overview)
+                        ReportListContent(model: model, mode: .overview, afterSummary: companion)
                     } else {
                         Section {
                             EnvironmentBanner(report.environment)
@@ -123,6 +121,7 @@ public struct AuditRootView: View {
                         } footer: {
                             Text(ReportListContent.footer(for: report))
                         }
+                        if let companion { companion() }
                     }
                 }
                 .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }

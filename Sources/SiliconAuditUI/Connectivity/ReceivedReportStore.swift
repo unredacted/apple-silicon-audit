@@ -73,6 +73,14 @@ public final class ReceivedReportStore {
         reload()
     }
 
+    /// Deletes the entries at `offsets` as one batch: offsets are resolved against the current
+    /// array before anything is removed, then the list reloads once.
+    public func delete(at offsets: IndexSet) {
+        let victims = offsets.compactMap { entries.indices.contains($0) ? entries[$0] : nil }
+        for v in victims { try? FileManager.default.removeItem(at: v.url) }
+        reload()
+    }
+
     public enum IngestError: Error, Equatable {
         case unsupportedSchema(String)
         case notStored

@@ -9,11 +9,15 @@ public struct ReportListContent: View {
     let model: ReportModel
     let mode: PresentationMode
     let watchLayout: Bool
+    /// Optional extra content placed after the local summary and before the topics/sections
+    /// (e.g. the phone's "From Apple Watch" section). The device's own results always come first.
+    let afterSummary: (() -> AnyView)?
 
-    public init(model: ReportModel, mode: PresentationMode, watchLayout: Bool = false) {
+    public init(model: ReportModel, mode: PresentationMode, watchLayout: Bool = false, afterSummary: (() -> AnyView)? = nil) {
         self.model = model
         self.mode = mode
         self.watchLayout = watchLayout
+        self.afterSummary = afterSummary
     }
 
     public var body: some View {
@@ -30,6 +34,7 @@ public struct ReportListContent: View {
                         .listRowBackground(Color.clear)
                 }
             }
+            if let afterSummary { afterSummary() }
             if mode == .overview {
                 Section {
                     OverviewList(report: report)

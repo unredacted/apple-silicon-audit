@@ -46,6 +46,24 @@ struct ReceivedReportStoreTests {
         try? FileManager.default.removeItem(at: store.directory)
     }
 
+    @Test("batch delete resolves offsets before mutating")
+    func batchDelete() throws {
+        let store = tempStore()
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent("incoming-\(UUID()).json")
+        for build in ["25G1", "25G2", "25G3"] {
+            try makeReport(build: build).jsonData().write(to: tmp)
+            try store.ingest(fileAt: tmp)
+        }
+        #expect(store.entries.count == 3)
+        let survivor = store.entries[2]
+        store.delete(at: IndexSet([0, 1]))
+        #expect(store.entries.count == 1)
+        #expect(store.entries.first?.url.lastPathComponent == survivor.url.lastPathComponent)
+        store.delete(at: IndexSet([5]))   // out of range is ignored, not a crash
+        #expect(store.entries.count == 1)
+        try? FileManager.default.removeItem(at: store.directory)
+    }
+
     @Test("a file that is not a report is rejected and nothing is stored")
     func rejectsGarbage() throws {
         let store = tempStore()
