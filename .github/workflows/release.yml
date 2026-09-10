@@ -1,0 +1,33 @@
+name: Release
+on:
+  push:
+    tags: ["v*"]
+permissions:
+  contents: write
+jobs:
+  cli:
+    name: Release CLI (macOS, universal)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build universal release binary
+        run: |
+          swift build -c release --product silicon-audit --arch arm64 --arch x86_64
+          BIN=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/silicon-audit
+          lipo -info "$BIN"
+          codesign --force --sign - "$BIN"
+          VERSION="${GITHUB_REF_NAME#v}"
+          mkdir -p dist && cp "$BIN" dist/silicon-audit
+          (cd dist && zip -q "silicon-audit-$VERSION-macos.zip" silicon-audit && shasum -a 256 "silicon-audit-$VERSION-macos.zip" > "silicon-audit-$VERSION-macos.zip.sha256")
+          ./dist/silicon-audit --version
+      - name: Release notes from CHANGELOG
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          awk -v v="$VERSION" '$0 ~ "^## " v {p=1; next} /^## / {p=0} p' CHANGELOG.md > dist/notes.md
+          [ -s dist/notes.md ] || echo "Silicon Audit $VERSION" > dist/notes.md
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: dist/notes.md
+          files: |
+            dist/*.zip
+            dist/*.sha256

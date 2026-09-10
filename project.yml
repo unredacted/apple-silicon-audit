@@ -94,6 +94,11 @@ targets:
         # entitlements (iOS). The hardened configurations flip it to YES.
         SILICON_AUDIT_ENHANCED_SECURITY: NO
         GENERATE_INFOPLIST_FILE: NO
+        # One asset catalog for every platform; tvOS and visionOS icons have their own asset types.
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-iOS
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=macosx*]": AppIcon-macOS
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=appletv*]": App Icon & Top Shelf Image
+        "ASSETCATALOG_COMPILER_APPICON_NAME[sdk=xr*]": AppIcon-visionOS
       configs:
         # Every SDK (device and simulator) signs the Enhanced Security entitlements in; macOS adds
         # App Sandbox. The Info.plist marker may only say YES where the entitlements are present.
@@ -121,6 +126,7 @@ targets:
         PRODUCT_NAME: Silicon Audit
         SKIP_INSTALL: YES
         INFOPLIST_KEY_WKApplication: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-watchOS
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: org.unredacted.siliconaudit
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
