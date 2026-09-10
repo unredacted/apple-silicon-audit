@@ -114,7 +114,10 @@ Notes from reading `bsd/kern/kern_newsysctl.c`:
 **Sandbox status by platform:**
 
 - **macOS App Sandbox:** resolved. `application.sb` imports `system.sb`, which contains an unconditional `(allow sysctl-read)`. Confirm once in a sandboxed build; do not spend spike time here.
-- **iOS, watchOS, tvOS, visionOS:** container profiles are not inspectable from macOS. The M0 spike (§13) must verify on hardware.
+- **iOS (measured, M0 spike on iPhone18,2 / 26.6.2, see `docs/evidence/spike-M0.md`):** `sysctlbyname` works for every `hw.optional.arm.*` key and the identity/context keys; `CTL_SYSCTL_NEXT` returns `EPERM`, and `CTL_SYSCTL_OIDFMT` is refused. So on iOS the by-name inventory *is* the collection path and every export has `walk_succeeded: false`; the walk is a macOS/CLI discovery tool. `vm.mte.*`, `kern.hv_support`, `hw.engineering_sample`, and `hw.features.allows_security_research` read `restricted`.
+- **watchOS, tvOS, visionOS:** container profiles are not inspectable from macOS; expect the iOS behavior and verify on hardware (watch: M0 spike).
+
+**Consequence: the inventory carries declared formats.** When OIDFMT is refused, a value has no kernel-declared type and the decoder must not guess. The known-key inventory therefore records each key's format (`I`, `Q`, `A`, …) and the engine re-decodes the same bytes with it, marking the result `format_source: inventory` (kernel-declared types are `kernel`). Unknown `hw.optional` leaves default to `I`, because every leaf XNU registers there is a `SYSCTL_INT` except `caps`. The UI and export must show which source typed a value.
 
 ### 4.3 Known-key inventory
 
@@ -163,7 +166,7 @@ These live directly under `hw.optional.`, not under `hw.optional.arm.`: `hw.opti
 
 ### 4.4 What can and cannot be probed
 
-**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6). Two kinds of value live there and must not be mixed. **Gauges** describe the present moment: `vm.mte.tagged` (pages tagged now) and `vm.mte.cell.active` (tag-storage cells in use now). **Cumulative counters** count since boot: `vm.mte.tag_storage.activations` and most of the rest. Only a nonzero *gauge* is **measured** evidence that this kernel is tagging memory right now; a nonzero cumulative counter says only that it has done so at some point since boot, and is exported as its own `count` row, never folded into the activity verdict. `absent` on an older kernel is also informative. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
+**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6). Two kinds of value live there and must not be mixed. **Gauges** describe the present moment: `vm.mte.tagged` (pages tagged now) and `vm.mte.cell.active` (tag-storage cells in use now). **Cumulative counters** count since boot: `vm.mte.tag_storage.activations` and most of the rest. Only a nonzero *gauge* is **measured** evidence that this kernel is tagging memory right now; a nonzero cumulative counter says only that it has done so at some point since boot, and is exported as its own `count` row, never folded into the activity verdict. `absent` on an older kernel is also informative, and `restricted` is the measured answer on iOS: the sandbox denies `vm.*` reads (M0 spike), so this row is only measurable from macOS. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
 
 **Not probeable.** These appear in Apple's security documentation but are **not** exposed via any public interface. They must be surfaced as `documented`, never `measured`:
 
@@ -450,7 +453,7 @@ silicon-audit/
 
 ## 13. Milestones
 
-**M0 — Feasibility spike (do this first).** A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
+**M0 — Feasibility spike (do this first).** iPhone half done 2026-09-10, results in `docs/evidence/spike-M0.md`; watch half pending. A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
 
 **M1 — Core engine.** `SiliconAuditCore` with the five-way probe, MIB walk unioned with the known list, `Environment` detection (simulator, Rosetta, iOS-on-Mac, Intel), known-key inventory generated from the two public headers, `soc_id` parsing, fact model, JSON export plus compact variant. Unit tested against recorded fixtures, starting with `docs/evidence/Mac17,7-25G83.txt`.
 

@@ -190,9 +190,19 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## E. From the M0 spike on hardware (Phase 2, 2026-09-10)
+
+48. **iOS sandbox: by-name reads work, meta nodes do not.** `sysctlbyname` on every `hw.optional.arm.*` key succeeds on iPhone18,2 / 26.6.2; `CTL_SYSCTL_NEXT` returns `EPERM` and `CTL_SYSCTL_OIDFMT` is refused. The by-name inventory is the primary path on iOS and the walk is a macOS discovery tool. (§4.2)
+49. **Inventory must carry formats.** Without OIDFMT the decoder had nothing to type values with and left `hw.product` and every flag as bytes. Added declared formats to the inventory with a `format_source` marker. (§4.2, engine `KnownFormats`)
+50. **`vm.mte.*` is restricted on iOS**, along with `kern.hv_support`, `hw.engineering_sample`, `hw.features.allows_security_research`. OS-level tagging activity is measurable from macOS only. (§4.4)
+51. **A19 Pro and M5 report the same EMTE profile and a byte-identical `caps`.** MTE, MTE2, MTE4, canonical tags, store-only, no-address-tags set; MTE3 and async clear. (evidence)
+52. **`T8150` is the A19 Pro**, not A18 Pro as seeded; `hw.cpufamily` `0xab345f09` is `CPUFAMILY_ARM_THERA`. (SoC map confidence levels earn their keep.)
+
+---
+
 ## Open items not resolvable from a Mac
 
-1. Whether iOS/watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads. **M0 spike.**
+1. ~~Whether iOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered for iOS (yes / no / no); **watchOS still pending in the M0 spike.**
 2. Whether `hw.product` is present on the oldest supported iOS. **Old-device test.**
 3. Confirmation of the Required Reason API list at submission time. **§10.**
 4. Whether the EMTE logical tag lands in pointer bits 59:56 on Apple's implementation as on reference Arm MTE. **Phase 2a spike.**
