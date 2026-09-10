@@ -1,0 +1,263 @@
+{
+  "schema_version": "1",
+  "version": "2026-09-10",
+  "verified": "2026-09-10",
+  "source": "<mach/machine.h>, macOS SDK. hw.cpufamily identifies the core microarchitecture, not the SoC.",
+  "entries": [
+    {
+      "value": "0xcee41549",
+      "name": "CPUFAMILY_POWERPC_G3",
+      "arch": "other"
+    },
+    {
+      "value": "0x77c184ae",
+      "name": "CPUFAMILY_POWERPC_G4",
+      "arch": "other"
+    },
+    {
+      "value": "0xed76d8aa",
+      "name": "CPUFAMILY_POWERPC_G5",
+      "arch": "other"
+    },
+    {
+      "value": "0xaa33392b",
+      "name": "CPUFAMILY_INTEL_6_13",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x78ea4fbc",
+      "name": "CPUFAMILY_INTEL_PENRYN",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x6b5a4cd2",
+      "name": "CPUFAMILY_INTEL_NEHALEM",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x573b5eec",
+      "name": "CPUFAMILY_INTEL_WESTMERE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x5490b78c",
+      "name": "CPUFAMILY_INTEL_SANDYBRIDGE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x1f65e835",
+      "name": "CPUFAMILY_INTEL_IVYBRIDGE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x10b282dc",
+      "name": "CPUFAMILY_INTEL_HASWELL",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x582ed09c",
+      "name": "CPUFAMILY_INTEL_BROADWELL",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x37fc219f",
+      "name": "CPUFAMILY_INTEL_SKYLAKE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x0f817246",
+      "name": "CPUFAMILY_INTEL_KABYLAKE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x38435547",
+      "name": "CPUFAMILY_INTEL_ICELAKE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0x1cf8a03e",
+      "name": "CPUFAMILY_INTEL_COMETLAKE",
+      "arch": "x86_64"
+    },
+    {
+      "value": "0xe73283ae",
+      "name": "CPUFAMILY_ARM_9",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x8ff620d8",
+      "name": "CPUFAMILY_ARM_11",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x53b005f5",
+      "name": "CPUFAMILY_ARM_XSCALE",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xbd1b0ae9",
+      "name": "CPUFAMILY_ARM_12",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x0cc90e64",
+      "name": "CPUFAMILY_ARM_13",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x96077ef1",
+      "name": "CPUFAMILY_ARM_14",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xa8511bca",
+      "name": "CPUFAMILY_ARM_15",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x1e2d6381",
+      "name": "CPUFAMILY_ARM_SWIFT",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x37a09642",
+      "name": "CPUFAMILY_ARM_CYCLONE",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x2c91a47e",
+      "name": "CPUFAMILY_ARM_TYPHOON",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x92fb37c8",
+      "name": "CPUFAMILY_ARM_TWISTER",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x67ceee93",
+      "name": "CPUFAMILY_ARM_HURRICANE",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xe81e7ef6",
+      "name": "CPUFAMILY_ARM_MONSOON_MISTRAL",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x07d34b9f",
+      "name": "CPUFAMILY_ARM_VORTEX_TEMPEST",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x462504d2",
+      "name": "CPUFAMILY_ARM_LIGHTNING_THUNDER",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x1b588bb3",
+      "name": "CPUFAMILY_ARM_FIRESTORM_ICESTORM",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xda33d83d",
+      "name": "CPUFAMILY_ARM_BLIZZARD_AVALANCHE",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x8765edea",
+      "name": "CPUFAMILY_ARM_EVEREST_SAWTOOTH",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xfa33415e",
+      "name": "CPUFAMILY_ARM_IBIZA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x72015832",
+      "name": "CPUFAMILY_ARM_PALMA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x2876f5b5",
+      "name": "CPUFAMILY_ARM_COLL",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x5f4dea93",
+      "name": "CPUFAMILY_ARM_LOBOS",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x6f5129ac",
+      "name": "CPUFAMILY_ARM_DONAN",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x17d5b93a",
+      "name": "CPUFAMILY_ARM_BRAVA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x75d4acb9",
+      "name": "CPUFAMILY_ARM_TAHITI",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x204526d0",
+      "name": "CPUFAMILY_ARM_TUPAI",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x1d5a87e8",
+      "name": "CPUFAMILY_ARM_HIDRA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xf76c5b1a",
+      "name": "CPUFAMILY_ARM_SOTRA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0xab345f09",
+      "name": "CPUFAMILY_ARM_THERA",
+      "arch": "arm64"
+    },
+    {
+      "value": "0x01d7a72b",
+      "name": "CPUFAMILY_ARM_TILOS",
+      "arch": "arm64"
+    }
+  ],
+  "subfamilies": [
+    {
+      "value": 0,
+      "name": "CPUSUBFAMILY_UNKNOWN"
+    },
+    {
+      "value": 1,
+      "name": "CPUSUBFAMILY_ARM_HP"
+    },
+    {
+      "value": 2,
+      "name": "CPUSUBFAMILY_ARM_HG"
+    },
+    {
+      "value": 3,
+      "name": "CPUSUBFAMILY_ARM_M"
+    },
+    {
+      "value": 4,
+      "name": "CPUSUBFAMILY_ARM_HS"
+    },
+    {
+      "value": 5,
+      "name": "CPUSUBFAMILY_ARM_HC_HD"
+    },
+    {
+      "value": 6,
+      "name": "CPUSUBFAMILY_ARM_HA"
+    }
+  ]
+}

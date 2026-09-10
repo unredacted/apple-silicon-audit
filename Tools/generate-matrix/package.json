@@ -1,0 +1,16 @@
+{
+  "name": "silicon-audit-generate-matrix",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Validates community results against the export schema and generates MATRIX.md and the static site.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "check": "node index.mjs --check",
+    "generate": "node index.mjs --write"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1"
+  }
+}

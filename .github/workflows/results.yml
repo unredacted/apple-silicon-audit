@@ -1,0 +1,83 @@
+name: Results database
+on:
+  pull_request:
+    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**", ".github/workflows/results.yml"]
+  push:
+    branches: [main]
+    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**"]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# Pushes to main regenerate and commit MATRIX.md/site; two overlapping runs would race on that commit,
+# so main runs are serialized (never cancelled: the newest run regenerates from the newest tip anyway).
+# Pull-request runs only validate and can safely cancel a stale run of the same PR.
+concurrency:
+  group: ${{ github.event_name == 'push' && 'results-main' || format('results-pr-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
+jobs:
+  validate:
+    name: Validate contributed results
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Tools/generate-matrix/package-lock.json
+      - run: npm ci
+        working-directory: Tools/generate-matrix
+      - name: Validate every result (schema, environment flags, path, conflicts)
+        run: npm run check
+        working-directory: Tools/generate-matrix
+
+  regenerate:
+    name: Regenerate matrix and site
+    if: github.event_name == 'push'
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: Tools/generate-matrix/package-lock.json
+      - run: npm ci
+        working-directory: Tools/generate-matrix
+      - run: npm run generate
+        working-directory: Tools/generate-matrix
+      - name: Commit regenerated MATRIX.md and site
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add MATRIX.md site/index.html
+          if git diff --cached --quiet; then echo "matrix unchanged"; exit 0; fi
+          git commit -m "Regenerate results matrix"
+          # If main moved while this job ran, replay the generated commit on top and retry a few times.
+          for attempt in 1 2 3; do
+            git push && exit 0
+            echo "push rejected (attempt $attempt); rebasing onto origin/main"
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; git reset --hard origin/main; cd Tools/generate-matrix && npm run generate && cd ../.. && git add MATRIX.md site/index.html && git commit -m "Regenerate results matrix"; }
+          done
+          exit 1
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Publish site
+    if: github.event_name == 'push'
+    needs: regenerate
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

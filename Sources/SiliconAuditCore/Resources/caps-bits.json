@@ -1,0 +1,293 @@
+{
+  "schema_version": "1",
+  "version": "2026-09-10",
+  "verified": "2026-09-10",
+  "source": "<arm/cpu_capabilities_public.h>, macOS SDK; bit positions are ABI and never change",
+  "cap_bit_nb": 92,
+  "entries": [
+    {
+      "bit": 0,
+      "name": "FEAT_FlagM"
+    },
+    {
+      "bit": 1,
+      "name": "FEAT_FlagM2"
+    },
+    {
+      "bit": 2,
+      "name": "FEAT_FHM"
+    },
+    {
+      "bit": 3,
+      "name": "FEAT_DotProd"
+    },
+    {
+      "bit": 4,
+      "name": "FEAT_SHA3"
+    },
+    {
+      "bit": 5,
+      "name": "FEAT_RDM"
+    },
+    {
+      "bit": 6,
+      "name": "FEAT_LSE"
+    },
+    {
+      "bit": 7,
+      "name": "FEAT_SHA256"
+    },
+    {
+      "bit": 8,
+      "name": "FEAT_SHA512"
+    },
+    {
+      "bit": 9,
+      "name": "FEAT_SHA1"
+    },
+    {
+      "bit": 10,
+      "name": "FEAT_AES"
+    },
+    {
+      "bit": 11,
+      "name": "FEAT_PMULL"
+    },
+    {
+      "bit": 12,
+      "name": "FEAT_SPECRES"
+    },
+    {
+      "bit": 13,
+      "name": "FEAT_SB"
+    },
+    {
+      "bit": 14,
+      "name": "FEAT_FRINTTS"
+    },
+    {
+      "bit": 15,
+      "name": "FEAT_LRCPC"
+    },
+    {
+      "bit": 16,
+      "name": "FEAT_LRCPC2"
+    },
+    {
+      "bit": 17,
+      "name": "FEAT_FCMA"
+    },
+    {
+      "bit": 18,
+      "name": "FEAT_JSCVT"
+    },
+    {
+      "bit": 19,
+      "name": "FEAT_PAuth"
+    },
+    {
+      "bit": 20,
+      "name": "FEAT_PAuth2"
+    },
+    {
+      "bit": 21,
+      "name": "FEAT_FPAC"
+    },
+    {
+      "bit": 22,
+      "name": "FEAT_DPB"
+    },
+    {
+      "bit": 23,
+      "name": "FEAT_DPB2"
+    },
+    {
+      "bit": 24,
+      "name": "FEAT_BF16"
+    },
+    {
+      "bit": 25,
+      "name": "FEAT_I8MM"
+    },
+    {
+      "bit": 26,
+      "name": "FEAT_WFxT"
+    },
+    {
+      "bit": 27,
+      "name": "FEAT_RPRES"
+    },
+    {
+      "bit": 28,
+      "name": "FEAT_ECV"
+    },
+    {
+      "bit": 29,
+      "name": "FEAT_AFP"
+    },
+    {
+      "bit": 30,
+      "name": "FEAT_LSE2"
+    },
+    {
+      "bit": 31,
+      "name": "FEAT_CSV2"
+    },
+    {
+      "bit": 32,
+      "name": "FEAT_CSV3"
+    },
+    {
+      "bit": 33,
+      "name": "FEAT_DIT"
+    },
+    {
+      "bit": 34,
+      "name": "FEAT_FP16"
+    },
+    {
+      "bit": 35,
+      "name": "FEAT_SSBS"
+    },
+    {
+      "bit": 36,
+      "name": "FEAT_BTI"
+    },
+    {
+      "bit": 40,
+      "name": "FEAT_SME"
+    },
+    {
+      "bit": 41,
+      "name": "FEAT_SME2"
+    },
+    {
+      "bit": 42,
+      "name": "FEAT_SME_F64F64"
+    },
+    {
+      "bit": 43,
+      "name": "FEAT_SME_I16I64"
+    },
+    {
+      "bit": 44,
+      "name": "FEAT_SME2p1"
+    },
+    {
+      "bit": 45,
+      "name": "FEAT_SME_F16F16"
+    },
+    {
+      "bit": 46,
+      "name": "FEAT_SME_B16B16"
+    },
+    {
+      "bit": 47,
+      "name": "FEAT_SME_F8F16"
+    },
+    {
+      "bit": 48,
+      "name": "FEAT_SME_F8F32"
+    },
+    {
+      "bit": 49,
+      "name": "AdvSIMD"
+    },
+    {
+      "bit": 50,
+      "name": "AdvSIMD_HPFPCvt"
+    },
+    {
+      "bit": 51,
+      "name": "FEAT_CRC32"
+    },
+    {
+      "bit": 52,
+      "name": "SME_F32F32"
+    },
+    {
+      "bit": 53,
+      "name": "SME_BI32I32"
+    },
+    {
+      "bit": 54,
+      "name": "SME_B16F32"
+    },
+    {
+      "bit": 55,
+      "name": "SME_F16F32"
+    },
+    {
+      "bit": 56,
+      "name": "SME_I8I32"
+    },
+    {
+      "bit": 57,
+      "name": "SME_I16I32"
+    },
+    {
+      "bit": 58,
+      "name": "FEAT_PACIMP"
+    },
+    {
+      "bit": 60,
+      "name": "FEAT_MTE"
+    },
+    {
+      "bit": 61,
+      "name": "FEAT_MTE2"
+    },
+    {
+      "bit": 62,
+      "name": "FEAT_MTE3"
+    },
+    {
+      "bit": 63,
+      "name": "FEAT_MTE4"
+    },
+    {
+      "bit": 64,
+      "name": "FEAT_HBC"
+    },
+    {
+      "bit": 65,
+      "name": "FEAT_EBF16"
+    },
+    {
+      "bit": 66,
+      "name": "FEAT_SPECRES2"
+    },
+    {
+      "bit": 67,
+      "name": "FEAT_CSSC"
+    },
+    {
+      "bit": 68,
+      "name": "FEAT_FPACCOMBINE"
+    },
+    {
+      "bit": 69,
+      "name": "FEAT_MTE_ASYNC"
+    },
+    {
+      "bit": 70,
+      "name": "FEAT_MTE_CANONICAL_TAGS"
+    },
+    {
+      "bit": 71,
+      "name": "FEAT_MTE_STORE_ONLY"
+    },
+    {
+      "bit": 72,
+      "name": "FEAT_MTE_NO_ADDRESS_TAGS"
+    },
+    {
+      "bit": 73,
+      "name": "FP_SyncExceptions"
+    },
+    {
+      "bit": 91,
+      "name": "FEAT_SVE_B16B16"
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+# XcodeGen spec. Regenerate with Scripts/gen-project.sh; the .xcodeproj is gitignored.
+# SiliconAudit is one multiplatform target (iOS/iPadOS, macOS, tvOS, visionOS);
+# SiliconAuditWatch is embedded in the iOS build.
+name: SiliconAudit
+options:
+  bundleIdPrefix: org.unredacted
+  xcodeVersion: "26.0"
+  deploymentTarget:
+    iOS: "18.0"
+    macOS: "15.0"
+    watchOS: "11.0"
+    tvOS: "18.0"
+    visionOS: "2.0"
+  createIntermediateGroups: true
+  groupSortPosition: top
+
+# Debug/Release build the app as before. The *Hardened configurations add Apple's Enhanced Security
+# entitlements (SPEC §11): hardened-process, enhanced-security-version-string 1, checked-allocations.
+# They change allocator behaviour, so they stay a separate configuration until stability is proven.
+configs:
+  Debug: debug
+  Release: release
+  DebugHardened: debug
+  ReleaseHardened: release
+
+configFiles:
+  Debug: Configs/Signing.xcconfig
+  Release: Configs/Signing.xcconfig
+  DebugHardened: Configs/Signing.xcconfig
+  ReleaseHardened: Configs/Signing.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    GENERATE_INFOPLIST_FILE: YES
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+    INFOPLIST_KEY_CFBundleDisplayName: Silicon Audit
+    INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
+    ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS: YES
+
+packages:
+  SiliconAuditPackage:
+    path: .
+
+targets:
+  SiliconAudit:
+    type: application
+    supportedDestinations: [iOS, macOS, tvOS, visionOS]
+    sources:
+      - path: Apps/SiliconAudit
+        excludes: [Info.plist]
+      - path: Apps/Shared/Resources
+    # Generated Info.plist (gitignored) so the marker below can carry a build setting; Xcode's
+    # INFOPLIST_KEY_* mechanism only accepts its own known keys.
+    info:
+      path: Apps/SiliconAudit/Info.plist
+      properties:
+        SiliconAuditEnhancedSecurity: $(SILICON_AUDIT_ENHANCED_SECURITY)
+        CFBundleDisplayName: Silicon Audit
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: Apache-2.0
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+    dependencies:
+      - package: SiliconAuditPackage
+        products: [SiliconAuditCore, SiliconAuditUI]
+      - target: SiliconAuditWatch
+        embed: true
+        destinationFilters: [iOS]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit
+        PRODUCT_NAME: Silicon Audit
+        TARGETED_DEVICE_FAMILY: "1,2"
+        "TARGETED_DEVICE_FAMILY[sdk=appletv*]": "3"
+        "TARGETED_DEVICE_FAMILY[sdk=xr*]": "7"
+        SUPPORTS_MACCATALYST: NO
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
+        "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS.entitlements
+        "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": YES
+        "ENABLE_APP_SANDBOX[sdk=macosx*]": YES
+        # Lands in Info.plist as SiliconAuditEnhancedSecurity, read by
+        # EnhancedSecurity.checkedAllocationsDeclared() where a process cannot inspect its own
+        # entitlements (iOS). The hardened configurations flip it to YES.
+        SILICON_AUDIT_ENHANCED_SECURITY: NO
+        GENERATE_INFOPLIST_FILE: NO
+      configs:
+        # Every SDK (device and simulator) signs the Enhanced Security entitlements in; macOS adds
+        # App Sandbox. The Info.plist marker may only say YES where the entitlements are present.
+        DebugHardened:
+          CODE_SIGN_ENTITLEMENTS: Apps/SiliconAudit/hardened.entitlements
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS-hardened.entitlements
+          SILICON_AUDIT_ENHANCED_SECURITY: YES
+        ReleaseHardened:
+          CODE_SIGN_ENTITLEMENTS: Apps/SiliconAudit/hardened.entitlements
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS-hardened.entitlements
+          SILICON_AUDIT_ENHANCED_SECURITY: YES
+
+  SiliconAuditWatch:
+    type: application
+    platform: watchOS
+    sources:
+      - path: Apps/SiliconAuditWatch
+      - path: Apps/Shared/Resources
+    dependencies:
+      - package: SiliconAuditPackage
+        products: [SiliconAuditCore, SiliconAuditUI]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit.watchkitapp
+        PRODUCT_NAME: Silicon Audit
+        SKIP_INSTALL: YES
+        INFOPLIST_KEY_WKApplication: YES
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: org.unredacted.siliconaudit
+        INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
+
+schemes:
+  SiliconAudit:
+    build:
+      targets:
+        SiliconAudit: all
+    run:
+      config: Debug
+    archive:
+      config: Release
+  SiliconAudit Hardened:
+    build:
+      targets:
+        SiliconAudit: all
+    run:
+      config: DebugHardened
+    archive:
+      config: ReleaseHardened
+  SiliconAuditWatch:
+    build:
+      targets:
+        SiliconAuditWatch: all
+    run:
+      config: Debug
