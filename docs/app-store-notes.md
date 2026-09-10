@@ -1,6 +1,6 @@
 # App Review notes (draft)
 
-Text to paste into App Store Connect's review notes, plus the facts behind it.
+Text to paste into App Store Connect's review notes, plus the facts behind it. Platforms: iOS/iPadOS, macOS, watchOS, tvOS, visionOS from one project (`docs/release.md`).
 
 ## What the app does
 
@@ -27,8 +27,15 @@ and publication date, clearly labeled as documentation rather than measurement.
 ## APIs
 
 Only public APIs: `sysctlbyname(3)`, `sysctlnametomib(3)`, `sysctl(2)`, WatchConnectivity,
-SwiftUI, Compression. No private frameworks, no entitlements beyond App Sandbox and
-user-selected file access on macOS.
+SwiftUI, Compression, CoreImage (the QR code on Apple TV), and on macOS `SecTaskCopyValueForEntitlement`
+to read the app's own entitlements. No private frameworks.
+
+Entitlements: App Sandbox and user-selected file access on macOS. Builds from the hardened
+configuration additionally declare Apple's Enhanced Security capability
+(`com.apple.security.hardened-process`, `…enhanced-security-version-string` "1",
+`…checked-allocations`), which lets the app measure whether the OS tags and checks its own memory.
+That measurement is labeled as being about this build of the app, not the device. No other
+entitlements.
 
 ## Fingerprinting concern, answered
 

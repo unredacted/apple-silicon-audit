@@ -301,6 +301,12 @@ From the Phase 9 pull-request review (Codex, 2026-09-10):
 110. **Marker only where signed.** The hardened configurations sign `hardened.entitlements` into every SDK (device and simulator), with macOS keeping the sandbox variant, so `SiliconAuditEnhancedSecurity: YES` is never set on a build without the entitlements. Verified on the tvOS simulator build. (§6.1)
 111. **Copy and placement.** Tagged pointers no longer claim enforcement ("Tags alone do not show that a mismatched access would be stopped"); the `unknown` entitlement state has neutral wording; self-test facts derive their explanation from `probe` so imported reports keep a sentence; and the per-app topic moved out of "What this chip protects" into its own "What the OS does for this app" section with a footer, hidden when a report carries no self-test. (§6.4)
 
+## N. Follow-ups after the 0.1.0 merge (icons, README, release plumbing)
+
+112. **Icons.** One CoreGraphics script (`Tools/gen-icons/gen-icons.swift`) draws the black chip and emits every size; the asset catalog has one icon set per platform (`AppIcon-iOS` with a dark variant, `AppIcon-macOS` size set, `AppIcon-watchOS`, the layered `AppIcon-visionOS`, and the tvOS brand assets with top-shelf images), selected per SDK with `ASSETCATALOG_COMPILER_APPICON_NAME[sdk=…]`. A single shared set produced "unassigned child" warnings on other platforms, hence the split. (§6.4)
+113. **Release plumbing.** `Scripts/bump-version.sh` keeps `project.yml`, `SiliconAuditCore.version`, the generate-matrix package and `CHANGELOG.md` in step; `Scripts/archive.sh <platform> [--hardened] [--development] [--no-export]` archives and exports with `Configs/ExportOptions-*.plist`; `release.yml` attaches a universal, ad-hoc-signed CLI to a GitHub Release on a `v*` tag; `docs/release.md` is the checklist. Apps are never attached to GitHub Releases (they need Apple signing). Whether the hardened configuration becomes the shipping one is a per-release decision after TestFlight soak. (§10, §13)
+114. **Verified.** All five platform builds with icons and no asset warnings; a real `Release` macOS archive through the script (Personal Team, Hardened Runtime); the bump script on a scratch copy including rejection of a non-semantic version. Not verified: an App Store Connect upload (needs a paid team) and the release workflow on a real tag.
+
 ---
 
 ## Open items not resolvable from a Mac
