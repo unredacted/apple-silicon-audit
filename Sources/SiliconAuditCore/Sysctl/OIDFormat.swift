@@ -42,6 +42,20 @@ public struct OIDFormat: Equatable, Hashable, Sendable {
     /// True when the format string marks the integer as unsigned (`IU`, `QU`, `LU`).
     public var isUnsigned: Bool { formatString.contains("U") }
 
+    /// Byte width the format string promises for an integer OID: `I` → 4, `L` → pointer
+    /// size (8 on every supported platform), `Q` → 8. Nil for non-integer types. A value
+    /// whose returned length differs from this is kept as raw bytes (spec §4.1).
+    public var declaredIntegerWidth: Int? {
+        switch type {
+        case .int:
+            return formatString.hasPrefix("L") ? MemoryLayout<Int>.size : 4
+        case .quad:
+            return 8
+        case .string, .opaque, .node, nil:
+            return nil
+        }
+    }
+
     /// Name as sysctl(8) `-t` prints it, for display and export.
     public var typeName: String {
         switch type {

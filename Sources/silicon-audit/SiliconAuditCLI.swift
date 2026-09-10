@@ -29,7 +29,7 @@ struct Raw: ParsableCommand {
         print("Environment: \(env.platform.rawValue) \(env.arch.rawValue), OS \(env.osVersion) (\(env.osBuild))")
         print("Kernel:      \(env.kernelVersion)")
         if env.isMisleading {
-            print("WARNING:     simulator=\(env.isSimulator) translated=\(env.isTranslated) iOSAppOnMac=\(env.isiOSAppOnMac); values describe the host, not the device")
+            print("WARNING:     simulator=\(env.isSimulator) translated=\(env.isTranslated) iOSAppOnMac=\(env.isiOSAppOnMac) virtualMachine=\(env.isVirtualMachine); values describe the host, not the device")
         }
         print("Walk:        root=\(result.walk.root) succeeded=\(result.walk.succeeded) keys=\(result.walk.keys.count) masked=\(result.walk.keys.filter(\.isMasked).count) unnamed=\(result.walk.unnamedOIDCount) notApplicable=\(result.notApplicableCount) restricted=\(result.restrictedCount)")
         if let f = result.walk.failure { print("Walk failure: \(f)") }

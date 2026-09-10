@@ -50,6 +50,13 @@ struct ProbeOutcomeTests {
     @Test("declared int but wrong width is not guessed")
     func wrongWidth() {
         #expect(SysctlValue(format: .int, bytes: [1, 0]).payload == .bytes([1, 0]))
+        #expect(SysctlValue(format: .int, bytes: le(UInt64(1))).payload == .bytes(le(UInt64(1))), "an `I` that returns 8 bytes is a mismatch, not a long")
+        #expect(SysctlValue(format: .long, bytes: le(UInt32(1))).payload == .bytes(le(UInt32(1))), "an `L` that returns 4 bytes is a mismatch")
+        #expect(SysctlValue(format: .quad, bytes: le(UInt32(1))).payload == .bytes(le(UInt32(1))))
+        #expect(OIDFormat.int.declaredIntegerWidth == 4)
+        #expect(OIDFormat.long.declaredIntegerWidth == 8)
+        #expect(OIDFormat.quad.declaredIntegerWidth == 8)
+        #expect(OIDFormat.string.declaredIntegerWidth == nil)
         #expect(SysctlValue(format: .int, bytes: [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).payload.bytesValue?.count == 12)
     }
 

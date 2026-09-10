@@ -64,12 +64,31 @@ struct MIBWalkerTests {
         #expect(result.unnamedOIDCount == 1)
     }
 
+    @Test("a NEXT failure after some keys is a failed, partial walk, not success")
+    func interruptedWalk() {
+        struct FailsAfterTwo: SysctlReading {
+            let inner = Trees.device()
+            func read(_ name: String) -> ProbeOutcome { inner.read(name) }
+            func oid(forName name: String) -> [Int32]? { inner.oid(forName: name) }
+            func nextOID(after oid: [Int32]) -> NextOID {
+                oid == [6, 110, 1, 2] ? .failed(EPERM) : inner.nextOID(after: oid)
+            }
+            func name(forOID oid: [Int32]) -> String? { inner.name(forOID: oid) }
+            func format(forOID oid: [Int32]) -> OIDFormat? { inner.format(forOID: oid) }
+            func readOID(_ oid: [Int32]) -> ProbeOutcome { inner.readOID(oid) }
+        }
+        let result = MIBWalker(sysctl: FailsAfterTwo()).walk()
+        #expect(!result.succeeded)
+        #expect(result.keys.count == 2, "keys collected before the failure are kept")
+        #expect(result.failure?.contains("errno \(EPERM)") == true)
+    }
+
     @Test("step limit terminates a walk that never leaves the subtree")
     func stepLimit() {
         struct Endless: SysctlReading {
             func read(_ name: String) -> ProbeOutcome { .absent }
             func oid(forName name: String) -> [Int32]? { [6, 110] }
-            func nextOID(after oid: [Int32]) -> [Int32]? { [6, 110, oid.count > 2 ? oid[2] + 1 : 1] }
+            func nextOID(after oid: [Int32]) -> NextOID { .next([6, 110, oid.count > 2 ? oid[2] + 1 : 1]) }
             func name(forOID oid: [Int32]) -> String? { "hw.optional.k\(oid[2])" }
             func format(forOID oid: [Int32]) -> OIDFormat? { .int }
             func readOID(_ oid: [Int32]) -> ProbeOutcome { .value(SysctlValue(format: .int, bytes: le(UInt32(1)))) }

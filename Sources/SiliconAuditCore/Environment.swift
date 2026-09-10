@@ -1,12 +1,12 @@
 import Foundation
 
 /// How and where the audit ran. This is the only file in the core allowed to use
-/// `#if os(...)`, `#if arch(...)`, or `#if targetEnvironment(...)` (spec §6.1).
+/// `#if os(...)`, `#if arch(...)`, or `#if targetEnvironment(...)` (spec §6.1). Named `AuditEnvironment` to stay clear of SwiftUI's `Environment`.
 ///
 /// Every field here exists because it changes how a result must be read:
 /// a simulator, a translated process, or an iOS app on a Mac reports the host's
 /// chip, not the device the user thinks they are auditing (spec §6.2, §14).
-public struct Environment: Equatable, Hashable, Sendable {
+public struct AuditEnvironment: Equatable, Hashable, Sendable {
     public enum Platform: String, Codable, Sendable {
         case iOS, iPadOS, macOS, watchOS, tvOS, visionOS, unknown
     }
@@ -28,12 +28,16 @@ public struct Environment: Equatable, Hashable, Sendable {
     public let isTranslated: Bool
     public let isiOSAppOnMac: Bool
     public let isCatalyst: Bool
+    /// macOS guest (CI runner, Virtualization.framework VM): `kern.hv_vmm_present == 1`,
+    /// a `VMAPPLE` kernel target, or a `VirtualMac` model. The guest sees what the
+    /// hypervisor exposes, not a chip.
+    public let isVirtualMachine: Bool
 
     /// True when the numbers this process sees are not the device's own.
-    public var isMisleading: Bool { isSimulator || isTranslated || isiOSAppOnMac }
+    public var isMisleading: Bool { isSimulator || isTranslated || isiOSAppOnMac || isVirtualMachine }
 
     public init(platform: Platform, arch: Arch, osVersion: String, osBuild: String, kernelVersion: String,
-                isSimulator: Bool, isTranslated: Bool, isiOSAppOnMac: Bool, isCatalyst: Bool) {
+                isSimulator: Bool, isTranslated: Bool, isiOSAppOnMac: Bool, isCatalyst: Bool, isVirtualMachine: Bool = false) {
         self.platform = platform
         self.arch = arch
         self.osVersion = osVersion
@@ -43,33 +47,41 @@ public struct Environment: Equatable, Hashable, Sendable {
         self.isTranslated = isTranslated
         self.isiOSAppOnMac = isiOSAppOnMac
         self.isCatalyst = isCatalyst
+        self.isVirtualMachine = isVirtualMachine
     }
 
     /// Detects the current environment. Compile-time facts come from the build;
     /// everything else is read through `sysctl` so fixtures can drive it.
-    public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> Environment {
+    public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> AuditEnvironment {
         let productName = sysctl.read("hw.product").value?.payload.stringValue
             ?? sysctl.read("hw.machine").value?.payload.stringValue
             ?? ""
+        let model = sysctl.read("hw.model").value?.payload.stringValue ?? ""
+        let kernel = sysctl.read("kern.version").value?.payload.stringValue ?? ""
+        let hvGuest = sysctl.read("kern.hv_vmm_present").flagIsSet ?? false
 
-        return Environment(
+        return AuditEnvironment(
             platform: compiledPlatform(productName: productName),
             arch: compiledArch,
             osVersion: sysctl.read("kern.osproductversion").value?.payload.stringValue
                 ?? fallbackOSVersion(processInfo),
             osBuild: sysctl.read("kern.osversion").value?.payload.stringValue ?? "",
-            kernelVersion: sysctl.read("kern.version").value?.payload.stringValue ?? "",
+            kernelVersion: kernel,
             isSimulator: compiledSimulator || processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil,
             isTranslated: sysctl.read("sysctl.proc_translated").flagIsSet ?? false,
             isiOSAppOnMac: processInfo.isiOSAppOnMac,
-            isCatalyst: compiledCatalyst
+            isCatalyst: compiledCatalyst,
+            isVirtualMachine: hvGuest || kernel.contains("VMAPPLE") || model.hasPrefix("VirtualMac")
         )
     }
 
     // MARK: - Compile-time facts
 
     static func compiledPlatform(productName: String) -> Platform {
-        #if os(watchOS)
+        // Catalyst compiles with os(iOS) true; it must be classified as macOS (spec §6.2).
+        #if targetEnvironment(macCatalyst)
+        return .macOS
+        #elseif os(watchOS)
         return .watchOS
         #elseif os(tvOS)
         return .tvOS

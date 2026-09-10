@@ -50,13 +50,20 @@ struct LiveKernelTests {
 
     @Test("environment reflects this Mac")
     func environment() {
-        let env = Environment.detect(using: live)
+        let env = AuditEnvironment.detect(using: live)
         #expect(env.platform == .macOS)
         #expect(env.arch == .arm64 || env.arch == .arm64e)
         #expect(!env.osBuild.isEmpty)
-        #expect(env.kernelVersion.contains("RELEASE_ARM64_T"))
+        #expect(env.kernelVersion.contains("RELEASE_ARM64_"))
         #expect(!env.isSimulator)
         #expect(!env.isTranslated)
+        // GitHub's macOS runners are VMAPPLE guests; the dev Mac is not.
+        if env.kernelVersion.contains("VMAPPLE") {
+            #expect(env.isVirtualMachine, "a VMAPPLE kernel must be flagged as a virtual machine")
+        } else {
+            #expect(env.kernelVersion.contains("RELEASE_ARM64_T"))
+            #expect(!env.isVirtualMachine)
+        }
     }
 
     @Test("M5-class facts, when this is the reviewed Mac17,7")
