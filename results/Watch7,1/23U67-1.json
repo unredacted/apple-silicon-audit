@@ -1,0 +1,3099 @@
+{
+  "app_version" : "0.1.0",
+  "capabilities" : {
+    "byte_count" : 12,
+    "mismatches" : [
+
+    ],
+    "named_bits" : [
+      "FEAT_FlagM",
+      "FEAT_FlagM2",
+      "FEAT_FHM",
+      "FEAT_DotProd",
+      "FEAT_SHA3",
+      "FEAT_RDM",
+      "FEAT_LSE",
+      "FEAT_SHA256",
+      "FEAT_SHA512",
+      "FEAT_SHA1",
+      "FEAT_AES",
+      "FEAT_PMULL",
+      "FEAT_SB",
+      "FEAT_FRINTTS",
+      "FEAT_LRCPC",
+      "FEAT_LRCPC2",
+      "FEAT_FCMA",
+      "FEAT_JSCVT",
+      "FEAT_PAuth",
+      "FEAT_PAuth2",
+      "FEAT_FPAC",
+      "FEAT_DPB",
+      "FEAT_DPB2",
+      "FEAT_BF16",
+      "FEAT_I8MM",
+      "FEAT_RPRES",
+      "FEAT_ECV",
+      "FEAT_AFP",
+      "FEAT_LSE2",
+      "FEAT_CSV2",
+      "FEAT_CSV3",
+      "FEAT_DIT",
+      "FEAT_FP16",
+      "FEAT_SSBS",
+      "FEAT_BTI",
+      "AdvSIMD",
+      "AdvSIMD_HPFPCvt",
+      "FEAT_CRC32",
+      "FEAT_PACIMP",
+      "FP_SyncExceptions"
+    ],
+    "popcount" : 42,
+    "unnamed_bits" : [
+      39,
+      59
+    ]
+  },
+  "collected_at" : "2026-09-10T16:05:44Z",
+  "collection" : {
+    "kernel_formats_available" : false,
+    "known_keys_version" : "2026-09-10",
+    "walk_failure" : "CTL_SYSCTL_NEXT failed with errno 1 after 0 keys",
+    "walk_root" : "hw.optional",
+    "walk_succeeded" : false
+  },
+  "device" : {
+    "cpufamily" : "0x8765edea",
+    "cpufamily_name" : "CPUFAMILY_ARM_EVEREST_SAWTOOTH",
+    "cpusubfamily" : 3,
+    "cpusubfamily_name" : "CPUSUBFAMILY_ARM_M",
+    "hw_machine" : "Watch7,1",
+    "hw_model" : "N207sAP",
+    "hw_product" : "Watch7,1",
+    "hw_target" : "N207sAP",
+    "identity" : "Watch7,1",
+    "marketing_name_inferred" : "unrecognized",
+    "soc_id" : "T8310",
+    "soc_inference_confidence" : "verified",
+    "soc_name_inferred" : "Apple S9"
+  },
+  "environment" : {
+    "arch" : "arm64",
+    "is_catalyst" : false,
+    "is_ios_app_on_mac" : false,
+    "is_simulator" : false,
+    "is_translated" : false,
+    "is_virtual_machine" : false,
+    "kernel_version" : "Darwin Kernel Version 25.6.0: Sat Jul 11 14:47:13 PDT 2026; root:xnu-12377.164.4~3/RELEASE_ARM64_T8310",
+    "os_build" : "23U67",
+    "os_version" : "26.6",
+    "platform" : "watchOS"
+  },
+  "facts" : [
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "CPU family",
+      "id" : "hw.cpufamily",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.cpufamily",
+        "length" : 4,
+        "value" : -2023363094
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "CPU subfamily",
+      "id" : "hw.cpusubfamily",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.cpusubfamily",
+        "length" : 4,
+        "value" : 3
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "CPU subtype",
+      "id" : "hw.cpusubtype",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.cpusubtype",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "CPU type",
+      "id" : "hw.cputype",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.cputype",
+        "length" : 4,
+        "value" : 16777228
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "Engineering sample",
+      "id" : "hw.engineering_sample",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 1,
+        "format" : null,
+        "key" : "hw.engineering_sample",
+        "length" : 0
+      },
+      "state" : "restricted"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "Security Research Device",
+      "id" : "hw.features.allows_security_research",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 1,
+        "format" : null,
+        "key" : "hw.features.allows_security_research",
+        "length" : 0
+      },
+      "state" : "restricted"
+    },
+    {
+      "category" : "context_identity",
+      "discovered_by" : "known_list",
+      "display_name" : "Machine",
+      "id" : "hw.machine",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.machine",
+        "length" : 9,
+        "value" : "Watch7,1"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Memory size",
+      "id" : "hw.memsize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.memsize",
+        "length" : 8,
+        "value" : 2041135104
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_identity",
+      "discovered_by" : "known_list",
+      "display_name" : "Model / board",
+      "id" : "hw.model",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.model",
+        "length" : 8,
+        "value" : "N207sAP"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Logical CPUs",
+      "id" : "hw.ncpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.ncpu",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Performance levels",
+      "id" : "hw.nperflevels",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.nperflevels",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 adx",
+      "id" : "adx",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.adx",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 aes",
+      "id" : "aes",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.aes",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Advanced SIMD",
+      "id" : "arm.AdvSIMD",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.AdvSIMD",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Advanced SIMD half-precision conversion",
+      "id" : "arm.AdvSIMD_HPFPCvt",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.AdvSIMD_HPFPCvt",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "AES instructions",
+      "id" : "arm.FEAT_AES",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_AES",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Alternate floating-point behavior",
+      "id" : "arm.FEAT_AFP",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_AFP",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "BFloat16",
+      "id" : "arm.FEAT_BF16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_BF16",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "control_flow",
+      "discovered_by" : "known_list",
+      "display_name" : "Branch Target Identification",
+      "id" : "arm.FEAT_BTI",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_BTI",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "CRC32 instructions",
+      "id" : "arm.FEAT_CRC32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_CRC32",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Common short sequence compression",
+      "id" : "arm.FEAT_CSSC",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_CSSC",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "CSV2 (branch-target speculation safety)",
+      "id" : "arm.FEAT_CSV2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_CSV2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "CSV3 (fault speculation safety)",
+      "id" : "arm.FEAT_CSV3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_CSV3",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "constant_time",
+      "discovered_by" : "known_list",
+      "display_name" : "Data Independent Timing",
+      "id" : "arm.FEAT_DIT",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_DIT",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Data cache clean to point of persistence",
+      "id" : "arm.FEAT_DPB",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_DPB",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "DC CVADP",
+      "id" : "arm.FEAT_DPB2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_DPB2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Dot product",
+      "id" : "arm.FEAT_DotProd",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_DotProd",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Extended BFloat16",
+      "id" : "arm.FEAT_EBF16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_EBF16",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Enhanced counter virtualization",
+      "id" : "arm.FEAT_ECV",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_ECV",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Complex-number arithmetic",
+      "id" : "arm.FEAT_FCMA",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FCMA",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "FP16 multiply-add to FP32",
+      "id" : "arm.FEAT_FHM",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FHM",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Half-precision floating point",
+      "id" : "arm.FEAT_FP16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FP16",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "pointer_authentication",
+      "discovered_by" : "known_list",
+      "display_name" : "Faulting PAC",
+      "id" : "arm.FEAT_FPAC",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FPAC",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "pointer_authentication",
+      "discovered_by" : "known_list",
+      "display_name" : "Faulting PAC (combined ops)",
+      "id" : "arm.FEAT_FPACCOMBINE",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FPACCOMBINE",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Float round to integer",
+      "id" : "arm.FEAT_FRINTTS",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FRINTTS",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Flag manipulation",
+      "id" : "arm.FEAT_FlagM",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FlagM",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Flag manipulation 2",
+      "id" : "arm.FEAT_FlagM2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_FlagM2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Hinted conditional branches",
+      "id" : "arm.FEAT_HBC",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_HBC",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Int8 matrix multiply",
+      "id" : "arm.FEAT_I8MM",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_I8MM",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "JavaScript conversion",
+      "id" : "arm.FEAT_JSCVT",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_JSCVT",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Release-consistent loads",
+      "id" : "arm.FEAT_LRCPC",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_LRCPC",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Release-consistent loads 2",
+      "id" : "arm.FEAT_LRCPC2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_LRCPC2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "Large System Extensions (atomics)",
+      "id" : "arm.FEAT_LSE",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_LSE",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "LSE2 (atomic 16-byte access)",
+      "id" : "arm.FEAT_LSE2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_LSE2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "Memory Tagging Extension (MTE)",
+      "id" : "arm.FEAT_MTE",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE2 (full tag checking)",
+      "id" : "arm.FEAT_MTE2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE2",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE3 (asymmetric fault handling)",
+      "id" : "arm.FEAT_MTE3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE3",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE4 (enhanced tagging)",
+      "id" : "arm.FEAT_MTE4",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE4",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE asynchronous mode",
+      "id" : "arm.FEAT_MTE_ASYNC",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE_ASYNC",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE canonical tags",
+      "id" : "arm.FEAT_MTE_CANONICAL_TAGS",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE_CANONICAL_TAGS",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE without address tags",
+      "id" : "arm.FEAT_MTE_NO_ADDRESS_TAGS",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "MTE store-only checking",
+      "id" : "arm.FEAT_MTE_STORE_ONLY",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_MTE_STORE_ONLY",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "pointer_authentication",
+      "discovered_by" : "known_list",
+      "display_name" : "Implementation-defined PAC algorithm",
+      "id" : "arm.FEAT_PACIMP",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_PACIMP",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "pointer_authentication",
+      "discovered_by" : "known_list",
+      "display_name" : "Pointer Authentication",
+      "id" : "arm.FEAT_PAuth",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_PAuth",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "pointer_authentication",
+      "discovered_by" : "known_list",
+      "display_name" : "Pointer Authentication 2",
+      "id" : "arm.FEAT_PAuth2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_PAuth2",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "Polynomial multiply (PMULL)",
+      "id" : "arm.FEAT_PMULL",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_PMULL",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Rounding double multiply",
+      "id" : "arm.FEAT_RDM",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_RDM",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Reciprocal estimate precision",
+      "id" : "arm.FEAT_RPRES",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_RPRES",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "Speculation Barrier",
+      "id" : "arm.FEAT_SB",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SB",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "SHA-1 instructions",
+      "id" : "arm.FEAT_SHA1",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SHA1",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "SHA-256 instructions",
+      "id" : "arm.FEAT_SHA256",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SHA256",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "SHA-3 instructions",
+      "id" : "arm.FEAT_SHA3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SHA3",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_crypto",
+      "discovered_by" : "known_list",
+      "display_name" : "SHA-512 instructions",
+      "id" : "arm.FEAT_SHA512",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SHA512",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "Scalable Matrix Extension",
+      "id" : "arm.FEAT_SME",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME2",
+      "id" : "arm.FEAT_SME2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME2",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME2.1",
+      "id" : "arm.FEAT_SME2p1",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME2p1",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME BF16",
+      "id" : "arm.FEAT_SME_B16B16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME_B16B16",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP16",
+      "id" : "arm.FEAT_SME_F16F16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME_F16F16",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP64 outer product",
+      "id" : "arm.FEAT_SME_F64F64",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME_F64F64",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP8 to FP16",
+      "id" : "arm.FEAT_SME_F8F16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.arm.FEAT_SME_F8F16",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP8 to FP32",
+      "id" : "arm.FEAT_SME_F8F32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.arm.FEAT_SME_F8F32",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME Int16 to Int64",
+      "id" : "arm.FEAT_SME_I16I64",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SME_I16I64",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "Speculation restriction (SPECRES)",
+      "id" : "arm.FEAT_SPECRES",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SPECRES",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "Speculation restriction 2",
+      "id" : "arm.FEAT_SPECRES2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SPECRES2",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "speculation",
+      "discovered_by" : "known_list",
+      "display_name" : "Speculative Store Bypass Safe",
+      "id" : "arm.FEAT_SSBS",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SSBS",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SVE BF16 arithmetic",
+      "id" : "arm.FEAT_SVE_B16B16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_SVE_B16B16",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_misc",
+      "discovered_by" : "known_list",
+      "display_name" : "WFE/WFI with timeout",
+      "id" : "arm.FEAT_WFxT",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FEAT_WFxT",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_simd",
+      "discovered_by" : "known_list",
+      "display_name" : "Synchronous floating-point exceptions",
+      "id" : "arm.FP_SyncExceptions",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.FP_SyncExceptions",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME BF16 to FP32",
+      "id" : "arm.SME_B16F32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_B16F32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME binary outer product",
+      "id" : "arm.SME_BI32I32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_BI32I32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP16 to FP32",
+      "id" : "arm.SME_F16F32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_F16F32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME FP32 outer product",
+      "id" : "arm.SME_F32F32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_F32F32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME Int16 to Int32",
+      "id" : "arm.SME_I16I32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_I16I32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME Int8 to Int32",
+      "id" : "arm.SME_I8I32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.SME_I8I32",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "capability_bitmask",
+      "discovered_by" : "known_list",
+      "display_name" : "ARM capability bitmask",
+      "id" : "arm.caps",
+      "kind" : "bitmask",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.caps",
+        "length" : 12,
+        "value_hex" : "ffeffffb9f000e0c00020000"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "isa_sme",
+      "discovered_by" : "known_list",
+      "display_name" : "SME maximum vector length (bytes)",
+      "id" : "arm.sme_max_svl_b",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm.sme_max_svl_b",
+        "length" : 4,
+        "value" : 0
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "64-bit ARM",
+      "id" : "arm64",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.arm64",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8.1 atomics (legacy name)",
+      "id" : "armv8_1_atomics",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_1_atomics",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8.2 FHM (legacy name)",
+      "id" : "armv8_2_fhm",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_2_fhm",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8.2 SHA-3 (legacy name)",
+      "id" : "armv8_2_sha3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_2_sha3",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8.2 SHA-512 (legacy name)",
+      "id" : "armv8_2_sha512",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_2_sha512",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8.3 complex numbers (legacy name)",
+      "id" : "armv8_3_compnum",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_3_compnum",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8 CRC32 (legacy name)",
+      "id" : "armv8_crc32",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_crc32",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "ARMv8 generic PAC (legacy name)",
+      "id" : "armv8_gpi",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.armv8_gpi",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx1_0",
+      "id" : "avx1_0",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx1_0",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx2_0",
+      "id" : "avx2_0",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx2_0",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512bw",
+      "id" : "avx512bw",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512bw",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512cd",
+      "id" : "avx512cd",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512cd",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512dq",
+      "id" : "avx512dq",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512dq",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512f",
+      "id" : "avx512f",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512f",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512ifma",
+      "id" : "avx512ifma",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512ifma",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512vbmi",
+      "id" : "avx512vbmi",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512vbmi",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 avx512vl",
+      "id" : "avx512vl",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.avx512vl",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 bmi1",
+      "id" : "bmi1",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.bmi1",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 bmi2",
+      "id" : "bmi2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.bmi2",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "debug",
+      "discovered_by" : "known_list",
+      "display_name" : "Hardware breakpoints",
+      "id" : "breakpoint",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.breakpoint",
+        "length" : 4,
+        "value" : 6
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 enfstrg",
+      "id" : "enfstrg",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.enfstrg",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 f16c",
+      "id" : "f16c",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.f16c",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "Floating point",
+      "id" : "floatingpoint",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.floatingpoint",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 fma",
+      "id" : "fma",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.fma",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 hle",
+      "id" : "hle",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.hle",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 mmx",
+      "id" : "mmx",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.mmx",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 mpx",
+      "id" : "mpx",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.mpx",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "NEON",
+      "id" : "neon",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.neon",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "NEON FP16",
+      "id" : "neon_fp16",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.neon_fp16",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "NEON half-precision",
+      "id" : "neon_hpfp",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.neon_hpfp",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 rdrand",
+      "id" : "rdrand",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.rdrand",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 rtm",
+      "id" : "rtm",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.rtm",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sgx",
+      "id" : "sgx",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sgx",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sse",
+      "id" : "sse",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sse",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sse2",
+      "id" : "sse2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sse2",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sse3",
+      "id" : "sse3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sse3",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sse4_1",
+      "id" : "sse4_1",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sse4_1",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 sse4_2",
+      "id" : "sse4_2",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.sse4_2",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 supplementalsse3",
+      "id" : "supplementalsse3",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.supplementalsse3",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "legacy_alias",
+      "discovered_by" : "known_list",
+      "display_name" : "Uncached normal memory",
+      "id" : "ucnormal_mem",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.ucnormal_mem",
+        "length" : 4,
+        "value" : 1
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "debug",
+      "discovered_by" : "known_list",
+      "display_name" : "Hardware watchpoints",
+      "id" : "watchpoint",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.optional.watchpoint",
+        "length" : 4,
+        "value" : 4
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "x86_isa",
+      "discovered_by" : "known_list",
+      "display_name" : "x86 x86_64",
+      "id" : "x86_64",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.optional.x86_64",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Page size",
+      "id" : "hw.pagesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.pagesize",
+        "length" : 8,
+        "value" : 16384
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 CPUs per L2",
+      "id" : "hw.perflevel0.cpusperl2",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.cpusperl2",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 CPUs per L3",
+      "id" : "hw.perflevel0.cpusperl3",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 22,
+        "format" : null,
+        "key" : "hw.perflevel0.cpusperl3",
+        "length" : 0
+      },
+      "state" : "error"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 L1 data cache",
+      "id" : "hw.perflevel0.l1dcachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.l1dcachesize",
+        "length" : 4,
+        "value_hex" : "00000100"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 L1 instruction cache",
+      "id" : "hw.perflevel0.l1icachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.l1icachesize",
+        "length" : 4,
+        "value_hex" : "00000200"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 L2 cache",
+      "id" : "hw.perflevel0.l2cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "int64_t",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.l2cachesize",
+        "length" : 4,
+        "value_hex" : "00004000"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 L3 cache",
+      "id" : "hw.perflevel0.l3cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 22,
+        "format" : null,
+        "key" : "hw.perflevel0.l3cachesize",
+        "length" : 0
+      },
+      "state" : "error"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 logical CPUs",
+      "id" : "hw.perflevel0.logicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.logicalcpu",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 logical CPUs (max)",
+      "id" : "hw.perflevel0.logicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.logicalcpu_max",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 cluster name",
+      "id" : "hw.perflevel0.name",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.name",
+        "length" : 11,
+        "value" : "Efficiency"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 physical CPUs",
+      "id" : "hw.perflevel0.physicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.physicalcpu",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 0 physical CPUs (max)",
+      "id" : "hw.perflevel0.physicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "integer",
+        "format_source" : "inventory",
+        "key" : "hw.perflevel0.physicalcpu_max",
+        "length" : 4,
+        "value" : 2
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 CPUs per L2",
+      "id" : "hw.perflevel1.cpusperl2",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.cpusperl2",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 CPUs per L3",
+      "id" : "hw.perflevel1.cpusperl3",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.cpusperl3",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 L1 data cache",
+      "id" : "hw.perflevel1.l1dcachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.l1dcachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 L1 instruction cache",
+      "id" : "hw.perflevel1.l1icachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.l1icachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 L2 cache",
+      "id" : "hw.perflevel1.l2cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.l2cachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 L3 cache",
+      "id" : "hw.perflevel1.l3cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.l3cachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 logical CPUs",
+      "id" : "hw.perflevel1.logicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.logicalcpu",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 logical CPUs (max)",
+      "id" : "hw.perflevel1.logicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.logicalcpu_max",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 cluster name",
+      "id" : "hw.perflevel1.name",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.name",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 physical CPUs",
+      "id" : "hw.perflevel1.physicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.physicalcpu",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 1 physical CPUs (max)",
+      "id" : "hw.perflevel1.physicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel1.physicalcpu_max",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 CPUs per L2",
+      "id" : "hw.perflevel2.cpusperl2",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.cpusperl2",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 CPUs per L3",
+      "id" : "hw.perflevel2.cpusperl3",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.cpusperl3",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 L1 data cache",
+      "id" : "hw.perflevel2.l1dcachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.l1dcachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 L1 instruction cache",
+      "id" : "hw.perflevel2.l1icachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.l1icachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 L2 cache",
+      "id" : "hw.perflevel2.l2cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.l2cachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 L3 cache",
+      "id" : "hw.perflevel2.l3cachesize",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.l3cachesize",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 logical CPUs",
+      "id" : "hw.perflevel2.logicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.logicalcpu",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 logical CPUs (max)",
+      "id" : "hw.perflevel2.logicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.logicalcpu_max",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 cluster name",
+      "id" : "hw.perflevel2.name",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.name",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 physical CPUs",
+      "id" : "hw.perflevel2.physicalcpu",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.physicalcpu",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_cpu",
+      "discovered_by" : "known_list",
+      "display_name" : "Perf level 2 physical CPUs (max)",
+      "id" : "hw.perflevel2.physicalcpu_max",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "hw.perflevel2.physicalcpu_max",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "context_identity",
+      "discovered_by" : "known_list",
+      "display_name" : "Product identifier",
+      "id" : "hw.product",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.product",
+        "length" : 9,
+        "value" : "Watch7,1"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_identity",
+      "discovered_by" : "known_list",
+      "display_name" : "Board target",
+      "id" : "hw.target",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.target",
+        "length" : 8,
+        "value" : "N207sAP"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_identity",
+      "discovered_by" : "known_list",
+      "display_name" : "Board target type",
+      "id" : "hw.targettype",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "hw.targettype",
+        "length" : 6,
+        "value" : "N207s"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "Hypervisor support",
+      "id" : "kern.hv_support",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 1,
+        "format" : null,
+        "key" : "kern.hv_support",
+        "length" : 0
+      },
+      "state" : "restricted"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "OS version",
+      "id" : "kern.osproductversion",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "kern.osproductversion",
+        "length" : 5,
+        "value" : "26.6"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "OS release type",
+      "id" : "kern.osreleasetype",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "kern.osreleasetype",
+        "length" : 5,
+        "value" : "User"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "OS build",
+      "id" : "kern.osversion",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "kern.osversion",
+        "length" : 6,
+        "value" : "23U67"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "Kernel version string",
+      "id" : "kern.version",
+      "kind" : "string",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : null,
+        "format" : "string",
+        "format_source" : "inventory",
+        "key" : "kern.version",
+        "length" : 103,
+        "value" : "Darwin Kernel Version 25.6.0: Sat Jul 11 14:47:13 PDT 2026; root:xnu-12377.164.4~3/RELEASE_ARM64_T8310"
+      },
+      "state" : "value"
+    },
+    {
+      "category" : "context_os",
+      "discovered_by" : "known_list",
+      "display_name" : "Rosetta translation",
+      "id" : "sysctl.proc_translated",
+      "kind" : "flag",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "sysctl.proc_translated",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "os_memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "Active tag-storage cells (gauge)",
+      "id" : "vm.mte.cell.active",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "vm.mte.cell.active",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "os_memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "Tag-storage activations (cumulative)",
+      "id" : "vm.mte.tag_storage.activations",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "vm.mte.tag_storage.activations",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "os_memory_tagging",
+      "discovered_by" : "known_list",
+      "display_name" : "Pages tagged now (gauge)",
+      "id" : "vm.mte.tagged",
+      "kind" : "count",
+      "provenance" : "measured",
+      "raw" : {
+        "errno" : 2,
+        "format" : null,
+        "key" : "vm.mte.tagged",
+        "length" : 0
+      },
+      "state" : "key_absent"
+    },
+    {
+      "category" : "capability_bitmask",
+      "display_name" : "Capability bitmask agrees with FEAT_* keys",
+      "id" : "caps.consistency",
+      "kind" : "claim",
+      "provenance" : "inferred",
+      "reasoning" : "Every named bit in hw.optional.arm.caps matches its hw.optional.arm.FEAT_* key (71 compared, 2 unnamed bits).",
+      "state" : "present"
+    },
+    {
+      "category" : "identity",
+      "display_name" : "System on chip",
+      "id" : "soc.identity",
+      "kind" : "claim",
+      "provenance" : "inferred",
+      "reasoning" : "kern.version target T8310 → soc-map.json (verified) → Apple S9, security-guide column S4-S10.",
+      "state" : "present"
+    },
+    {
+      "category" : "identity",
+      "display_name" : "CPU core family",
+      "id" : "cpu.family",
+      "kind" : "claim",
+      "provenance" : "inferred",
+      "reasoning" : "hw.cpufamily 0x8765edea → <mach/machine.h> → CPUFAMILY_ARM_EVEREST_SAWTOOTH.",
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Kernel Integrity Protection",
+      "id" : "kip",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Fast Permission Restrictions",
+      "id" : "fast_permission_restrictions",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "System Coprocessor Integrity Protection",
+      "id" : "scip",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Pointer Authentication Codes (OS use)",
+      "id" : "pac",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Page Protection Layer",
+      "id" : "ppl",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Footnoted for S4-S10 in the guide. Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Secure Page Table Monitor (with TXM)",
+      "id" : "sptm",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Memory Integrity Enforcement",
+      "id" : "mie",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Composition per the Apple Security Research post of 2025-09-09 (https://security.apple.com/blog/memory-integrity-enforcement/). Applied via soc_id T8310 → column S4-S10.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "not_present"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Tag Confidentiality Enforcement",
+      "id" : "tce",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Apple does not tabulate this per chip family.",
+        "published" : "2025-09-09",
+        "url" : "https://security.apple.com/blog/memory-integrity-enforcement/",
+        "verified" : "2026-09-10"
+      },
+      "state" : "unknown"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Secure Exclaves",
+      "id" : "secure_exclaves",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Apple does not tabulate this per chip family.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "unknown"
+    },
+    {
+      "category" : "kernel_integrity",
+      "display_name" : "Secure Enclave generation",
+      "id" : "secure_enclave_generation",
+      "kind" : "claim",
+      "provenance" : "documented",
+      "source" : {
+        "note" : "Apple does not tabulate this per chip family.",
+        "published" : "2026-01-28",
+        "url" : "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "verified" : "2026-09-10"
+      },
+      "state" : "unknown"
+    }
+  ],
+  "schema_version" : "1.0.0",
+  "unrecognized_keys" : [
+
+  ],
+  "variant" : "full"
+}

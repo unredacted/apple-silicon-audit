@@ -387,7 +387,7 @@ Design notes:
 
 ## 9. Community results database
 
-The repo hosts a `results/` directory of contributed export files, plus a generated matrix (Markdown table and a small static site) mapping chip → feature → state.
+The repo hosts a `results/` directory of contributed export files, plus a generated matrix (`MATRIX.md` and a small static site under `site/`, published with GitHub Pages) mapping chip → feature → state. The tooling is `Tools/generate-matrix` (Node, ajv only); `results/README.md` is the contribution guide.
 
 Contribution flow: user exports JSON from the app, opens a PR adding it under `results/<identity>/` (`device.identity`, §4.3). CI validates it against `Schema/export-v1.schema.json` (which rejects any field outside the allowlist), rejects `is_simulator`, `is_translated`, `is_ios_app_on_mac`, or `is_virtual_machine` results, and regenerates the matrix grouped by `arch`, then `soc_id`, then `identity`.
 

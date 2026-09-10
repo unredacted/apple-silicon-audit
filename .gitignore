@@ -10,3 +10,5 @@ xcuserdata/
 Configs/Signing.xcconfig
 # OS
 .DS_Store
+# Node tooling
+node_modules/

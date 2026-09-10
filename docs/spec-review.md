@@ -262,6 +262,14 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## K. From Phase 7 implementation (results database)
+
+88. **`Tools/generate-matrix`** validates every `results/**/*.json` against the schema, rejects the four environment flags and compact variants, checks the `results/<identity>/<os_build>-<n>.json` path against the file's own content, caps size at 512 KiB, and reports conflicts per `(identity, os_build)` on measured facts. `--write` regenerates `MATRIX.md` and `site/index.html`. (§9)
+89. **CI**: pull requests touching results run the validator; pushes to `main` regenerate and commit the matrix and publish the site with GitHub Pages (the repository's Pages source must be set to "GitHub Actions" once). (§9)
+90. **Seeded** with this Mac's live export and the real Watch report from the Phase 5 round trip. The iPhone's full export is not yet in the database; it needs a device window. (§9)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.
