@@ -9,8 +9,18 @@ DEVICE="${2:-$(xcrun devicectl list devices --json-output /dev/stdout 2>/dev/nul
 if [[ -z "$DEVICE" ]]; then echo "No device attached." >&2; exit 1; fi
 Scripts/gen-project.sh
 DERIVED="$PWD/.build/DerivedData"
-xcodebuild -project SiliconAudit.xcodeproj -scheme "$SCHEME" -destination "id=$DEVICE" -derivedDataPath "$DERIVED" -allowProvisioningUpdates build
-APP=$(find "$DERIVED/Build/Products" -maxdepth 2 -name "*.app" -path "*iphoneos*" | head -1)
+XCB=(xcodebuild -project SiliconAudit.xcodeproj -scheme "$SCHEME" -destination "id=$DEVICE" -derivedDataPath "$DERIVED" -allowProvisioningUpdates)
+"${XCB[@]}" build
+
+# Resolve the product this scheme just built from its own build settings, so a
+# stale .app from another scheme in the shared DerivedData is never picked up.
+# The first settings block printed belongs to the scheme's primary target.
+SETTINGS=$("${XCB[@]}" -showBuildSettings 2>/dev/null)
+BUILD_DIR=$(printf '%s\n' "$SETTINGS" | awk -F' = ' '/^ *TARGET_BUILD_DIR =/{print $2; exit}')
+PRODUCT=$(printf '%s\n' "$SETTINGS" | awk -F' = ' '/^ *FULL_PRODUCT_NAME =/{print $2; exit}')
+APP="$BUILD_DIR/$PRODUCT"
+if [[ ! -d "$APP" ]]; then echo "Built product not found at $APP" >&2; exit 1; fi
+
 xcrun devicectl device install app --device "$DEVICE" "$APP"
 BUNDLE_ID=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 xcrun devicectl device process launch --device "$DEVICE" "$BUNDLE_ID"
