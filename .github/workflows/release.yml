@@ -13,13 +13,26 @@ jobs:
       - name: Build universal release binary
         run: |
           swift build -c release --product silicon-audit --arch arm64 --arch x86_64
-          BIN=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)/silicon-audit
-          lipo -info "$BIN"
-          codesign --force --sign - "$BIN"
+          BINDIR=$(swift build -c release --arch arm64 --arch x86_64 --show-bin-path)
+          lipo -info "$BINDIR/silicon-audit"
+          codesign --force --sign - "$BINDIR/silicon-audit"
           VERSION="${GITHUB_REF_NAME#v}"
-          mkdir -p dist && cp "$BIN" dist/silicon-audit
-          (cd dist && zip -q "silicon-audit-$VERSION-macos.zip" silicon-audit && shasum -a 256 "silicon-audit-$VERSION-macos.zip" > "silicon-audit-$VERSION-macos.zip.sha256")
-          ./dist/silicon-audit --version
+          # The tag must name the version the binary was built with; an out-of-order tag must not publish.
+          BUILT=$("$BINDIR/silicon-audit" --version)
+          [ "$BUILT" = "$VERSION" ] || { echo "tag v$VERSION but the binary reports $BUILT; run Scripts/bump-version.sh first" >&2; exit 1; }
+          # SiliconAuditCore's data files live in a SwiftPM resource bundle that Bundle.module finds
+          # next to the executable; ship it beside the binary or every inventory-backed command breaks.
+          mkdir -p dist/silicon-audit-$VERSION
+          cp "$BINDIR/silicon-audit" dist/silicon-audit-$VERSION/
+          cp -R "$BINDIR/SiliconAudit_SiliconAuditCore.bundle" dist/silicon-audit-$VERSION/
+          (cd dist && zip -qr "silicon-audit-$VERSION-macos.zip" "silicon-audit-$VERSION" && shasum -a 256 "silicon-audit-$VERSION-macos.zip" > "silicon-audit-$VERSION-macos.zip.sha256")
+      - name: Staged binary loads its data files
+        # Unzip somewhere unrelated to the build tree and run an inventory-backed command from there.
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          STAGE=$(mktemp -d) && unzip -q "dist/silicon-audit-$VERSION-macos.zip" -d "$STAGE"
+          cd "$STAGE/silicon-audit-$VERSION"
+          ./silicon-audit export | python3 -c 'import json,sys; d=json.load(sys.stdin); assert d["collection"]["known_keys_version"], "inventory did not load"; print("inventory", d["collection"]["known_keys_version"], len(d["facts"]), "facts")'
       - name: Release notes from CHANGELOG
         run: |
           VERSION="${GITHUB_REF_NAME#v}"

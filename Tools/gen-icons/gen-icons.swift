@@ -51,10 +51,14 @@ func drawChip(in ctx: CGContext, rect: CGRect, palette: Palette, glyphScale: CGF
     ctx.fillEllipse(in: CGRect(x: inset.minX + dot * 0.9, y: inset.maxY - dot * 1.9, width: dot, height: dot))
 }
 
+/// Flattened icons (iOS, macOS, watchOS, the tvOS/visionOS back layers) are RGB with no alpha
+/// channel: App Store Connect rejects app icons that carry one, opaque pixels or not. Only the
+/// transparent foreground layers keep alpha.
 func render(width: Int, height: Int, palette: Palette, glyphScale: CGFloat, transparentGround: Bool = false, body: Bool = true) -> CGImage {
     let space = CGColorSpace(name: CGColorSpace.sRGB)!
+    let alpha: CGImageAlphaInfo = transparentGround ? .premultipliedLast : .noneSkipLast
     let ctx = CGContext(data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0, space: space,
-                        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+                        bitmapInfo: alpha.rawValue)!
     let rect = CGRect(x: 0, y: 0, width: width, height: height)
     if body {
         drawChip(in: ctx, rect: rect, palette: palette, glyphScale: glyphScale, transparentGround: transparentGround)
