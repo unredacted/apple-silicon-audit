@@ -30,12 +30,34 @@ final class ConnectivityBridge: NSObject, WCSessionDelegate, @unchecked Sendable
     }
 
     func activate() {
+        restorePersistedReport()
         guard WCSession.isSupported() else {
             Task { @MainActor in model.status = "WatchConnectivity not supported on this device" }
             return
         }
         WCSession.default.delegate = self
         WCSession.default.activate()
+    }
+
+    /// iOS side: a report delivered while the app was not running (or before a relaunch)
+    /// already sits in Documents. Show the newest one instead of claiming nothing arrived.
+    private func restorePersistedReport() {
+        let candidates = SpikeStore.savedReports().filter { $0.lastPathComponent.hasPrefix("spike-watchOS-") }
+        guard let newest = candidates.max(by: { modificationDate($0) < modificationDate($1) }) else { return }
+        do {
+            let report = try SpikeStore.load(newest)
+            Task { @MainActor in
+                model.receivedFileURL = newest
+                model.receivedReport = report
+                model.status = "Restored \(newest.lastPathComponent) from Documents"
+            }
+        } catch {
+            Task { @MainActor in model.status = "Stored watch report \(newest.lastPathComponent) could not be decoded: \(error.localizedDescription)" }
+        }
+    }
+
+    private func modificationDate(_ url: URL) -> Date {
+        (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
     }
 
     /// Watch side: write the report to a temporary file and queue it for the phone.
@@ -101,26 +123,24 @@ final class ConnectivityBridge: NSObject, WCSessionDelegate, @unchecked Sendable
     func session(_ session: WCSession, didReceive file: WCSessionFile) {
         let stem = (file.metadata?["stem"] as? String) ?? "watch-spike"
         let destination = SpikeStore.documents.appendingPathComponent("\(stem).json")
-        var copied: URL?
-        var failure: String?
-        do {
+        // Copy and decode synchronously; a report that cannot be decoded is a failed receive,
+        // not a success with a missing entry.
+        let outcome: Result<SpikeReport, Error> = Result {
             if FileManager.default.fileExists(atPath: destination.path) {
                 try FileManager.default.removeItem(at: destination)
             }
             try FileManager.default.copyItem(at: file.fileURL, to: destination)
-            copied = destination
-        } catch {
-            failure = error.localizedDescription
+            return try SpikeStore.load(destination)
         }
-        let report = copied.flatMap { try? SpikeStore.load($0) }
         Task { @MainActor in
-            if let failure {
-                model.status = "Receive failed: \(failure)"
-            } else {
-                model.receivedFileURL = copied
+            switch outcome {
+            case .success(let report):
+                model.receivedFileURL = destination
                 model.receivedReport = report
                 model.receivedCount += 1
                 model.status = "Received \(stem).json from Apple Watch"
+            case .failure(let error):
+                model.status = "Receive failed for \(stem).json: \(error.localizedDescription)"
             }
         }
     }

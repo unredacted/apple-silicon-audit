@@ -41,7 +41,8 @@ Consequences for the design:
 - OS-level memory-tagging activity (`vm.mte.*`) is **not observable from a sandboxed iOS app**;
   that row will read `restricted` on iOS and is only measurable from macOS.
 - `T8150` is the A19 Pro (this device), so the seeded SoC map's "A18 Pro" guess for T8150 was
-  wrong and has been corrected; every unverified entry in that map stays `reported`, not `verified`.
+  wrong; `soc-map.json` now carries T8150 = A19 Pro, T8310 = S9 and T6050 (Mac17,7) as `verified`
+entries, and every other seeded entry stays `reported`, not `verified`.
 
 ## Apple Watch Series 9 — Watch7,1, board N207sAP, watchOS 26.6 (23U67), kernel target T8310
 
@@ -65,8 +66,12 @@ absent. That is the answer the project was built to give: the kernel knows the k
 not have the feature.
 
 Capability bitmask decoded against `<arm/cpu_capabilities_public.h>`, S9 vs M5/A19 Pro:
-- 40 bits set on the S9, 64 on the M5. Missing on the S9: all MTE bits, all SME/SVE bits,
-  FEAT_CSSC, FEAT_EBF16, FEAT_HBC, FEAT_WFxT, FEAT_FPACCOMBINE.
+- Popcount: **42** bits set on the S9, **67** on the M5/A19 Pro. Of those, 40 and 64 have names in
+  the public header; the rest are set bits the header does not name: bits 39 and 59 on the S9,
+  bits 38, 39 and 59 on the M5/A19 Pro. Bit 38 is therefore set only on the newer chips. These
+  will be exported by the Phase 3 caps decoder as unnamed bits, so nobody has to redo this arithmetic.
+- Named bits missing on the S9: all MTE bits, all SME/SVE bits, FEAT_CSSC, FEAT_EBF16, FEAT_HBC,
+  FEAT_WFxT, FEAT_FPACCOMBINE.
 - Security-relevant bits present on the S9: FEAT_PAuth, FEAT_PAuth2, FEAT_FPAC, FEAT_PACIMP,
   FEAT_BTI, FEAT_CSV2, FEAT_CSV3, FEAT_SB, FEAT_DIT, **FEAT_SSBS**.
 - **FEAT_SSBS is set on the S9 and clear on both the M5 and the A19 Pro.** Whether that is a

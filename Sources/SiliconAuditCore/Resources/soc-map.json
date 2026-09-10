@@ -2,5 +2,196 @@
   "schema_version": "1",
   "version": "2026-09-10",
   "verified": "2026-09-10",
-  "entries": []
+  "notes": "soc_id is parsed from kern.version (RELEASE_ARM64_<T-number>) and is measured. Everything here is a lookup: confidence 'verified' means a device with that kernel target was observed by this project and its identity is unambiguous; 'reported' means seeded from public reporting and not yet confirmed. security_guide_column names the column of Apple's Platform Security 'Operating system integrity' table.",
+  "entries": [
+    {
+      "soc_id": "T8150",
+      "soc_name": "Apple A19 Pro",
+      "security_guide_column": "A19",
+      "confidence": "verified",
+      "evidence": "iPhone18,2 (iPhone 17 Pro Max), iOS 26.6.2, kern.version RELEASE_ARM64_T8150; docs/evidence/spike-iPhone18,2-23G90.json"
+    },
+    {
+      "soc_id": "T8310",
+      "soc_name": "Apple S9",
+      "security_guide_column": "S4-S10",
+      "confidence": "verified",
+      "evidence": "Watch7,1 (Apple Watch Series 9), watchOS 26.6, RELEASE_ARM64_T8310; docs/evidence/spike-Watch7,1-23U67.json"
+    },
+    {
+      "soc_id": "T6050",
+      "soc_name": "Apple M5 (Pro/Max die; marketing tier unverified)",
+      "security_guide_column": "M5",
+      "confidence": "verified",
+      "evidence": "Mac17,7, macOS 26.6.2, RELEASE_ARM64_T6050; docs/evidence/Mac17,7-25G83.txt"
+    },
+    {
+      "soc_id": "T8103",
+      "soc_name": "Apple M1",
+      "security_guide_column": "M1",
+      "confidence": "reported",
+      "evidence": "kernel.release.t8103 present on Mac17,7; identity from public reporting"
+    },
+    {
+      "soc_id": "T8112",
+      "soc_name": "Apple M2",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t8112; public reporting"
+    },
+    {
+      "soc_id": "T8122",
+      "soc_name": "Apple M3",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t8122; public reporting"
+    },
+    {
+      "soc_id": "T8132",
+      "soc_name": "Apple M4",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t8132; public reporting"
+    },
+    {
+      "soc_id": "T8142",
+      "soc_name": "Apple M5",
+      "security_guide_column": "M5",
+      "confidence": "reported",
+      "evidence": "kernel.release.t8142; public reporting"
+    },
+    {
+      "soc_id": "T6000",
+      "soc_name": "Apple M1 Pro",
+      "security_guide_column": "M1",
+      "confidence": "reported",
+      "evidence": "kernel.release.t6000; public reporting"
+    },
+    {
+      "soc_id": "T6001",
+      "soc_name": "Apple M1 Max",
+      "security_guide_column": "M1",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6002",
+      "soc_name": "Apple M1 Ultra",
+      "security_guide_column": "M1",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6020",
+      "soc_name": "Apple M2 Pro",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t6020; public reporting"
+    },
+    {
+      "soc_id": "T6021",
+      "soc_name": "Apple M2 Max",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6022",
+      "soc_name": "Apple M2 Ultra",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6030",
+      "soc_name": "Apple M3 Pro",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t6030; public reporting"
+    },
+    {
+      "soc_id": "T6031",
+      "soc_name": "Apple M3 Max",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t6031; public reporting"
+    },
+    {
+      "soc_id": "T6034",
+      "soc_name": "Apple M3 Ultra",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6040",
+      "soc_name": "Apple M4 Pro",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T6041",
+      "soc_name": "Apple M4 Max",
+      "security_guide_column": "M2-M4",
+      "confidence": "reported",
+      "evidence": "kernel.release.t6041; public reporting"
+    },
+    {
+      "soc_id": "T8020",
+      "soc_name": "Apple A12",
+      "security_guide_column": "A12-A14",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8030",
+      "soc_name": "Apple A13",
+      "security_guide_column": "A12-A14",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8101",
+      "soc_name": "Apple A14",
+      "security_guide_column": "A12-A14",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8110",
+      "soc_name": "Apple A15",
+      "security_guide_column": "A15-A18",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8120",
+      "soc_name": "Apple A16",
+      "security_guide_column": "A15-A18",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8130",
+      "soc_name": "Apple A17 Pro",
+      "security_guide_column": "A15-A18",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    },
+    {
+      "soc_id": "T8140",
+      "soc_name": "Apple A18 or A18 Pro (unresolved)",
+      "security_guide_column": "A15-A18",
+      "confidence": "reported",
+      "evidence": "public reporting; T8150 proved to be A19 Pro, so this family's numbering is uncertain"
+    },
+    {
+      "soc_id": "T8301",
+      "soc_name": "Apple S6 / S7 / S8",
+      "security_guide_column": "S4-S10",
+      "confidence": "reported",
+      "evidence": "public reporting"
+    }
+  ]
 }

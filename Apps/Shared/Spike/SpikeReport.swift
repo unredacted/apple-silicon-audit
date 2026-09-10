@@ -42,6 +42,9 @@ struct SpikeReport: Codable, Equatable, Sendable {
     var notApplicableCount: Int
     var restrictedCount: Int
     var restrictedKeys: [String]
+    /// hw.optional.arm.* keys read by name (the collection path when the walk is refused).
+    var namedArmReadable: Int
+    var namedArmTotal: Int
     var capsLength: Int?
     var capsHex: String?
 
@@ -80,6 +83,9 @@ struct SpikeReport: Codable, Equatable, Sendable {
         restrictedCount = r.restrictedCount
         restrictedKeys = r.walk.keys.filter { $0.outcome == .restricted }.map(\.name)
             + r.namedReads.filter { $0.value == .restricted }.map(\.key).sorted()
+        let namedArm = Auditor.namedKeys.filter { $0.hasPrefix("hw.optional.arm.") }
+        namedArmTotal = namedArm.count
+        namedArmReadable = namedArm.filter { r.namedReads[$0]?.value != nil }.count
         let caps = r.outcome(for: "hw.optional.arm.caps")?.value
         capsLength = caps?.length
         capsHex = caps?.hex
@@ -95,8 +101,8 @@ struct SpikeReport: Codable, Equatable, Sendable {
     var verdict: [String] {
         var lines: [String] = []
         lines.append(walkSucceeded ? "Walk: OK, \(keyCount) keys under hw.optional" : "Walk: FAILED — \(walkFailure ?? "unknown")")
-        let armReadable = walked.filter { $0.key.hasPrefix("hw.optional.arm.") && !$0.result.hasPrefix("restricted") }.count
-        lines.append("hw.optional.arm.* readable: \(armReadable > 0 ? "yes (\(armReadable))" : "NO")")
+        lines.append("hw.optional.arm.* readable by name: \(namedArmReadable > 0 ? "yes (\(namedArmReadable)/\(namedArmTotal))" : "NO (0/\(namedArmTotal))")")
+        lines.append("Walk-discovered keys: \(keyCount)")
         lines.append("OIDFMT (kernel types): \(kernelFormatsAvailable ? "available" : "REFUSED — types from inventory (*)")")
         lines.append("Restricted reads: \(restrictedCount)")
         lines.append("Not applicable (other arch): \(notApplicableCount)")

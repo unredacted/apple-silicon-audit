@@ -204,7 +204,7 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ## Open items not resolvable from a Mac
 
-1. ~~Whether iOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered for iOS (yes / no / no); **watchOS still pending in the M0 spike.**
+1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.
 2. Whether `hw.product` is present on the oldest supported iOS. **Old-device test.**
 3. Confirmation of the Required Reason API list at submission time. **§10.**
 4. Whether the EMTE logical tag lands in pointer bits 59:56 on Apple's implementation as on reference Arm MTE. **Phase 2a spike.**
