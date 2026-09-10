@@ -74,7 +74,8 @@
         "is_simulator",
         "is_translated",
         "is_ios_app_on_mac",
-        "is_catalyst"
+        "is_catalyst",
+        "is_virtual_machine"
       ],
       "properties": {
         "platform": {
@@ -118,6 +119,9 @@
         },
         "is_catalyst": {
           "type": "boolean"
+        },
+        "is_virtual_machine": {
+          "type": "boolean"
         }
       }
     },
@@ -125,6 +129,7 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "identity",
         "hw_product",
         "hw_machine",
         "hw_model",
@@ -135,6 +140,11 @@
         "marketing_name_inferred"
       ],
       "properties": {
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "description": "First non-empty of hw_product, hw_model (Macs), hw_machine. Results and conflict key."
+        },
         "hw_product": {
           "type": [
             "string",
@@ -210,7 +220,7 @@
     "unrecognized_keys": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/unrecognized_key"
+        "$ref": "#/$defs/unrecognized_fact"
       }
     }
   },
@@ -237,12 +247,28 @@
                 }
               }
             }
+          },
+          "unrecognized_keys": {
+            "items": {
+              "properties": {
+                "provenance": {
+                  "const": "measured"
+                }
+              }
+            }
           }
         }
       },
       "else": {
         "properties": {
           "facts": {
+            "items": {
+              "required": [
+                "display_name"
+              ]
+            }
+          },
+          "unrecognized_keys": {
             "items": {
               "required": [
                 "display_name"
@@ -269,6 +295,7 @@
       "enum": [
         "present",
         "not_present",
+        "value",
         "key_absent",
         "restricted",
         "not_applicable",
@@ -281,6 +308,7 @@
       "enum": [
         "present",
         "not_present",
+        "value",
         "key_absent",
         "restricted",
         "not_applicable",
@@ -293,17 +321,6 @@
         "present",
         "not_present",
         "unknown"
-      ]
-    },
-    "read_outcome": {
-      "description": "What the kernel said when the key was read.",
-      "type": "string",
-      "enum": [
-        "value",
-        "absent",
-        "restricted",
-        "not_applicable",
-        "error"
       ]
     },
     "provenance": {
@@ -322,6 +339,7 @@
         "count",
         "bitmask",
         "string",
+        "unknown",
         "claim"
       ]
     },
@@ -364,57 +382,6 @@
             "integer",
             "null"
           ]
-        },
-        "masked": {
-          "type": "boolean"
-        }
-      }
-    },
-    "unrecognized_key": {
-      "description": "A key the walk found that the inventory does not annotate. Carries the read outcome so restricted and error are never conflated with a value.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "key",
-        "format",
-        "length",
-        "outcome",
-        "errno"
-      ],
-      "properties": {
-        "key": {
-          "type": "string",
-          "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$"
-        },
-        "format": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "length": {
-          "type": "integer",
-          "minimum": 0
-        },
-        "outcome": {
-          "$ref": "#/$defs/read_outcome"
-        },
-        "errno": {
-          "type": [
-            "integer",
-            "null"
-          ]
-        },
-        "value": {
-          "type": [
-            "integer",
-            "string",
-            "null"
-          ]
-        },
-        "value_hex": {
-          "type": "string",
-          "pattern": "^[0-9a-f]*$"
         },
         "masked": {
           "type": "boolean"
@@ -565,6 +532,92 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "flag"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "const": "value"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "count",
+                  "bitmask",
+                  "string",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "enum": [
+                    "present",
+                    "not_present"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unrecognized_fact": {
+      "description": "A key the walk found that the inventory does not annotate: an ordinary measured fact with its own provenance and read outcome, constrained to the walk root.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fact"
+        },
+        {
+          "properties": {
+            "provenance": {
+              "const": "measured"
+            },
+            "discovered_by": {
+              "const": "walk"
+            },
+            "kind": {
+              "const": "unknown"
+            },
+            "category": {
+              "const": "unrecognized"
+            },
+            "raw": {
+              "properties": {
+                "key": {
+                  "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$"
+                }
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "discovered_by",
+            "raw"
+          ]
         }
       ]
     }

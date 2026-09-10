@@ -174,6 +174,22 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## D. From the v0.2 pull-request review (Codex, 2026-09-10)
+
+37. **Neutral `value` state.** Non-flag kinds (`count`, `string`, `bitmask`, `unknown`) could only be `present`/`not_present`. Added `value`; `arm.caps` in the §8 example now uses it. (§4.1, §8)
+38. **Meta-OID walk and the no-private-API rule.** Clarified that `sysctl(2)` is public and the node-0 ABI underlies the SDK's own `sysctlnametomib(3)`, while the undocumented selectors are exactly why the walk is the discovery layer and the by-name inventory is the guaranteed baseline. (§4.2)
+39. **Evidence fixture truncated `caps`.** `sysctl -x` printed 8 of 12 bytes. Appended the full buffer with a bit-by-bit cross-check against the individual `FEAT_*` keys; every bit agrees. (evidence file)
+40. **Intel identity.** `hw.machine` is `x86_64` on Intel and `hw.product` is absent; identity is now `hw_product` → `hw_model` → `hw_machine`, exported as `device.identity` and used as the results key. (§4.3, §8, §9)
+41. **Gauges vs cumulative MTE counters.** Only `vm.mte.tagged` and `vm.mte.cell.active` (gauges) may drive the "tagging now" verdict; `tag_storage.activations` and other since-boot counters are their own rows. (§4.4)
+42. **Matrix-update wording.** "Must not require an app update" contradicted the no-networking v1. Now "must not require a code change." (§5)
+43. **Virtual machines.** New `is_virtual_machine` flag from `kern.hv_vmm_present`, `VMAPPLE` kernel target, or `VirtualMac` model; CI rejects. GitHub's own macOS runners are `VMAPPLE` guests, which the project's CI proved by failing a live test that expected a `T`-series target. (§6.2, §8, §9, §14)
+44. **Unrecognized keys carry provenance.** They are full measured facts (`kind: unknown`, `category: unrecognized`, `discovered_by: walk`) kept in their own top-level array. (§8)
+45. **Legacy keys fully qualified.** They live under `hw.optional.`, not `hw.optional.arm.`; the inventory stores full names. (§4.3)
+46. **App Group removed.** Companion and watch are on different devices; only `WCSession` moves state. (§6.1)
+47. **Catalyst detection** uses `#if targetEnvironment(macCatalyst)` ahead of the iOS branch so Catalyst reports `platform: macOS`. (§6.2)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. Whether iOS/watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads. **M0 spike.**
