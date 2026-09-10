@@ -278,9 +278,11 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
   "app_version": "0.1.0",
   "collected_at": "2026-09-18T14:22:31Z",
   "collection": {
-    "walk_succeeded": true,
+    "walk_succeeded": false,
     "walk_root": "hw.optional",
-    "known_keys_version": "2026-09-10"
+    "walk_failure": "CTL_SYSCTL_NEXT failed with errno 1 after 0 keys",
+    "known_keys_version": "2026-09-10",
+    "kernel_formats_available": false
   },
   "environment": {
     "platform": "watchOS",
@@ -316,7 +318,7 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
       "provenance": "measured",
       "state": "present",
       "discovered_by": "both",
-      "raw": { "key": "hw.optional.arm.FEAT_MTE4", "format": "int", "length": 4, "value": 1, "errno": null }
+      "raw": { "key": "hw.optional.arm.FEAT_MTE4", "format": "integer", "format_source": "inventory", "length": 4, "value": 1, "errno": null }
     },
     {
       "id": "arm.caps",
@@ -369,12 +371,15 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
 
 Design notes:
 
+- **`collection.kernel_formats_available`** is false when the sandbox refused OIDFMT; every `raw.format_source` is then `inventory`. `raw.format` and `raw.errno` are always present (null when not applicable) so a missing type is never ambiguous.
+- **`capabilities`** (optional, top level) is the decoded `caps` bitmask: `byte_count`, `popcount`, `named_bits`, `unnamed_bits` (set bits the public header does not name), and `mismatches` against the `FEAT_*` keys. A non-empty `mismatches` is a finding, never hidden; the inferred fact `caps.consistency` summarizes it.
+- **Inferred facts** carry `reasoning` as one sentence: `soc.identity` (kern.version target → soc-map.json → name, with the map's confidence), `cpu.family` (hw.cpufamily → `<mach/machine.h>`), `caps.consistency`.
 - **`state` is one enum for every fact:** `present | not_present | value | key_absent | restricted | not_applicable | error | unknown`. Measured facts use every state but `unknown`; `present`/`not_present` are for `flag` kinds only and `value` for every other kind that read successfully; documented and inferred facts use `present`, `not_present`, or `unknown`.
 - **`unrecognized_keys` entries are ordinary measured facts** (same schema, `provenance: measured`, `discovered_by: walk`, `kind: unknown`, `category: unrecognized`, `display_name` = the key). They are kept in their own top-level array so discoveries are visible at a glance, and they carry their own provenance and read outcome rather than inheriting it from the array. Scoped to the walk root (`hw.optional`), never `kern.*` or `vm.*`.
 - `collection.walk_succeeded: false` means the result is not evidence of absence for keys outside the inventory.
 - Everything under `device` ending in `_inferred` is a lookup, not a measurement, and the app has no way to verify it. `soc_id` and `cpufamily` are measured.
 - `os_build` (from `kern.osversion`) is the conflict-resolution key in §9, not `os_version`.
-- **Compact variant** (`"variant": "compact"`): measured facts only, no display names or descriptions, deflate-compressed and base45-encoded for QR (tvOS) and watch `ShareLink`. The companion app or the CI tool expands it against the same `known_keys_version`.
+- **Compact variant** (`"variant": "compact"`): the security-relevant measured facts (memory tagging, pointer authentication, control flow, speculation, constant time, capability bitmask, OS tagging) plus identity/context and legacy-alias rows and all `unrecognized_keys`, no display names or descriptions, deflate-compressed and Base45-encoded (RFC 9285) for QR (tvOS) and watch `ShareLink`. ISA/SIMD and x86 rows are full-export only so the payload stays under QR capacity (measured: ~2.5K characters for an M5 Mac). The companion app or the CI tool expands it against the same `known_keys_version`.
 - No serial number, no UDID, no identifierForVendor, no account, no IP-derived location, no hostname, no boot time, no boot-session UUID.
 
 ---

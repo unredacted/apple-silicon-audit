@@ -2,5 +2,197 @@
   "schema_version": "1",
   "version": "2026-09-10",
   "verified": "2026-09-10",
-  "entries": []
+  "columns": [
+    "A10",
+    "A11-S3",
+    "A12-A14",
+    "S4-S10",
+    "A15-A18",
+    "M1",
+    "M2-M4",
+    "A19",
+    "M5"
+  ],
+  "notes": "Apple's Platform Security guide, 'Operating system integrity', runtime-protection table as read on 2026-09-10 (page published 2026-01-28). A chip family not in `columns` is unknown to the guide and every row reads unknown for it.",
+  "entries": [
+    {
+      "id": "kip",
+      "display_name": "Kernel Integrity Protection",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A10",
+        "A11-S3",
+        "A12-A14",
+        "S4-S10",
+        "A15-A18",
+        "M1",
+        "M2-M4",
+        "A19",
+        "M5"
+      ],
+      "description": "Hardware prevents modification of kernel code and read-only data after boot.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "fast_permission_restrictions",
+      "display_name": "Fast Permission Restrictions",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A11-S3",
+        "A12-A14",
+        "S4-S10",
+        "A15-A18",
+        "M1",
+        "M2-M4",
+        "A19",
+        "M5"
+      ],
+      "description": "Hardware register that quickly restricts memory permissions, used by the kernel and by JIT hardening.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "scip",
+      "display_name": "System Coprocessor Integrity Protection",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A12-A14",
+        "S4-S10",
+        "A15-A18",
+        "M1",
+        "M2-M4",
+        "A19",
+        "M5"
+      ],
+      "description": "Coprocessor firmware (including the Secure Enclave's) is protected against runtime modification.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "pac",
+      "display_name": "Pointer Authentication Codes (OS use)",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A12-A14",
+        "S4-S10",
+        "A15-A18",
+        "M1",
+        "M2-M4",
+        "A19",
+        "M5"
+      ],
+      "description": "Apple's documented use of PAC across the OS. The measured FEAT_PAuth rows say what the kernel reports; this row says what Apple documents.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "ppl",
+      "display_name": "Page Protection Layer",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A12-A14",
+        "S4-S10",
+        "A15-A18"
+      ],
+      "description": "Higher-privileged kernel layer guarding page tables and code signing, predecessor of SPTM.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10",
+        "note": "Footnoted for S4-S10 in the guide."
+      }
+    },
+    {
+      "id": "sptm",
+      "display_name": "Secure Page Table Monitor (with TXM)",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A15-A18",
+        "M2-M4",
+        "A19",
+        "M5"
+      ],
+      "description": "Page-table monitor running above the kernel, paired with the Trusted Execution Monitor.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "mie",
+      "display_name": "Memory Integrity Enforcement",
+      "category": "kernel_integrity",
+      "tabulated": true,
+      "columns_present": [
+        "A19",
+        "M5"
+      ],
+      "description": "EMTE in synchronous mode plus secure typed allocators plus Tag Confidentiality Enforcement. A hardware FEAT_MTE4 flag alone does not make this true.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10",
+        "note": "Composition per the Apple Security Research post of 2025-09-09 (https://security.apple.com/blog/memory-integrity-enforcement/)."
+      }
+    },
+    {
+      "id": "tce",
+      "display_name": "Tag Confidentiality Enforcement",
+      "category": "kernel_integrity",
+      "tabulated": false,
+      "columns_present": [],
+      "description": "Policies protecting allocator tags against side-channel and speculative-execution leaks; part of MIE, not tabulated per chip.",
+      "source": {
+        "url": "https://security.apple.com/blog/memory-integrity-enforcement/",
+        "published": "2025-09-09",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "secure_exclaves",
+      "display_name": "Secure Exclaves",
+      "category": "kernel_integrity",
+      "tabulated": false,
+      "columns_present": [],
+      "description": "Isolated execution domains introduced alongside SPTM; not tabulated per chip in the guide.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    },
+    {
+      "id": "secure_enclave_generation",
+      "display_name": "Secure Enclave generation",
+      "category": "kernel_integrity",
+      "tabulated": false,
+      "columns_present": [],
+      "description": "Secure Enclave hardware generation is not exposed to apps and not tabulated in the runtime-protection table.",
+      "source": {
+        "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
+        "published": "2026-01-28",
+        "verified": "2026-09-10"
+      }
+    }
+  ]
 }

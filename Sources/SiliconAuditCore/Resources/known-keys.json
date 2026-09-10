@@ -2,5 +2,1443 @@
   "schema_version": "1",
   "version": "2026-09-10",
   "verified": "2026-09-10",
-  "entries": []
+  "notes": "Keys the engine annotates. `format` is the sysctl format string used when the sandbox refuses OIDFMT (I=int32, Q=int64, A=string). kind: flag keys map to present/not_present; everything else reads as value. security_relevant selects the headline sections.",
+  "categories": [
+    "memory_tagging",
+    "pointer_authentication",
+    "control_flow",
+    "speculation",
+    "constant_time",
+    "capability_bitmask",
+    "os_memory_tagging",
+    "legacy_alias",
+    "isa_crypto",
+    "isa_simd",
+    "isa_sme",
+    "isa_misc",
+    "debug",
+    "x86_isa",
+    "context_identity",
+    "context_cpu",
+    "context_os"
+  ],
+  "entries": [
+    {
+      "id": "hw.cpufamily",
+      "key": "hw.cpufamily",
+      "display_name": "CPU family",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core microarchitecture family; see <mach/machine.h>. Display as unsigned hex."
+    },
+    {
+      "id": "hw.cpusubfamily",
+      "key": "hw.cpusubfamily",
+      "display_name": "CPU subfamily",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core subfamily (HP, HG, M, HS, HC_HD, HA)."
+    },
+    {
+      "id": "hw.cpusubtype",
+      "key": "hw.cpusubtype",
+      "display_name": "CPU subtype",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Mach CPU subtype constant."
+    },
+    {
+      "id": "hw.cputype",
+      "key": "hw.cputype",
+      "display_name": "CPU type",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Mach CPU type constant."
+    },
+    {
+      "id": "hw.engineering_sample",
+      "key": "hw.engineering_sample",
+      "display_name": "Engineering sample",
+      "category": "context_os",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "1 on engineering-sample hardware. Restricted on iOS and watchOS."
+    },
+    {
+      "id": "hw.features.allows_security_research",
+      "key": "hw.features.allows_security_research",
+      "display_name": "Security Research Device",
+      "category": "context_os",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "1 on Apple Security Research Devices. Restricted on iOS and watchOS."
+    },
+    {
+      "id": "hw.machine",
+      "key": "hw.machine",
+      "display_name": "Machine",
+      "category": "context_identity",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Model identifier on iOS/watchOS; the literal 'arm64' or 'x86_64' on macOS."
+    },
+    {
+      "id": "hw.memsize",
+      "key": "hw.memsize",
+      "display_name": "Memory size",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Physical memory in bytes."
+    },
+    {
+      "id": "hw.model",
+      "key": "hw.model",
+      "display_name": "Model / board",
+      "category": "context_identity",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Model on macOS (also Intel identity); board identifier on iOS/watchOS (V54AP, N207sAP)."
+    },
+    {
+      "id": "hw.ncpu",
+      "key": "hw.ncpu",
+      "display_name": "Logical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Number of logical CPUs."
+    },
+    {
+      "id": "hw.nperflevels",
+      "key": "hw.nperflevels",
+      "display_name": "Performance levels",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Number of core clusters (performance levels)."
+    },
+    {
+      "id": "adx",
+      "key": "hw.optional.adx",
+      "display_name": "x86 adx",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "aes",
+      "key": "hw.optional.aes",
+      "display_name": "x86 aes",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "arm.AdvSIMD",
+      "key": "hw.optional.arm.AdvSIMD",
+      "display_name": "Advanced SIMD",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Advanced SIMD."
+    },
+    {
+      "id": "arm.AdvSIMD_HPFPCvt",
+      "key": "hw.optional.arm.AdvSIMD_HPFPCvt",
+      "display_name": "Advanced SIMD half-precision conversion",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Advanced SIMD half-precision conversion."
+    },
+    {
+      "id": "arm.FEAT_AES",
+      "key": "hw.optional.arm.FEAT_AES",
+      "display_name": "AES instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports AES instructions."
+    },
+    {
+      "id": "arm.FEAT_AFP",
+      "key": "hw.optional.arm.FEAT_AFP",
+      "display_name": "Alternate floating-point behavior",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Alternate floating-point behavior."
+    },
+    {
+      "id": "arm.FEAT_BF16",
+      "key": "hw.optional.arm.FEAT_BF16",
+      "display_name": "BFloat16",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports BFloat16."
+    },
+    {
+      "id": "arm.FEAT_BTI",
+      "key": "hw.optional.arm.FEAT_BTI",
+      "display_name": "Branch Target Identification",
+      "category": "control_flow",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports BTI landing pads for indirect branches."
+    },
+    {
+      "id": "arm.FEAT_CRC32",
+      "key": "hw.optional.arm.FEAT_CRC32",
+      "display_name": "CRC32 instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports CRC32 instructions."
+    },
+    {
+      "id": "arm.FEAT_CSSC",
+      "key": "hw.optional.arm.FEAT_CSSC",
+      "display_name": "Common short sequence compression",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Common short sequence compression."
+    },
+    {
+      "id": "arm.FEAT_CSV2",
+      "key": "hw.optional.arm.FEAT_CSV2",
+      "display_name": "CSV2 (branch-target speculation safety)",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports Cache Speculation Variant 2 hardening against branch-target injection."
+    },
+    {
+      "id": "arm.FEAT_CSV3",
+      "key": "hw.optional.arm.FEAT_CSV3",
+      "display_name": "CSV3 (fault speculation safety)",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports Cache Speculation Variant 3: no speculative loads from faulting addresses."
+    },
+    {
+      "id": "arm.FEAT_DIT",
+      "key": "hw.optional.arm.FEAT_DIT",
+      "display_name": "Data Independent Timing",
+      "category": "constant_time",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the DIT control that makes selected instructions data-independent in timing, relevant to constant-time crypto."
+    },
+    {
+      "id": "arm.FEAT_DPB",
+      "key": "hw.optional.arm.FEAT_DPB",
+      "display_name": "Data cache clean to point of persistence",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Data cache clean to point of persistence."
+    },
+    {
+      "id": "arm.FEAT_DPB2",
+      "key": "hw.optional.arm.FEAT_DPB2",
+      "display_name": "DC CVADP",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports DC CVADP."
+    },
+    {
+      "id": "arm.FEAT_DotProd",
+      "key": "hw.optional.arm.FEAT_DotProd",
+      "display_name": "Dot product",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Dot product."
+    },
+    {
+      "id": "arm.FEAT_EBF16",
+      "key": "hw.optional.arm.FEAT_EBF16",
+      "display_name": "Extended BFloat16",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Extended BFloat16."
+    },
+    {
+      "id": "arm.FEAT_ECV",
+      "key": "hw.optional.arm.FEAT_ECV",
+      "display_name": "Enhanced counter virtualization",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Enhanced counter virtualization."
+    },
+    {
+      "id": "arm.FEAT_FCMA",
+      "key": "hw.optional.arm.FEAT_FCMA",
+      "display_name": "Complex-number arithmetic",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Complex-number arithmetic."
+    },
+    {
+      "id": "arm.FEAT_FHM",
+      "key": "hw.optional.arm.FEAT_FHM",
+      "display_name": "FP16 multiply-add to FP32",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports FP16 multiply-add to FP32."
+    },
+    {
+      "id": "arm.FEAT_FP16",
+      "key": "hw.optional.arm.FEAT_FP16",
+      "display_name": "Half-precision floating point",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Half-precision floating point."
+    },
+    {
+      "id": "arm.FEAT_FPAC",
+      "key": "hw.optional.arm.FEAT_FPAC",
+      "display_name": "Faulting PAC",
+      "category": "pointer_authentication",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports that a failed pointer authentication faults immediately instead of producing a poisoned pointer."
+    },
+    {
+      "id": "arm.FEAT_FPACCOMBINE",
+      "key": "hw.optional.arm.FEAT_FPACCOMBINE",
+      "display_name": "Faulting PAC (combined ops)",
+      "category": "pointer_authentication",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports faulting behavior for combined authenticate-and-branch/load instructions."
+    },
+    {
+      "id": "arm.FEAT_FRINTTS",
+      "key": "hw.optional.arm.FEAT_FRINTTS",
+      "display_name": "Float round to integer",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Float round to integer."
+    },
+    {
+      "id": "arm.FEAT_FlagM",
+      "key": "hw.optional.arm.FEAT_FlagM",
+      "display_name": "Flag manipulation",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Flag manipulation."
+    },
+    {
+      "id": "arm.FEAT_FlagM2",
+      "key": "hw.optional.arm.FEAT_FlagM2",
+      "display_name": "Flag manipulation 2",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Flag manipulation 2."
+    },
+    {
+      "id": "arm.FEAT_HBC",
+      "key": "hw.optional.arm.FEAT_HBC",
+      "display_name": "Hinted conditional branches",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Hinted conditional branches."
+    },
+    {
+      "id": "arm.FEAT_I8MM",
+      "key": "hw.optional.arm.FEAT_I8MM",
+      "display_name": "Int8 matrix multiply",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Int8 matrix multiply."
+    },
+    {
+      "id": "arm.FEAT_JSCVT",
+      "key": "hw.optional.arm.FEAT_JSCVT",
+      "display_name": "JavaScript conversion",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports JavaScript conversion."
+    },
+    {
+      "id": "arm.FEAT_LRCPC",
+      "key": "hw.optional.arm.FEAT_LRCPC",
+      "display_name": "Release-consistent loads",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Release-consistent loads."
+    },
+    {
+      "id": "arm.FEAT_LRCPC2",
+      "key": "hw.optional.arm.FEAT_LRCPC2",
+      "display_name": "Release-consistent loads 2",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Release-consistent loads 2."
+    },
+    {
+      "id": "arm.FEAT_LSE",
+      "key": "hw.optional.arm.FEAT_LSE",
+      "display_name": "Large System Extensions (atomics)",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Large System Extensions (atomics)."
+    },
+    {
+      "id": "arm.FEAT_LSE2",
+      "key": "hw.optional.arm.FEAT_LSE2",
+      "display_name": "LSE2 (atomic 16-byte access)",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports LSE2 (atomic 16-byte access)."
+    },
+    {
+      "id": "arm.FEAT_MTE",
+      "key": "hw.optional.arm.FEAT_MTE",
+      "display_name": "Memory Tagging Extension (MTE)",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the base Memory Tagging Extension: tag-aware loads/stores and tag memory."
+    },
+    {
+      "id": "arm.FEAT_MTE2",
+      "key": "hw.optional.arm.FEAT_MTE2",
+      "display_name": "MTE2 (full tag checking)",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports MTE2: full tag checking on loads and stores, not just tag storage instructions."
+    },
+    {
+      "id": "arm.FEAT_MTE3",
+      "key": "hw.optional.arm.FEAT_MTE3",
+      "display_name": "MTE3 (asymmetric fault handling)",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports MTE3: asymmetric mode, synchronous reads with asynchronous writes."
+    },
+    {
+      "id": "arm.FEAT_MTE4",
+      "key": "hw.optional.arm.FEAT_MTE4",
+      "display_name": "MTE4 (enhanced tagging)",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports MTE4, the Armv8.9 enhancement group that Apple's EMTE builds on."
+    },
+    {
+      "id": "arm.FEAT_MTE_ASYNC",
+      "key": "hw.optional.arm.FEAT_MTE_ASYNC",
+      "display_name": "MTE asynchronous mode",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports support for asynchronous tag-check faults. Off on Apple's EMTE chips, which are synchronous-only."
+    },
+    {
+      "id": "arm.FEAT_MTE_CANONICAL_TAGS",
+      "key": "hw.optional.arm.FEAT_MTE_CANONICAL_TAGS",
+      "display_name": "MTE canonical tags",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports canonical tag checking, part of MTE4."
+    },
+    {
+      "id": "arm.FEAT_MTE_NO_ADDRESS_TAGS",
+      "key": "hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS",
+      "display_name": "MTE without address tags",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports checking of memory accesses that carry no address tag, part of MTE4."
+    },
+    {
+      "id": "arm.FEAT_MTE_STORE_ONLY",
+      "key": "hw.optional.arm.FEAT_MTE_STORE_ONLY",
+      "display_name": "MTE store-only checking",
+      "category": "memory_tagging",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the store-only tag checking mode, part of MTE4."
+    },
+    {
+      "id": "arm.FEAT_PACIMP",
+      "key": "hw.optional.arm.FEAT_PACIMP",
+      "display_name": "Implementation-defined PAC algorithm",
+      "category": "pointer_authentication",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports an implementation-defined PAC algorithm (Apple's), rather than the standard QARMA."
+    },
+    {
+      "id": "arm.FEAT_PAuth",
+      "key": "hw.optional.arm.FEAT_PAuth",
+      "display_name": "Pointer Authentication",
+      "category": "pointer_authentication",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports pointer authentication instructions (PAC)."
+    },
+    {
+      "id": "arm.FEAT_PAuth2",
+      "key": "hw.optional.arm.FEAT_PAuth2",
+      "display_name": "Pointer Authentication 2",
+      "category": "pointer_authentication",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the PAuth2 refinements to pointer authentication."
+    },
+    {
+      "id": "arm.FEAT_PMULL",
+      "key": "hw.optional.arm.FEAT_PMULL",
+      "display_name": "Polynomial multiply (PMULL)",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Polynomial multiply (PMULL)."
+    },
+    {
+      "id": "arm.FEAT_RDM",
+      "key": "hw.optional.arm.FEAT_RDM",
+      "display_name": "Rounding double multiply",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Rounding double multiply."
+    },
+    {
+      "id": "arm.FEAT_RPRES",
+      "key": "hw.optional.arm.FEAT_RPRES",
+      "display_name": "Reciprocal estimate precision",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Reciprocal estimate precision."
+    },
+    {
+      "id": "arm.FEAT_SB",
+      "key": "hw.optional.arm.FEAT_SB",
+      "display_name": "Speculation Barrier",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the SB speculation barrier instruction."
+    },
+    {
+      "id": "arm.FEAT_SHA1",
+      "key": "hw.optional.arm.FEAT_SHA1",
+      "display_name": "SHA-1 instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SHA-1 instructions."
+    },
+    {
+      "id": "arm.FEAT_SHA256",
+      "key": "hw.optional.arm.FEAT_SHA256",
+      "display_name": "SHA-256 instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SHA-256 instructions."
+    },
+    {
+      "id": "arm.FEAT_SHA3",
+      "key": "hw.optional.arm.FEAT_SHA3",
+      "display_name": "SHA-3 instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SHA-3 instructions."
+    },
+    {
+      "id": "arm.FEAT_SHA512",
+      "key": "hw.optional.arm.FEAT_SHA512",
+      "display_name": "SHA-512 instructions",
+      "category": "isa_crypto",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SHA-512 instructions."
+    },
+    {
+      "id": "arm.FEAT_SME",
+      "key": "hw.optional.arm.FEAT_SME",
+      "display_name": "Scalable Matrix Extension",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Scalable Matrix Extension."
+    },
+    {
+      "id": "arm.FEAT_SME2",
+      "key": "hw.optional.arm.FEAT_SME2",
+      "display_name": "SME2",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME2."
+    },
+    {
+      "id": "arm.FEAT_SME2p1",
+      "key": "hw.optional.arm.FEAT_SME2p1",
+      "display_name": "SME2.1",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME2.1."
+    },
+    {
+      "id": "arm.FEAT_SME_B16B16",
+      "key": "hw.optional.arm.FEAT_SME_B16B16",
+      "display_name": "SME BF16",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME BF16."
+    },
+    {
+      "id": "arm.FEAT_SME_F16F16",
+      "key": "hw.optional.arm.FEAT_SME_F16F16",
+      "display_name": "SME FP16",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP16."
+    },
+    {
+      "id": "arm.FEAT_SME_F64F64",
+      "key": "hw.optional.arm.FEAT_SME_F64F64",
+      "display_name": "SME FP64 outer product",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP64 outer product."
+    },
+    {
+      "id": "arm.FEAT_SME_F8F16",
+      "key": "hw.optional.arm.FEAT_SME_F8F16",
+      "display_name": "SME FP8 to FP16",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP8 to FP16."
+    },
+    {
+      "id": "arm.FEAT_SME_F8F32",
+      "key": "hw.optional.arm.FEAT_SME_F8F32",
+      "display_name": "SME FP8 to FP32",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP8 to FP32."
+    },
+    {
+      "id": "arm.FEAT_SME_I16I64",
+      "key": "hw.optional.arm.FEAT_SME_I16I64",
+      "display_name": "SME Int16 to Int64",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME Int16 to Int64."
+    },
+    {
+      "id": "arm.FEAT_SPECRES",
+      "key": "hw.optional.arm.FEAT_SPECRES",
+      "display_name": "Speculation restriction (SPECRES)",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports the prediction-invalidation instructions of FEAT_SPECRES."
+    },
+    {
+      "id": "arm.FEAT_SPECRES2",
+      "key": "hw.optional.arm.FEAT_SPECRES2",
+      "display_name": "Speculation restriction 2",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports FEAT_SPECRES2 (COSP RCTX)."
+    },
+    {
+      "id": "arm.FEAT_SSBS",
+      "key": "hw.optional.arm.FEAT_SSBS",
+      "display_name": "Speculative Store Bypass Safe",
+      "category": "speculation",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Kernel reports SSBS control over speculative store bypass. Set on the S9, clear on the M5 and A19 Pro in the project's own measurements."
+    },
+    {
+      "id": "arm.FEAT_SVE_B16B16",
+      "key": "hw.optional.arm.FEAT_SVE_B16B16",
+      "display_name": "SVE BF16 arithmetic",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SVE BF16 arithmetic."
+    },
+    {
+      "id": "arm.FEAT_WFxT",
+      "key": "hw.optional.arm.FEAT_WFxT",
+      "display_name": "WFE/WFI with timeout",
+      "category": "isa_misc",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports WFE/WFI with timeout."
+    },
+    {
+      "id": "arm.FP_SyncExceptions",
+      "key": "hw.optional.arm.FP_SyncExceptions",
+      "display_name": "Synchronous floating-point exceptions",
+      "category": "isa_simd",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports Synchronous floating-point exceptions."
+    },
+    {
+      "id": "arm.SME_B16F32",
+      "key": "hw.optional.arm.SME_B16F32",
+      "display_name": "SME BF16 to FP32",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME BF16 to FP32."
+    },
+    {
+      "id": "arm.SME_BI32I32",
+      "key": "hw.optional.arm.SME_BI32I32",
+      "display_name": "SME binary outer product",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME binary outer product."
+    },
+    {
+      "id": "arm.SME_F16F32",
+      "key": "hw.optional.arm.SME_F16F32",
+      "display_name": "SME FP16 to FP32",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP16 to FP32."
+    },
+    {
+      "id": "arm.SME_F32F32",
+      "key": "hw.optional.arm.SME_F32F32",
+      "display_name": "SME FP32 outer product",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME FP32 outer product."
+    },
+    {
+      "id": "arm.SME_I16I32",
+      "key": "hw.optional.arm.SME_I16I32",
+      "display_name": "SME Int16 to Int32",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME Int16 to Int32."
+    },
+    {
+      "id": "arm.SME_I8I32",
+      "key": "hw.optional.arm.SME_I8I32",
+      "display_name": "SME Int8 to Int32",
+      "category": "isa_sme",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Kernel reports SME Int8 to Int32."
+    },
+    {
+      "id": "arm.caps",
+      "key": "hw.optional.arm.caps",
+      "display_name": "ARM capability bitmask",
+      "category": "capability_bitmask",
+      "kind": "bitmask",
+      "format": "Q",
+      "security_relevant": true,
+      "description": "One bit per FEAT extension as defined in <arm/cpu_capabilities_public.h>; 12 bytes on macOS 26, declared int64_t."
+    },
+    {
+      "id": "arm.sme_max_svl_b",
+      "key": "hw.optional.arm.sme_max_svl_b",
+      "display_name": "SME maximum vector length (bytes)",
+      "category": "isa_sme",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Maximum streaming vector length in bytes."
+    },
+    {
+      "id": "arm64",
+      "key": "hw.optional.arm64",
+      "display_name": "64-bit ARM",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name."
+    },
+    {
+      "id": "armv8_1_atomics",
+      "key": "hw.optional.armv8_1_atomics",
+      "display_name": "ARMv8.1 atomics (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_LSE"
+    },
+    {
+      "id": "armv8_2_fhm",
+      "key": "hw.optional.armv8_2_fhm",
+      "display_name": "ARMv8.2 FHM (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_FHM"
+    },
+    {
+      "id": "armv8_2_sha3",
+      "key": "hw.optional.armv8_2_sha3",
+      "display_name": "ARMv8.2 SHA-3 (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_SHA3"
+    },
+    {
+      "id": "armv8_2_sha512",
+      "key": "hw.optional.armv8_2_sha512",
+      "display_name": "ARMv8.2 SHA-512 (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_SHA512"
+    },
+    {
+      "id": "armv8_3_compnum",
+      "key": "hw.optional.armv8_3_compnum",
+      "display_name": "ARMv8.3 complex numbers (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_FCMA"
+    },
+    {
+      "id": "armv8_crc32",
+      "key": "hw.optional.armv8_crc32",
+      "display_name": "ARMv8 CRC32 (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_CRC32"
+    },
+    {
+      "id": "armv8_gpi",
+      "key": "hw.optional.armv8_gpi",
+      "display_name": "ARMv8 generic PAC (legacy name)",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Pre-FEAT_ naming still registered by the kernel; older kernels expose only this name.",
+      "alias_of": "hw.optional.arm.FEAT_PAuth"
+    },
+    {
+      "id": "avx1_0",
+      "key": "hw.optional.avx1_0",
+      "display_name": "x86 avx1_0",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx2_0",
+      "key": "hw.optional.avx2_0",
+      "display_name": "x86 avx2_0",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512bw",
+      "key": "hw.optional.avx512bw",
+      "display_name": "x86 avx512bw",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512cd",
+      "key": "hw.optional.avx512cd",
+      "display_name": "x86 avx512cd",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512dq",
+      "key": "hw.optional.avx512dq",
+      "display_name": "x86 avx512dq",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512f",
+      "key": "hw.optional.avx512f",
+      "display_name": "x86 avx512f",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512ifma",
+      "key": "hw.optional.avx512ifma",
+      "display_name": "x86 avx512ifma",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512vbmi",
+      "key": "hw.optional.avx512vbmi",
+      "display_name": "x86 avx512vbmi",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "avx512vl",
+      "key": "hw.optional.avx512vl",
+      "display_name": "x86 avx512vl",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "bmi1",
+      "key": "hw.optional.bmi1",
+      "display_name": "x86 bmi1",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "bmi2",
+      "key": "hw.optional.bmi2",
+      "display_name": "x86 bmi2",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "breakpoint",
+      "key": "hw.optional.breakpoint",
+      "display_name": "Hardware breakpoints",
+      "category": "debug",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Number of hardware breakpoint registers."
+    },
+    {
+      "id": "enfstrg",
+      "key": "hw.optional.enfstrg",
+      "display_name": "x86 enfstrg",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "f16c",
+      "key": "hw.optional.f16c",
+      "display_name": "x86 f16c",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "floatingpoint",
+      "key": "hw.optional.floatingpoint",
+      "display_name": "Floating point",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Legacy hw.optional flag."
+    },
+    {
+      "id": "fma",
+      "key": "hw.optional.fma",
+      "display_name": "x86 fma",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "hle",
+      "key": "hw.optional.hle",
+      "display_name": "x86 hle",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "mmx",
+      "key": "hw.optional.mmx",
+      "display_name": "x86 mmx",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "mpx",
+      "key": "hw.optional.mpx",
+      "display_name": "x86 mpx",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "neon",
+      "key": "hw.optional.neon",
+      "display_name": "NEON",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Legacy hw.optional flag."
+    },
+    {
+      "id": "neon_fp16",
+      "key": "hw.optional.neon_fp16",
+      "display_name": "NEON FP16",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Legacy hw.optional flag."
+    },
+    {
+      "id": "neon_hpfp",
+      "key": "hw.optional.neon_hpfp",
+      "display_name": "NEON half-precision",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Legacy hw.optional flag."
+    },
+    {
+      "id": "rdrand",
+      "key": "hw.optional.rdrand",
+      "display_name": "x86 rdrand",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "rtm",
+      "key": "hw.optional.rtm",
+      "display_name": "x86 rtm",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sgx",
+      "key": "hw.optional.sgx",
+      "display_name": "x86 sgx",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sse",
+      "key": "hw.optional.sse",
+      "display_name": "x86 sse",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sse2",
+      "key": "hw.optional.sse2",
+      "display_name": "x86 sse2",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sse3",
+      "key": "hw.optional.sse3",
+      "display_name": "x86 sse3",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sse4_1",
+      "key": "hw.optional.sse4_1",
+      "display_name": "x86 sse4_1",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "sse4_2",
+      "key": "hw.optional.sse4_2",
+      "display_name": "x86 sse4_2",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "supplementalsse3",
+      "key": "hw.optional.supplementalsse3",
+      "display_name": "x86 supplementalsse3",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "ucnormal_mem",
+      "key": "hw.optional.ucnormal_mem",
+      "display_name": "Uncached normal memory",
+      "category": "legacy_alias",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Legacy hw.optional flag."
+    },
+    {
+      "id": "watchpoint",
+      "key": "hw.optional.watchpoint",
+      "display_name": "Hardware watchpoints",
+      "category": "debug",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Number of hardware watchpoint registers."
+    },
+    {
+      "id": "x86_64",
+      "key": "hw.optional.x86_64",
+      "display_name": "x86 x86_64",
+      "category": "x86_isa",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Intel feature flag. Registered on arm64 kernels too, where it reads ENOTSUP (not applicable)."
+    },
+    {
+      "id": "hw.pagesize",
+      "key": "hw.pagesize",
+      "display_name": "Page size",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "VM page size in bytes."
+    },
+    {
+      "id": "hw.product",
+      "key": "hw.product",
+      "display_name": "Product identifier",
+      "category": "context_identity",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Device model identifier (Mac17,7, iPhone18,2, Watch7,1). Primary identity."
+    },
+    {
+      "id": "hw.target",
+      "key": "hw.target",
+      "display_name": "Board target",
+      "category": "context_identity",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Board target identifier (J714cAP)."
+    },
+    {
+      "id": "hw.targettype",
+      "key": "hw.targettype",
+      "display_name": "Board target type",
+      "category": "context_identity",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Board target type (J714c)."
+    },
+    {
+      "id": "kern.hv_support",
+      "key": "kern.hv_support",
+      "display_name": "Hypervisor support",
+      "category": "context_os",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Hypervisor.framework availability. Restricted on iOS and watchOS."
+    },
+    {
+      "id": "kern.osproductversion",
+      "key": "kern.osproductversion",
+      "display_name": "OS version",
+      "category": "context_os",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Marketing OS version (26.6.2)."
+    },
+    {
+      "id": "kern.osreleasetype",
+      "key": "kern.osreleasetype",
+      "display_name": "OS release type",
+      "category": "context_os",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "User, Beta, or internal release type."
+    },
+    {
+      "id": "kern.osversion",
+      "key": "kern.osversion",
+      "display_name": "OS build",
+      "category": "context_os",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "OS build number (25G83, 23G90, 23U67)."
+    },
+    {
+      "id": "kern.version",
+      "key": "kern.version",
+      "display_name": "Kernel version string",
+      "category": "context_os",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Full kernel banner; its RELEASE_ARM64_<T-number> suffix is the measured SoC identifier."
+    },
+    {
+      "id": "sysctl.proc_translated",
+      "key": "sysctl.proc_translated",
+      "display_name": "Rosetta translation",
+      "category": "context_os",
+      "kind": "flag",
+      "format": "I",
+      "security_relevant": false,
+      "description": "1 when this process runs under Rosetta; the environment flag is_translated is derived from it."
+    },
+    {
+      "id": "vm.mte.cell.active",
+      "key": "vm.mte.cell.active",
+      "display_name": "Active tag-storage cells (gauge)",
+      "category": "os_memory_tagging",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Live gauge of tag-storage cells in use. Restricted on iOS, absent on watchOS."
+    },
+    {
+      "id": "vm.mte.tag_storage.activations",
+      "key": "vm.mte.tag_storage.activations",
+      "display_name": "Tag-storage activations (cumulative)",
+      "category": "os_memory_tagging",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": true,
+      "description": "Cumulative since boot; says tagging happened at some point, not that it is happening now."
+    },
+    {
+      "id": "vm.mte.tagged",
+      "key": "vm.mte.tagged",
+      "display_name": "Pages tagged now (gauge)",
+      "category": "os_memory_tagging",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": true,
+      "description": "Live gauge of MTE-tagged pages; nonzero is measured evidence the kernel is tagging memory right now. Restricted on iOS, absent on watchOS."
+    }
+  ]
 }

@@ -41,7 +41,8 @@
       "required": [
         "walk_succeeded",
         "walk_root",
-        "known_keys_version"
+        "known_keys_version",
+        "kernel_formats_available"
       ],
       "properties": {
         "walk_succeeded": {
@@ -59,6 +60,10 @@
         },
         "known_keys_version": {
           "$ref": "#/$defs/calendar_date"
+        },
+        "kernel_formats_available": {
+          "type": "boolean",
+          "description": "False when CTL_SYSCTL_OIDFMT was refused and every type came from the inventory (iOS, watchOS)."
         }
       }
     },
@@ -211,6 +216,47 @@
         }
       }
     },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "byte_count",
+        "popcount",
+        "named_bits",
+        "unnamed_bits",
+        "mismatches"
+      ],
+      "properties": {
+        "byte_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "popcount": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "named_bits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "unnamed_bits": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "mismatches": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "hw.optional.arm.caps decoded with <arm/cpu_capabilities_public.h>; mismatches against FEAT_* keys are listed, never hidden."
+    },
     "facts": {
       "type": "array",
       "items": {
@@ -245,8 +291,10 @@
                 "provenance": {
                   "const": "measured"
                 }
-              }
-            }
+              },
+              "type": "object"
+            },
+            "type": "array"
           },
           "unrecognized_keys": {
             "items": {
@@ -254,8 +302,10 @@
                 "provenance": {
                   "const": "measured"
                 }
-              }
-            }
+              },
+              "type": "object"
+            },
+            "type": "array"
           }
         }
       },
@@ -265,15 +315,19 @@
             "items": {
               "required": [
                 "display_name"
-              ]
-            }
+              ],
+              "type": "object"
+            },
+            "type": "array"
           },
           "unrecognized_keys": {
             "items": {
               "required": [
                 "display_name"
-              ]
-            }
+              ],
+              "type": "object"
+            },
+            "type": "array"
           }
         }
       }
@@ -385,6 +439,17 @@
         },
         "masked": {
           "type": "boolean"
+        },
+        "format_source": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "kernel",
+            "inventory",
+            null
+          ]
         }
       }
     },
@@ -608,16 +673,19 @@
             "raw": {
               "properties": {
                 "key": {
-                  "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$"
+                  "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$",
+                  "type": "string"
                 }
-              }
+              },
+              "type": "object"
             }
           },
           "required": [
             "kind",
             "discovered_by",
             "raw"
-          ]
+          ],
+          "type": "object"
         }
       ]
     }

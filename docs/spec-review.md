@@ -202,6 +202,19 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## F. From Phase 3 implementation (core engine, data, CLI)
+
+55. **Every inventory key is read by name on every run** (141 keys), so the five-way outcome exists for all of them even when the walk is refused; the walk only adds discoveries. (§4.2)
+56. **`known-keys.json` carries `format`** (I/Q/A) per key; unknown `hw.optional` leaves default to `I`. Values typed this way are exported with `raw.format_source: inventory`; `collection.kernel_formats_available` says which case a whole export is in. (§4.2, §8)
+57. **`raw.format` and `raw.errno` are always emitted**, null when not applicable. Swift's Codable drops nil keys by default, which the first exports did, and the schema caught it. (§8)
+58. **Compact variant scope narrowed** to security-relevant measured facts plus identity/context and legacy aliases, because all 141 measured facts encode to ~4.5K Base45 characters and a QR code holds 3391 at error-correction M. Measured: ~2.9K for the M5 Mac. (§8)
+59. **`capabilities` export field** with popcount, named and unnamed bits, and mismatches; `caps.consistency` inferred fact. On the M5 Mac all 64 named bits agree with their keys. (§8)
+60. **Data files are generated** by `Tools/gen-data/generate.py` from the SDK headers plus a curated annotation table, so `caps-bits.json` and `cpufamily-names.json` cannot drift from `<arm/cpu_capabilities_public.h>` and `<mach/machine.h>`. `soc-map.json` stays hand-curated. (§12)
+61. **A Rosetta process sees both ISA tables.** Under `arch -x86_64`, `hw.optional.x86_64`-family keys read present *and* the arm `FEAT_*` keys still read present, with `is_translated: true`. Such an export is misleading in both directions and CI must reject it, as §9 already requires. (§14)
+62. **Text dumps are fixtures.** `TextDumpSysctl` parses `sysctl(8)` output (first occurrence of a key wins, so appended diagnostic sections do not clobber values) and backs both the tests and `silicon-audit --fixture`. (§14)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.

@@ -19,3 +19,9 @@ jobs:
         run: swift test
       - name: CLI smoke
         run: swift run silicon-audit --version
+      - name: Export fixtures and validate against the schema
+        run: |
+          swift run silicon-audit export --fixture docs/evidence/Mac17,7-25G83.txt > /tmp/mac.json
+          swift run silicon-audit export --fixture docs/evidence/Mac17,7-25G83.txt --walk-refused > /tmp/mac-refused.json
+          swift run silicon-audit export --compact --fixture docs/evidence/Mac17,7-25G83.txt | swift run silicon-audit import > /tmp/mac-compact.json
+          Scripts/validate-export.sh /tmp/mac.json /tmp/mac-refused.json /tmp/mac-compact.json

@@ -7,6 +7,7 @@ import Foundation
 /// Phase 3 moves this table into `known-keys.json`.
 public enum KnownFormats {
     public static func format(for name: String) -> OIDFormat? {
+        if let f = DataStore.shared.knownKeys.format(for: name) { return f }
         if let f = table[name] { return f }
         // Every hw.optional leaf XNU registers is a SYSCTL_INT except `caps` (listed above).
         if name.hasPrefix("hw.optional.") { return inventory(.int) }
