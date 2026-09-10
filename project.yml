@@ -39,6 +39,10 @@ targets:
     sources:
       - path: Apps/SiliconAudit
       - path: Apps/Shared/Resources
+      - path: Apps/Shared/Connectivity
+        destinationFilters: [iOS]
+      - path: Apps/Shared/Spike
+        destinationFilters: [iOS]
     dependencies:
       - package: SiliconAuditPackage
         products: [SiliconAuditCore, SiliconAuditUI]

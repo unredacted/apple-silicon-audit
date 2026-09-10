@@ -43,7 +43,28 @@ public enum StateStyle {
         }
     }
 
-    /// The one-sentence meaning of a state, for detail views and VoiceOver.
+    /// The one-sentence meaning of a state given where the fact came from. A documented fact's
+    /// `present` is Apple's table, not a kernel reading; an inferred fact's is the app's reasoning.
+    public static func explanation(_ s: FactState, provenance: Provenance) -> String {
+        switch provenance {
+        case .measured, .unknown:
+            return explanation(s)
+        case .documented:
+            switch s {
+            case .present: return String(localized: "Apple's published table lists this protection for this chip family.", bundle: .module)
+            case .notPresent: return String(localized: "Apple's published table does not list this protection for this chip family.", bundle: .module)
+            default: return String(localized: "Apple has not documented this for this chip family, or does not tabulate it per chip.", bundle: .module)
+            }
+        case .inferred:
+            switch s {
+            case .present: return String(localized: "The app's reasoning supports this; the chain is shown below.", bundle: .module)
+            case .notPresent: return String(localized: "The app's reasoning found a contradiction; the chain is shown below.", bundle: .module)
+            default: return String(localized: "The app could not complete this inference; the reason is shown below.", bundle: .module)
+            }
+        }
+    }
+
+    /// The one-sentence meaning of a measured state, for detail views and VoiceOver.
     public static func explanation(_ s: FactState) -> String {
         switch s {
         case .present: return String(localized: "This kernel reports the feature as on.", bundle: .module)

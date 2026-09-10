@@ -19,8 +19,12 @@ public struct AuditRootView: View {
 
     static let summaryID = "__summary__"
 
-    public init(model: ReportModel = ReportModel()) {
+    /// Optional extra section supplied by the app target (e.g. reports received from Apple Watch).
+    private let companion: (() -> AnyView)?
+
+    public init(model: ReportModel = ReportModel(), companion: (() -> AnyView)? = nil) {
         _model = State(initialValue: model)
+        self.companion = companion
     }
 
     public var body: some View {
@@ -50,6 +54,7 @@ public struct AuditRootView: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                     }
+                    if let companion { companion() }
                     if mode == .overview {
                         Section {
                             OverviewList(report: report)
@@ -145,6 +150,7 @@ public struct AuditRootView: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                     }
+                    if let companion { companion() }
                     if mode == .overview {
                         Section {
                             OverviewList(report: report)

@@ -79,9 +79,15 @@ public struct SummaryCard: View {
 
     var collectionText: String {
         var parts: [String] = []
-        parts.append(report.collection.walkSucceeded
-                     ? String(localized: "MIB walk and inventory", bundle: .module)
-                     : String(localized: "inventory only (walk refused)", bundle: .module))
+        if report.collection.walkSucceeded {
+            parts.append(String(localized: "MIB walk and inventory", bundle: .module))
+        } else if let failure = report.collection.walkFailure, failure.contains("errno 1 ") || failure.contains("errno 13 ") {
+            parts.append(String(localized: "inventory only; walk refused by the sandbox", bundle: .module))
+        } else if let failure = report.collection.walkFailure {
+            parts.append(String(localized: "inventory plus a failed walk: \(failure)", bundle: .module))
+        } else {
+            parts.append(String(localized: "inventory only; walk failed", bundle: .module))
+        }
         parts.append(report.collection.kernelFormatsAvailable
                      ? String(localized: "kernel-declared types", bundle: .module)
                      : String(localized: "types from the inventory", bundle: .module))

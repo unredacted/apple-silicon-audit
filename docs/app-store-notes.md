@@ -13,14 +13,16 @@ and publication date, clearly labeled as documentation rather than measurement.
 ## Privacy
 
 - No network access of any kind. No analytics, no crash reporting SDKs.
-- Nothing is stored between launches except a report the user chose to export.
+- Nothing about the device is stored between launches; the only persisted value is the user's
+  Overview/Details preference (UserDefaults), plus watch reports the user chose to transfer.
 - Export happens only on an explicit user action (share sheet, Save panel, copy).
 - The export contains no serial number, UDID, identifierForVendor, hostname, boot time, account,
   or location. The set of keys that may appear is a fixed allowlist; `kern.hostname`,
   `kern.uuid`, `kern.bootsessionuuid`, and `kern.boottime` are never read.
-- `PrivacyInfo.xcprivacy` declares no tracking, no collected data types, and no required-reason
-  API categories. `sysctl`/`sysctlbyname` are not in Apple's required-reason list; if that list
-  changes, the manifest will be updated.
+- `PrivacyInfo.xcprivacy` declares no tracking and no collected data types. One required-reason
+  API is declared: `UserDefaults` (`NSPrivacyAccessedAPICategoryUserDefaults`, reason `CA92.1`)
+  for the app's own presentation-mode setting. `sysctl`/`sysctlbyname` are not in Apple's
+  required-reason list; if that list changes, the manifest will be updated.
 
 ## APIs
 

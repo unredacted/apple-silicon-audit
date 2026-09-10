@@ -87,7 +87,7 @@ public struct Topic: Identifiable, Equatable, Sendable {
               plain: String(localized: "Apple's published list of protections that keep the operating system's core from being modified at runtime, for this chip family.", bundle: .module),
               rule: .documentedGroup(["kip", "fast_permission_restrictions", "scip", "pac", "ppl", "sptm"])),
         Topic(id: "os_memory_tagging", title: String(localized: "Memory tagging active right now", bundle: .module), symbol: "waveform.path.ecg",
-              plain: String(localized: "Whether the operating system is tagging memory at this moment. Only macOS lets an app read this; iPhone and Watch refuse.", bundle: .module),
+              plain: String(localized: "Whether the operating system is tagging memory at this moment. Only macOS lets an app read this: iPhone refuses the read, and the Watch kernel has no such counters.", bundle: .module),
               rule: .gauge("vm.mte.tagged")),
     ]
 
@@ -165,7 +165,7 @@ public struct Topic: Identifiable, Equatable, Sendable {
                                 provenance: .measured, source: nil)
         case .notPresent:
             return TopicVerdict(level: .no, word: String(localized: "No", bundle: .module),
-                                sentence: String(localized: "This device's kernel knows \(f.displayName ?? f.id) and reports it off: this chip does not have it.", bundle: .module),
+                                sentence: String(localized: "This device's kernel knows \(f.displayName ?? f.id) and reports it off. A kernel can also mask a feature it has not enabled.", bundle: .module),
                                 provenance: .measured, source: nil)
         case .keyAbsent:
             return TopicVerdict(level: .unknown, word: String(localized: "Unknown", bundle: .module),

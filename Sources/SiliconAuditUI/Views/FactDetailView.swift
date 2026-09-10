@@ -14,7 +14,7 @@ public struct FactDetailView: View {
                     StateGlyph(fact.state)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(StateStyle.label(fact.state)).font(.headline)
-                        Text(StateStyle.explanation(fact.state)).font(.subheadline).foregroundStyle(.secondary)
+                        Text(StateStyle.explanation(fact.state, provenance: fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
                 .accessibilityElement(children: .combine)
