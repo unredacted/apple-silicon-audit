@@ -26,6 +26,8 @@ public enum DiscoveredBy: String, Codable, Sendable {
     case walk
     case knownList = "known_list"
     case both
+    /// Measured inside this process, not read from the kernel (SPEC §11).
+    case selfTest = "self_test"
 }
 
 /// A decoded sysctl value as it appears in the export.
@@ -134,6 +136,8 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
     public var state: FactState
     public var discoveredBy: DiscoveredBy?
     public var raw: RawReading?
+    /// For self-test facts (SPEC §11): what the process measured about itself, instead of `raw`.
+    public var probe: ProbeDetails?
     public var source: FactSource?
     public var reasoning: String?
     /// One-sentence plain-English meaning from the inventory. Not exported (the schema is strict);
@@ -143,14 +147,14 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
     public var securityRelevant: Bool
 
     enum CodingKeys: String, CodingKey {
-        case id, category, kind, provenance, state, raw, source, reasoning
+        case id, category, kind, provenance, state, raw, probe, source, reasoning
         case displayName = "display_name"
         case discoveredBy = "discovered_by"
     }
 
     public init(id: String, displayName: String?, category: String, kind: FactKind?, provenance: Provenance, state: FactState,
-                discoveredBy: DiscoveredBy? = nil, raw: RawReading? = nil, source: FactSource? = nil, reasoning: String? = nil,
-                description: String? = nil, securityRelevant: Bool = false) {
+                discoveredBy: DiscoveredBy? = nil, raw: RawReading? = nil, probe: ProbeDetails? = nil, source: FactSource? = nil,
+                reasoning: String? = nil, description: String? = nil, securityRelevant: Bool = false) {
         self.id = id
         self.displayName = displayName
         self.category = category
@@ -159,6 +163,7 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
         self.state = state
         self.discoveredBy = discoveredBy
         self.raw = raw
+        self.probe = probe
         self.source = source
         self.reasoning = reasoning
         self.description = description
@@ -175,6 +180,7 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
         state = try c.decode(FactState.self, forKey: .state)
         discoveredBy = try c.decodeIfPresent(DiscoveredBy.self, forKey: .discoveredBy)
         raw = try c.decodeIfPresent(RawReading.self, forKey: .raw)
+        probe = try c.decodeIfPresent(ProbeDetails.self, forKey: .probe)
         source = try c.decodeIfPresent(FactSource.self, forKey: .source)
         reasoning = try c.decodeIfPresent(String.self, forKey: .reasoning)
         description = nil

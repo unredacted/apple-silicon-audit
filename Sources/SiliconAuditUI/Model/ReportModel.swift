@@ -80,6 +80,7 @@ public final class ReportModel {
         switch category {
         case "memory_tagging": return String(localized: "Memory tagging", bundle: .module)
         case "os_memory_tagging": return String(localized: "OS memory-tagging activity", bundle: .module)
+        case "enforcement": return String(localized: "Enforcement in this app (self-test)", bundle: .module)
         case "pointer_authentication": return String(localized: "Pointer authentication", bundle: .module)
         case "control_flow": return String(localized: "Control flow", bundle: .module)
         case "speculation": return String(localized: "Speculation and side channels", bundle: .module)

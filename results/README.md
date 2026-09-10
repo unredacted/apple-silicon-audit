@@ -33,6 +33,14 @@ this means a bug in the app, an environment flag that slipped through, or someth
 interesting. Different `os_build`s for the same device are not conflicts; they are the OS-version
 boundary the app exists to detect.
 
+## Self-test facts
+
+Facts with a `probe` instead of a `raw` reading (`self_test.tagged_pointers`, `self_test.tag_check_fault`)
+were measured *inside the exporting app*: whether the OS tagged its heap and stopped a deliberate
+tag-mismatch store. They describe that build of the app (its Enhanced Security entitlements), not the
+device, so the matrix never tabulates them per device or treats them as conflicts; they appear in the
+per-result notes only.
+
 ## How the matrix reads a result
 
 - A `FEAT_*` column whose key the kernel does not register falls back to the legacy `armv8_*` alias

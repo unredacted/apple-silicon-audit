@@ -3,7 +3,7 @@ import Foundation
 /// The export document (SPEC §8, `Schema/export-v1.schema.json`). Field names are explicit
 /// so the JSON is exactly what the schema expects.
 public struct Report: Codable, Equatable, Sendable {
-    public static let schemaVersion = "1.0.0"
+    public static let schemaVersion = "1.1.0"
 
     public struct Collection: Codable, Equatable, Sendable {
         public var walkSucceeded: Bool
@@ -238,11 +238,12 @@ public struct Report: Codable, Equatable, Sendable {
 
     public static let securityCategories: Set<String> = [
         "memory_tagging", "pointer_authentication", "control_flow", "speculation", "constant_time", "capability_bitmask", "os_memory_tagging",
+        "enforcement",
     ]
 
     /// Category display order (SPEC §4.3): headline group first.
     public static let categoryOrder: [String] = [
-        "memory_tagging", "os_memory_tagging", "pointer_authentication", "control_flow", "speculation", "constant_time",
+        "memory_tagging", "os_memory_tagging", "enforcement", "pointer_authentication", "control_flow", "speculation", "constant_time",
         "capability_bitmask", "kernel_integrity", "identity", "legacy_alias", "isa_crypto", "isa_simd", "isa_sme", "isa_misc",
         "debug", "x86_isa", "context_identity", "context_cpu", "context_os", "deprecated", "unrecognized",
     ]

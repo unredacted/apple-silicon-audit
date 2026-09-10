@@ -137,7 +137,9 @@ const conflicts = [];
 for (const [key, members] of groups) {
   if (members.length < 2) continue;
   const measured = new Set();
-  for (const m of members) for (const f of allFacts(m.doc)) if (f.provenance === "measured") measured.add(f.id);
+  // Self-test facts (a `probe` instead of `raw`, SPEC §11) describe the exporting build, not the
+  // device: two apps on one device may legitimately differ, so they never count as conflicts.
+  for (const m of members) for (const f of allFacts(m.doc)) if (f.provenance === "measured" && !f.probe) measured.add(f.id);
   for (const id of measured) {
     const states = new Map();
     for (const m of members) states.set(m.rel, comparable(findFact(m.doc, id)));
@@ -217,6 +219,18 @@ function documentedTable(rs) {
   return lines.join("\n");
 }
 
+// Per-process self-test facts, reported per result and never tabulated per device (SPEC §11).
+function selfTestNote(doc) {
+  const tags = doc.facts.find((f) => f.id === "self_test.tagged_pointers");
+  const fault = doc.facts.find((f) => f.id === "self_test.tag_check_fault");
+  if (!tags && !fault) return "";
+  const word = (f) => ({ present: "yes", not_present: "no", not_applicable: "no hardware" }[f.state] ?? f.state);
+  let s = `; self-test of the exporting app: tagging ${tags ? word(tags) : "not run"}`;
+  if (tags?.probe) s += ` (${tags.probe.tagged}/${tags.probe.samples} tagged, entitlement ${tags.probe.entitlement})`;
+  if (fault) s += `, tag-mismatch fault ${fault.state === "present" ? `stopped it (signal ${fault.probe?.child_signal})` : word(fault)}`;
+  return s;
+}
+
 function extras(rs) {
   const lines = [];
   for (const r of rs) {
@@ -226,6 +240,7 @@ function extras(rs) {
     lines.push(`- **${r.doc.device.identity}** (${r.doc.environment.platform} ${r.doc.environment.os_build}, ${r.rel}): ${walk}; ` +
       (caps ? `caps ${caps.popcount} bits set (${caps.named_bits.length} named, unnamed ${JSON.stringify(caps.unnamed_bits)}), ${caps.mismatches.length} mismatch(es)` : "caps not decoded") +
       (unrec ? `; **${unrec} unrecognized key(s)**: ${r.doc.unrecognized_keys.map((f) => f.raw.key).join(", ")}` : "") +
+      selfTestNote(r.doc) +
       `; engine ${r.doc.app_version}, inventory ${r.doc.collection.known_keys_version ?? "unknown"}`);
   }
   return lines.join("\n");

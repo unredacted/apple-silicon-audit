@@ -14,7 +14,11 @@ public struct FactDetailView: View {
                     StateGlyph(fact.state)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(StateStyle.label(fact.state, provenance: fact.provenance)).font(.headline)
-                        Text(StateStyle.explanation(fact.state, provenance: fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
+                        if fact.probe == nil {
+                            // Self-test facts carry their own sentence in `description`; the generic
+                            // sysctl wording would mislead there.
+                            Text(StateStyle.explanation(fact.state, provenance: fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
+                        }
                     }
                 }
                 .accessibilityElement(children: .combine)
@@ -49,6 +53,32 @@ public struct FactDetailView: View {
                 }
                 if let discovered = fact.discoveredBy {
                     LabeledContent(String(localized: "Found by", bundle: .module), value: discoveredLabel(discovered))
+                }
+            }
+
+            if let probe = fact.probe {
+                Section {
+                    LabeledContent(String(localized: "Method", bundle: .module)) {
+                        Text(probe.method).font(.callout.monospaced())
+                    }
+                    if let samples = probe.samples, let tagged = probe.tagged {
+                        LabeledContent(String(localized: "Allocations sampled", bundle: .module), value: "\(samples)")
+                        LabeledContent(String(localized: "With a nonzero tag", bundle: .module), value: "\(tagged)")
+                    }
+                    if let distinct = probe.distinctTags {
+                        LabeledContent(String(localized: "Distinct tag values", bundle: .module), value: "\(distinct)")
+                    }
+                    LabeledContent(String(localized: "Enhanced Security entitlement", bundle: .module), value: entitlementLabel(probe.entitlement))
+                    if let signal = probe.childSignal {
+                        LabeledContent(String(localized: "Child process ended by signal", bundle: .module), value: "\(signal)")
+                    }
+                    if let status = probe.childExitStatus {
+                        LabeledContent(String(localized: "Child process exit status", bundle: .module), value: "\(status)")
+                    }
+                } header: {
+                    Text(String(localized: "Self-test", bundle: .module))
+                } footer: {
+                    Text(String(localized: "Measured inside this process. It describes this build of the app, not the device: another app on the same device can differ.", bundle: .module))
                 }
             }
 
@@ -105,6 +135,15 @@ public struct FactDetailView: View {
         case .walk: return String(localized: "MIB walk only", bundle: .module)
         case .knownList: return String(localized: "By name from the inventory", bundle: .module)
         case .both: return String(localized: "MIB walk and by name", bundle: .module)
+        case .selfTest: return String(localized: "Measured inside this process", bundle: .module)
+        }
+    }
+
+    func entitlementLabel(_ e: String) -> String {
+        switch e {
+        case "declared": return String(localized: "declared by this build", bundle: .module)
+        case "not_declared": return String(localized: "not declared by this build", bundle: .module)
+        default: return String(localized: "unknown", bundle: .module)
         }
     }
 

@@ -14,9 +14,20 @@ options:
   createIntermediateGroups: true
   groupSortPosition: top
 
+# Debug/Release build the app as before. The *Hardened configurations add Apple's Enhanced Security
+# entitlements (SPEC §11): hardened-process, enhanced-security-version-string 1, checked-allocations.
+# They change allocator behaviour, so they stay a separate configuration until stability is proven.
+configs:
+  Debug: debug
+  Release: release
+  DebugHardened: debug
+  ReleaseHardened: release
+
 configFiles:
   Debug: Configs/Signing.xcconfig
   Release: Configs/Signing.xcconfig
+  DebugHardened: Configs/Signing.xcconfig
+  ReleaseHardened: Configs/Signing.xcconfig
 
 settings:
   base:
@@ -40,7 +51,25 @@ targets:
     supportedDestinations: [iOS, macOS, tvOS, visionOS]
     sources:
       - path: Apps/SiliconAudit
+        excludes: [Info.plist]
       - path: Apps/Shared/Resources
+    # Generated Info.plist (gitignored) so the marker below can carry a build setting; Xcode's
+    # INFOPLIST_KEY_* mechanism only accepts its own known keys.
+    info:
+      path: Apps/SiliconAudit/Info.plist
+      properties:
+        SiliconAuditEnhancedSecurity: $(SILICON_AUDIT_ENHANCED_SECURITY)
+        CFBundleDisplayName: Silicon Audit
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSApplicationCategoryType: public.app-category.utilities
+        NSHumanReadableCopyright: Apache-2.0
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        UIApplicationSupportsIndirectInputEvents: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
     dependencies:
       - package: SiliconAuditPackage
         products: [SiliconAuditCore, SiliconAuditUI]
@@ -57,15 +86,23 @@ targets:
         SUPPORTS_MACCATALYST: NO
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
         SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
-        INFOPLIST_KEY_UILaunchScreen_Generation: YES
-        INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
-        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
-        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
-        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
-        INFOPLIST_KEY_NSHumanReadableCopyright: "Apache-2.0"
         "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS.entitlements
         "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": YES
         "ENABLE_APP_SANDBOX[sdk=macosx*]": YES
+        # Lands in Info.plist as SiliconAuditEnhancedSecurity, read by
+        # EnhancedSecurity.checkedAllocationsDeclared() where a process cannot inspect its own
+        # entitlements (iOS). The hardened configurations flip it to YES.
+        SILICON_AUDIT_ENHANCED_SECURITY: NO
+        GENERATE_INFOPLIST_FILE: NO
+      configs:
+        DebugHardened:
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS-hardened.entitlements
+          "CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]": Apps/SiliconAudit/iOS-hardened.entitlements
+          SILICON_AUDIT_ENHANCED_SECURITY: YES
+        ReleaseHardened:
+          "CODE_SIGN_ENTITLEMENTS[sdk=macosx*]": Apps/SiliconAudit/macOS-hardened.entitlements
+          "CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]": Apps/SiliconAudit/iOS-hardened.entitlements
+          SILICON_AUDIT_ENHANCED_SECURITY: YES
 
   SiliconAuditWatch:
     type: application
@@ -95,6 +132,14 @@ schemes:
       config: Debug
     archive:
       config: Release
+  SiliconAudit Hardened:
+    build:
+      targets:
+        SiliconAudit: all
+    run:
+      config: DebugHardened
+    archive:
+      config: ReleaseHardened
   SiliconAuditWatch:
     build:
       targets:

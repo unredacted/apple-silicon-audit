@@ -7,12 +7,17 @@ public struct RawAuditResult: Equatable, Sendable {
     /// Keys read by name regardless of the walk (SPEC §4.2: walk ∪ known list).
     public let namedReads: [String: ProbeOutcome]
     public let collectedAt: Date
+    /// What this process measured about itself (SPEC §11); nil for fixture runs, whose process
+    /// has nothing to do with the recorded device.
+    public let selfTest: SelfTestResult?
 
-    public init(environment: AuditEnvironment, walk: WalkResult, namedReads: [String: ProbeOutcome], collectedAt: Date) {
+    public init(environment: AuditEnvironment, walk: WalkResult, namedReads: [String: ProbeOutcome], collectedAt: Date,
+                selfTest: SelfTestResult? = nil) {
         self.environment = environment
         self.walk = walk
         self.namedReads = namedReads
         self.collectedAt = collectedAt
+        self.selfTest = selfTest
     }
 
     /// Prefer the walk's reading, fall back to the named read.
@@ -55,6 +60,9 @@ public struct RawAuditResult: Equatable, Sendable {
 public struct Auditor: Sendable {
     public let sysctl: any SysctlReading
     public let data: DataStore
+    /// Whether `rawAudit` runs the in-process self-test (SPEC §11). On by default for the live
+    /// kernel, off for fixtures.
+    public let runsSelfTest: Bool
 
     /// Keys that must never be read or exported (SPEC §10). Enforced by a test and at runtime.
     public static let forbiddenKeys: Set<String> = [
@@ -79,9 +87,10 @@ public struct Auditor: Sendable {
     /// The bundled inventory's keys (what a default `Auditor()` reads by name).
     public static var namedKeys: [String] { Auditor(sysctl: LiveSysctl()).namedKeys }
 
-    public init(sysctl: any SysctlReading = LiveSysctl(), data: DataStore = .shared) {
+    public init(sysctl: any SysctlReading = LiveSysctl(), data: DataStore = .shared, selfTest: Bool? = nil) {
         self.sysctl = sysctl
         self.data = data
+        self.runsSelfTest = selfTest ?? (sysctl is LiveSysctl)
     }
 
     public func rawAudit(now: Date = Date()) -> RawAuditResult {
@@ -91,11 +100,42 @@ public struct Auditor: Sendable {
         for key in namedKeys {
             named[key] = sysctl.read(key).withInventoryFormat(for: key, inventory: data.knownKeys)
         }
-        return RawAuditResult(environment: environment, walk: walk, namedReads: named, collectedAt: now)
+        return RawAuditResult(environment: environment, walk: walk, namedReads: named, collectedAt: now,
+                              selfTest: runsSelfTest ? SelfTestResult.measure() : nil)
     }
 
     public func audit(now: Date = Date(), appVersion: String = SiliconAuditCore.version) -> Report {
         report(from: rawAudit(now: now), appVersion: appVersion)
+    }
+
+    /// The tagged-pointer self-test as a fact (SPEC §11). `present`: this process's heap is tagged.
+    /// `not_present`: it is not (the description says whether the entitlement was declared).
+    /// `not_applicable`: the kernel reports no memory-tagging hardware, so no process can be.
+    public static func taggedPointerFact(_ selfTest: SelfTestResult, mteState: FactState?) -> Fact {
+        let p = selfTest.probe
+        let hardwareAbsent = mteState == .notPresent || mteState == .keyAbsent || mteState == .notApplicable
+        let state: FactState = hardwareAbsent ? .notApplicable : (p.tagged > 0 ? .present : .notPresent)
+        let description: String
+        switch state {
+        case .present:
+            description = "\(p.tagged) of \(p.samples) heap allocations came back with a nonzero tag (\(p.distinctTags) distinct tag values): the OS tags this process's memory. This is a per-process fact about this build of the app, not about the device."
+        case .notApplicable:
+            description = "This kernel reports no memory-tagging hardware, so no process on this device can be tagged (\(p.tagged) of \(p.samples) allocations tagged)."
+        default:
+            switch selfTest.entitlement {
+            case .declared:
+                description = "None of \(p.samples) heap allocations carried a tag although this build declares the checked-allocations entitlement: the OS did not tag this process."
+            case .notDeclared:
+                description = "None of \(p.samples) heap allocations carried a tag. This build does not declare the Enhanced Security checked-allocations entitlement, so the OS does not tag its memory."
+            case .unknown:
+                description = "None of \(p.samples) heap allocations carried a tag; whether this build declares the checked-allocations entitlement could not be determined."
+            }
+        }
+        return Fact(id: "self_test.tagged_pointers", displayName: "Memory tagging active for this app", category: "enforcement", kind: .flag,
+                    provenance: .measured, state: state, discoveredBy: .selfTest,
+                    probe: ProbeDetails(method: "tagged_pointer_observation", samples: p.samples, tagged: p.tagged, distinctTags: p.distinctTags,
+                                        entitlement: selfTest.entitlement.rawValue),
+                    description: description, securityRelevant: true)
     }
 
     /// Annotates a raw result. Pure: the same raw result and data always give the same report.
@@ -173,6 +213,13 @@ public struct Auditor: Sendable {
             state: identity.cpufamilyName == "unrecognized" ? .unknown : .present,
             reasoning: "hw.cpufamily \(identity.cpufamily ?? "absent") → <mach/machine.h> → \(identity.cpufamilyName).",
             description: identity.cpufamilyName))
+
+        // Self-test (SPEC §11, probe 2a): a per-process measured fact. The kernel's own memory-tagging
+        // flags gate it: on a chip with no tagging hardware the question does not apply.
+        if let selfTest = raw.selfTest {
+            facts.append(Auditor.taggedPointerFact(selfTest, mteState: facts.first { $0.id == "arm.FEAT_MTE4" }?.state
+                                                       ?? facts.first { $0.id == "arm.FEAT_MTE" }?.state))
+        }
 
         // Documented claims via soc_id → column.
         facts.append(contentsOf: data.matrix.facts(forColumn: identity.securityGuideColumn, socId: identity.socId))

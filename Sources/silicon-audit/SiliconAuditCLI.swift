@@ -10,7 +10,7 @@ struct SiliconAuditCLI: ParsableCommand {
         abstract: "Report which CPU security features this device's kernel exposes.",
         discussion: "Every fact carries its provenance: measured (read from this kernel), documented (Apple's published claim for the chip family), or inferred (the app's reasoning). The app never conflates them.",
         version: SiliconAuditCore.version,
-        subcommands: [Audit.self, Documented.self, DataInfo.self, Export.self, Keys.self, Import.self, Raw.self],
+        subcommands: [Audit.self, Documented.self, DataInfo.self, Export.self, Keys.self, Import.self, Raw.self, SelfTest.self],
         defaultSubcommand: Audit.self
     )
 }
@@ -96,17 +96,71 @@ struct Export: ParsableCommand {
     @OptionGroup var source: SourceOptions
     @Flag(name: .long, help: "Compact variant: measured facts only, deflate + Base45 text for QR codes.")
     var compact = false
+    @Flag(name: .long, help: "macOS: also run the child-process tag-mismatch test (SPEC §11, 2b) and include its fact.")
+    var faultTest = false
     @Option(name: .shortAndLong, help: "Output path (default: stdout).")
     var output: String?
 
     func run() throws {
-        let report = try source.makeAuditor().audit()
+        var report = try source.makeAuditor().audit()
+        if faultTest {
+            guard source.fixture == nil else { throw ValidationError("--fault-test measures this process; it cannot be combined with --fixture") }
+            guard let exe = Bundle.main.executableURL else { throw ValidationError("cannot locate this executable") }
+            report.facts.append(FaultTest.fact(for: FaultTest.runChild(executable: exe), entitlement: EnhancedSecurity.checkedAllocationsDeclared()))
+        }
         let text = compact ? try CompactExport.encode(report) : String(decoding: try report.jsonData(), as: UTF8.self)
         if let output {
             try (text + "\n").write(toFile: output, atomically: true, encoding: .utf8)
             FileHandle.standardError.write(Data("wrote \(output) (\(text.utf8.count) bytes)\n".utf8))
         } else {
             print(text)
+        }
+    }
+}
+
+/// SPEC §11: what the OS does for *this process*. 2a observes pointer tags (safe); 2b, behind
+/// `--fault`, makes a child process of this binary perform a tag-mismatch store and reports whether
+/// the OS killed it. Run `Scripts/sign-hardened.sh` first to give the binary the entitlements.
+struct SelfTest: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "self-test",
+        abstract: "Measure whether the OS tags and checks this process's own memory (SPEC §11).",
+        discussion: "Both probes describe this binary as signed, not the device. Without the Enhanced Security entitlements (Scripts/sign-hardened.sh) the answer is no on every machine.")
+
+    @Flag(name: .long, help: "Also run the deliberate tag-mismatch store in a child process and report whether the OS stopped it.")
+    var fault = false
+    @Flag(name: .long, help: .hidden)
+    var faultChild = false
+    @Flag(name: .long, help: "Emit the facts as JSON.")
+    var json = false
+
+    func run() throws {
+        if faultChild {
+            FaultTest.performFault()
+            return
+        }
+        let report = Auditor().audit()
+        var facts = report.facts.filter { $0.category == "enforcement" }
+        if fault {
+            guard let exe = Bundle.main.executableURL else { throw ValidationError("cannot locate this executable") }
+            facts.append(FaultTest.fact(for: FaultTest.runChild(executable: exe), entitlement: EnhancedSecurity.checkedAllocationsDeclared()))
+        }
+        if json {
+            let enc = JSONEncoder(); enc.outputFormatting = [.prettyPrinted, .sortedKeys]
+            print(String(decoding: try enc.encode(facts), as: UTF8.self))
+            return
+        }
+        let mte = report.facts.first { $0.id == "arm.FEAT_MTE4" }
+        print("Kernel memory-tagging hardware (hw.optional.arm.FEAT_MTE4): \(mte?.state.rawValue ?? "unread")")
+        print("Enhanced Security checked-allocations entitlement on this binary: \(EnhancedSecurity.checkedAllocationsDeclared().rawValue)")
+        for f in facts {
+            print("")
+            print("\(Table.glyph(f.state)) \(f.displayName ?? f.id): \(f.state.rawValue)  [\(f.provenance.rawValue), \(f.probe?.method ?? "")]")
+            if let d = f.description { print("  \(d)") }
+        }
+        if !fault {
+            print("")
+            print("Add --fault to run the deliberate tag-mismatch store in a child process (2b).")
         }
     }
 }

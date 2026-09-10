@@ -581,7 +581,8 @@
           "enum": [
             "walk",
             "known_list",
-            "both"
+            "both",
+            "self_test"
           ]
         },
         "raw": {
@@ -592,6 +593,9 @@
         },
         "reasoning": {
           "type": "string"
+        },
+        "probe": {
+          "$ref": "#/$defs/probe"
         }
       },
       "allOf": [
@@ -605,8 +609,19 @@
           },
           "then": {
             "required": [
-              "raw",
               "discovered_by"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "raw"
+                ]
+              },
+              {
+                "required": [
+                  "probe"
+                ]
+              }
             ],
             "properties": {
               "state": {
@@ -759,6 +774,57 @@
           "type": "object"
         }
       ]
+    },
+    "probe": {
+      "description": "A measurement made inside the exporting process (SPEC §11), instead of a sysctl reading. Per-process facts: they describe the build that exported, not the device.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "entitlement"
+      ],
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "tagged_pointer_observation",
+            "child_process_tag_mismatch_store"
+          ]
+        },
+        "samples": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "tagged": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "distinct_tags": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 16
+        },
+        "entitlement": {
+          "type": "string",
+          "enum": [
+            "declared",
+            "not_declared",
+            "unknown"
+          ]
+        },
+        "child_signal": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "child_exit_status": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      }
     }
   }
 }

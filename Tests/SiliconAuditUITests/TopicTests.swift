@@ -13,7 +13,7 @@ struct TopicTests {
     static func report(walkRefused: Bool = false, restricted: Set<String> = [], transform: (String) -> String = { $0 }) throws -> Report {
         let text = transform(try String(contentsOf: fixtureURL, encoding: .utf8))
         let sysctl = TextDumpSysctl(text: text, inventory: data.knownKeys, options: .init(walkRefused: walkRefused, restricted: restricted))
-        return Auditor(sysctl: sysctl, data: data).audit()
+        return Auditor(sysctl: sysctl, data: data, selfTest: true).audit() // the self-test topic needs the in-process probe; it is safe under the test host
     }
 
     func verdict(_ id: String, in report: Report) -> TopicVerdict {

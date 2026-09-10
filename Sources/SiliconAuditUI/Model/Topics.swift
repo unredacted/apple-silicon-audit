@@ -46,6 +46,8 @@ public struct Topic: Identifiable, Equatable, Sendable {
         case documentedGroup([String])
         /// A measured gauge: nonzero means active now.
         case gauge(String)
+        /// A measurement made inside this process (SPEC §11): the self-test fact with this id.
+        case selfTest(String)
     }
 
     public let id: String
@@ -60,7 +62,7 @@ public struct Topic: Identifiable, Equatable, Sendable {
         switch rule {
         case .flag(let p, let s): return [p] + s
         case .group(let ids), .documentedGroup(let ids): return ids
-        case .documented(let id), .gauge(let id): return [id]
+        case .documented(let id), .gauge(let id), .selfTest(let id): return [id]
         }
     }
 
@@ -89,6 +91,9 @@ public struct Topic: Identifiable, Equatable, Sendable {
         Topic(id: "os_memory_tagging", title: String(localized: "Memory tagging active right now", bundle: .module), symbol: "waveform.path.ecg",
               plain: String(localized: "Whether the operating system is tagging memory at this moment. Only macOS lets an app read this: iPhone refuses the read, and the Watch kernel has no such counters.", bundle: .module),
               rule: .gauge("vm.mte.tagged")),
+        Topic(id: "enforcement", title: String(localized: "Memory tagging active for this app", bundle: .module), symbol: "checkmark.seal",
+              plain: String(localized: "Whether the operating system tags this app's own memory, measured from inside the app. It says something about this build, not about the device.", bundle: .module),
+              rule: .selfTest("self_test.tagged_pointers")),
     ]
 
     // MARK: - Verdicts
@@ -127,6 +132,9 @@ public struct Topic: Identifiable, Equatable, Sendable {
                                 word: String(localized: "\(present) of \(facts.count)", bundle: .module),
                                 sentence: String(localized: "Apple documents \(present) of these \(facts.count) protections for this chip family.", bundle: .module),
                                 provenance: .documented, source: first.source)
+        case .selfTest(let id):
+            guard let f = fact(id) else { return unreadable() }
+            return selfTest(f)
         case .gauge(let id):
             guard let f = fact(id) else { return unreadable() }
             switch f.state {
@@ -194,6 +202,29 @@ public struct Topic: Identifiable, Equatable, Sendable {
             return TopicVerdict(level: .unknown, word: String(localized: "Not documented", bundle: .module),
                                 sentence: String(localized: "Apple has not documented this chip family yet, so the app will not guess.", bundle: .module),
                                 provenance: .documented, source: f.source)
+        }
+    }
+
+    /// SPEC §11: a per-process fact, worded so nobody reads it as a device property.
+    private func selfTest(_ f: Fact) -> TopicVerdict {
+        switch f.state {
+        case .present:
+            return TopicVerdict(level: .yes, word: String(localized: "Yes", bundle: .module),
+                                sentence: String(localized: "This app's own heap allocations carry memory tags: the OS enforces tagging for this process.", bundle: .module),
+                                provenance: .measured, source: nil)
+        case .notPresent:
+            let entitled = f.probe?.entitlement == "declared"
+            return TopicVerdict(level: .no, word: String(localized: "No", bundle: .module),
+                                sentence: entitled
+                                    ? String(localized: "This app's allocations carry no tags even though this build declares the Enhanced Security entitlement.", bundle: .module)
+                                    : String(localized: "This app's allocations carry no tags. This build does not declare the Enhanced Security entitlement, so the OS does not tag its memory.", bundle: .module),
+                                provenance: .measured, source: nil)
+        case .notApplicable:
+            return TopicVerdict(level: .unknown, word: String(localized: "No hardware", bundle: .module),
+                                sentence: String(localized: "This chip's kernel reports no memory-tagging hardware, so no app on this device can be tagged.", bundle: .module),
+                                provenance: .measured, source: nil)
+        default:
+            return unreadable()
         }
     }
 
