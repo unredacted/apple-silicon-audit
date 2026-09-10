@@ -206,3 +206,12 @@ vm.mte.tag_storage.reserved: 100
 vm.mte.tag_storage.wire_relocations: 0
 vm.mte.tag_storage.wired: 159
 vm.mte.tagged: 310530
+
+## Full 12-byte hw.optional.arm.caps buffer (raw sysctl read; sysctl -x above truncates to the declared int64_t width)
+hw.optional.arm.caps bytes[0..11]: ff ef ff ff d7 7f fe bf db 03 00 08
+# Cross-check against <arm/cpu_capabilities_public.h> CAP_BIT_* and the individual keys above:
+#   byte 8 = 0xdb -> bit64 HBC=1, bit65 EBF16=1, bit66 SPECRES2=0, bit67 CSSC=1, bit68 FPACCOMBINE=1, bit69 MTE_ASYNC=0, bit70 MTE_CANONICAL_TAGS=1, bit71 MTE_STORE_ONLY=1
+#   byte 9 = 0x03 -> bit72 MTE_NO_ADDRESS_TAGS=1, bit73 FP_SyncExceptions=1
+#   byte 11 = 0x08 -> bit91 SVE_B16B16=1
+#   bits 60..63 (byte 7 = 0xbf, high nibble 0xb) -> MTE=1, MTE2=1, MTE3=0, MTE4=1
+# Every bit agrees with its FEAT_* key. Captured with `silicon-audit raw`, whose reader keeps the returned length rather than the declared type.

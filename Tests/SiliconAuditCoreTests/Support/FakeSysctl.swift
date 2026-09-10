@@ -28,8 +28,8 @@ struct FakeSysctl: SysctlReading {
         nodes[name] ?? entries.first { $0.name == name }?.oid
     }
 
-    func nextOID(after oid: [Int32]) -> [Int32]? {
-        entries.first { oid.lexicographicallyPrecedes($0.oid) }?.oid
+    func nextOID(after oid: [Int32]) -> NextOID {
+        entries.first { oid.lexicographicallyPrecedes($0.oid) }.map { .next($0.oid) } ?? .end
     }
 
     func name(forOID oid: [Int32]) -> String? {

@@ -52,13 +52,16 @@ public struct SysctlValue: Equatable, Hashable, Sendable {
     /// Decoding rules (spec §4.1): trust the declared type only when the returned
     /// length matches it. Otherwise keep bytes.
     static func decode(format: OIDFormat?, bytes: [UInt8]) -> SysctlPayload {
-        switch format?.type {
+        guard let format else { return .bytes(bytes) }
+        switch format.type {
         case .string:
             let trimmed = bytes.reversed().drop { $0 == 0 }.reversed()
             return .string(String(decoding: trimmed, as: UTF8.self))
-        case .int where bytes.count == 4, .quad where bytes.count == 8, .int where bytes.count == 8:
-            return integer(bytes, unsigned: format?.isUnsigned ?? false)
-        case .int, .quad, .opaque, .node, nil:
+        case .int, .quad:
+            // `I` is 4 bytes, `L` and `Q` are 8. Anything else is a mismatch and stays bytes.
+            guard let width = format.declaredIntegerWidth, bytes.count == width else { return .bytes(bytes) }
+            return integer(bytes, unsigned: format.isUnsigned)
+        case .opaque, .node, nil:
             return .bytes(bytes)
         }
     }

@@ -80,7 +80,7 @@ struct SysctlValue: Equatable {
 
 For `hw.optional.*` integer keys the display state is derived from the value: nonzero → `present`, zero → `not_present`. `absent` and `not_present` mean genuinely different things. Absent means this kernel doesn't know the key at all — typically an older OS or a platform where the concept doesn't apply. Not present means the kernel knows the key and reports it off. On a question like "did EMTE make it into this chip," the distinction is the whole answer.
 
-**Not every integer key is a flag.** `hw.optional.breakpoint` (6), `hw.optional.watchpoint` (4), and `hw.optional.arm.sme_max_svl_b` (64) are counts. The inventory (§4.3) marks each key's `kind` as `flag`, `count`, `bitmask`, or `string`; only `flag` keys get a present/not-present state.
+**Not every integer key is a flag.** `hw.optional.breakpoint` (6), `hw.optional.watchpoint` (4), and `hw.optional.arm.sme_max_svl_b` (64) are counts. The inventory (§4.3) marks each key's `kind` as `flag`, `count`, `bitmask`, `string`, or `unknown` (walk discoveries); only `flag` keys get a present/not-present state. Every other kind that reads successfully gets the neutral state `value`, with the reading in `raw`. A zero-valued count or an empty string is a `value`, never `not_present`.
 
 **`ENOTSUP` is its own state.** On an arm64 kernel the walk finds 29 legacy x86 keys (`hw.optional.sse4_2`, `hw.optional.avx512f`, `hw.optional.x86_64`, …) that are registered but answer `ENOTSUP` when read; `sysctl -a` silently drops them, which is why they never appear in a plain listing. Export them as `not_applicable`, never as `error`: they say the kernel carries the other architecture's key table and nothing about this chip. Expect the mirror image on Intel Macs.
 
@@ -100,7 +100,11 @@ Darwin inherits the BSD MIB-walking interface via the raw `sysctl(2)` call. The 
 | `{0, 4}` | CTL_SYSCTL_OIDFMT: type/format + flags | Works; source of `format` above |
 | `{0, 5}` | CTL_SYSCTL_OIDDESCR: description | Exists but returns empty strings. Do not depend on it. |
 
-Walk with NEXT from `hw.optional`, resolve each OID to a name and format, read the values. Notes from reading `bsd/kern/kern_newsysctl.c`:
+Walk with NEXT from `hw.optional`, resolve each OID to a name and format, read the values.
+
+**Public-API status.** `sysctl(2)` is a public, documented syscall, and the node-0 meta operations are the BSD sysctl ABI that the public SDK's own `sysctlnametomib(3)` is implemented on. Nothing here links a private framework or symbol, so this is not private API in the App Review sense (§2). The selector numbers are nonetheless undocumented by Apple, which is why the walk is the *discovery* layer and never the only path: the known-key inventory read by `sysctlbyname` is the guaranteed baseline, an export with `walk_succeeded: false` is still valid and complete for every inventoried key, and the app must keep working unchanged if the meta nodes are ever restricted.
+
+Notes from reading `bsd/kern/kern_newsysctl.c`:
 
 - The kernel's NEXT handler does **not** skip OIDs flagged `CTLFLAG_MASKED` (0x04000000, "deprecated, do not display"); `sysctl(8)` hides them in userland. The walk will therefore see `*_compat` keys that the CLI tool never shows. Annotate them as deprecated; do not present them as discoveries.
 - The meta handlers carry no privilege checks. Access control happens on the value read, so a sandbox that blocks reads will show up as `restricted` on individual keys, not as a failed walk.
@@ -139,7 +143,7 @@ Keys to annotate, grouped by what they tell you. Names below are the exact sysct
 `FEAT_DIT` (data-independent timing — relevant to whether crypto code can be written side-channel-resistant).
 
 **Legacy aliases (pre-`FEAT_` naming, still registered)**
-`hw.optional.arm64`, `hw.optional.armv8_1_atomics`, `armv8_2_fhm`, `armv8_2_sha3`, `armv8_2_sha512`, `armv8_3_compnum`, `armv8_crc32`, `armv8_gpi`. Older kernels expose only these; the inventory maps each to its `FEAT_` successor so the old-device test (§14) produces comparable rows.
+These live directly under `hw.optional.`, not under `hw.optional.arm.`: `hw.optional.arm64`, `hw.optional.armv8_1_atomics`, `hw.optional.armv8_2_fhm`, `hw.optional.armv8_2_sha3`, `hw.optional.armv8_2_sha512`, `hw.optional.armv8_3_compnum`, `hw.optional.armv8_crc32`, `hw.optional.armv8_gpi`. The inventory stores every key as its full sysctl name. Older kernels expose only these; the inventory maps each to its `FEAT_` successor so the old-device test (§14) produces comparable rows.
 
 **Everything else under `hw.optional.arm`** (SIMD, SHA, SME, FP) is annotated as "ISA feature, not security-relevant" so the UI can fold it into a secondary section rather than dropping it.
 
@@ -149,7 +153,7 @@ Keys to annotate, grouped by what they tell you. Names below are the exact sysct
 **Context**
 `hw.product` (primary device identifier — see below), `hw.machine`, `hw.model`, `hw.target`, `hw.targettype`, `hw.cputype`, `hw.cpusubtype`, `hw.cpufamily`, `hw.cpusubfamily`, `hw.ncpu`, `hw.nperflevels` and the per-level `hw.perflevelN.*` keys, `hw.memsize`, `hw.pagesize`, `hw.features.allows_security_research` (Security Research Device indicator), `hw.engineering_sample`, `kern.osversion` (build, e.g. `25G83`), `kern.osproductversion`, `kern.osreleasetype`, `kern.version`, `kern.hv_support`, `sysctl.proc_translated` (Rosetta).
 
-**Device identity: use `hw.product`, not `hw.machine`.** On macOS `hw.machine` is the literal string `arm64`; the model string lives in `hw.product` (`Mac17,7`) and `hw.model`. On iOS `hw.machine` is `iPhone17,1` and `hw.model` is the board (`D93AP`). `hw.product` is registered on all arm64 platforms in `kern_mib.c`; fall back to `hw.machine` only when `hw.product` is absent (very old iOS).
+**Device identity: `hw.product`, then `hw.model`, then `hw.machine`.** On Apple silicon Macs `hw.machine` is the literal string `arm64`; the model lives in `hw.product` (`Mac17,7`) and `hw.model`. On Intel Macs `hw.product` is absent and `hw.machine` is `x86_64`, so `hw.model` (`MacBookPro16,1`) is the identity. On iOS `hw.machine` is `iPhone17,1` and `hw.model` is the board (`D93AP`); `hw.product` is registered on all arm64 platforms in `kern_mib.c`. The export carries all three plus a derived `device.identity` = first non-empty of `hw_product`, `hw_model` (Macs only), `hw_machine`; that field, with `os_build`, is the key for the results database (§9).
 
 **SoC identity: parse `kern.version`.** The string ends in the kernel's build target, e.g. `RELEASE_ARM64_T6050`. That `T`-number is the SoC as the kernel knows it and is *measured*. Export it as `soc_id`; the marketing name (`Apple M5 Pro`) is then `inferred` from a data file, never claimed as measured. Seed the map from the kernels present on any recent Mac (`/System/Library/Kernels/kernel.release.t*`) and from community submissions.
 
@@ -159,7 +163,7 @@ Keys to annotate, grouped by what they tell you. Names below are the exact sysct
 
 ### 4.4 What can and cannot be probed
 
-**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6: `vm.mte.tagged`, `vm.mte.tag_storage.activations`, `vm.mte.cell.active`, …). Nonzero counters are **measured** evidence that this kernel is actively tagging memory system-wide. `absent` on an older kernel is also informative. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
+**Partially probeable — OS-level memory-tagging activity.** Kernels that manage MTE tag storage expose a `vm.mte.*` namespace (60+ counters on macOS 26.6). Two kinds of value live there and must not be mixed. **Gauges** describe the present moment: `vm.mte.tagged` (pages tagged now) and `vm.mte.cell.active` (tag-storage cells in use now). **Cumulative counters** count since boot: `vm.mte.tag_storage.activations` and most of the rest. Only a nonzero *gauge* is **measured** evidence that this kernel is tagging memory right now; a nonzero cumulative counter says only that it has done so at some point since boot, and is exported as its own `count` row, never folded into the activity verdict. `absent` on an older kernel is also informative. Strict limits on the copy: this proves the OS tag-storage machinery is on. It does not prove any particular process is protected, does not prove synchronous mode, and is not MIE. Display as its own measured row, "Kernel memory-tagging activity," with those caveats in the detail view. Sandbox readability on iOS and watchOS is unverified and is on the M0 checklist.
 
 **Not probeable.** These appear in Apple's security documentation but are **not** exposed via any public interface. They must be surfaced as `documented`, never `measured`:
 
@@ -193,7 +197,7 @@ Schema per entry: feature ID, chip families it applies to, source URL, source pu
 Two requirements:
 
 1. **Every documented claim shows its source and date in the UI.** Users should be able to tell that a claim is four months old.
-2. **Updating the matrix must not require an app update — but v1 ships without networking.** Bundle the data, display the bundled date prominently, and ship data updates as app updates. An optional user-initiated signed refresh from the repo is a later decision, not a v1 requirement. Do not silently fetch — see privacy, §10.
+2. **Updating the matrix must not require a code change.** It is data: a maintainer edits JSON, nothing in Swift moves. v1 ships without networking, so data updates reach users as app updates; bundle the data and display the bundled `verified` date prominently. An optional user-initiated signed refresh from the repo is a later decision, not a v1 requirement. Do not silently fetch — see privacy, §10.
 
 ---
 
@@ -213,7 +217,7 @@ A Swift Package containing a `SiliconAuditCore` module with zero UI dependencies
 
 The core module being UI-free and platform-free in its probe path is what makes the results comparable across devices. Resist any temptation to branch probe behavior by platform.
 
-**One Xcode project**, not five: a multiplatform app target (iOS/iPadOS/macOS/visionOS/tvOS) plus a watchOS target embedded in the iOS app. Bundle identifiers: `org.unredacted.siliconaudit` (app), `org.unredacted.siliconaudit.watchkitapp` (watch), `org.unredacted.siliconaudit.cli`, `org.unredacted.siliconaudit.tests`; App Group `group.org.unredacted.siliconaudit` if the companion and watch app share storage.
+**One Xcode project**, not five: a multiplatform app target (iOS/iPadOS/macOS/visionOS/tvOS) plus a watchOS target embedded in the iOS app. Bundle identifiers: `org.unredacted.siliconaudit` (app), `org.unredacted.siliconaudit.watchkitapp` (watch), `org.unredacted.siliconaudit.cli`, `org.unredacted.siliconaudit.tests`. No App Group: the companion and the watch app run on different devices and share no local container, so watch → phone state moves only over `WCSession` (§7).
 
 ### 6.2 Environment detection
 
@@ -223,7 +227,8 @@ Every export must state how it was produced, because several situations produce 
 |---|---|---|
 | Simulator | `#if targetEnvironment(simulator)` plus `SIMULATOR_*` env vars at runtime | `is_simulator: true`; unmissable banner; CI rejects |
 | iOS app running on Apple silicon Mac | `ProcessInfo.processInfo.isiOSAppOnMac` | `is_ios_app_on_mac: true`; banner; CI rejects (reports the Mac's chip while claiming iOS) |
-| Mac Catalyst | `ProcessInfo.processInfo.isMacCatalystApp` | `platform: macOS`, noted |
+| Mac Catalyst | `#if targetEnvironment(macCatalyst)`, checked before the ordinary iOS branch | `platform: macOS`, `is_catalyst: true` |
+| Virtual machine (macOS guest, CI runner) | `kern.hv_vmm_present == 1`, or `kern.version` target `VMAPPLE`, or `hw.model` beginning `VirtualMac` | `is_virtual_machine: true`; banner; CI rejects (the guest sees what the hypervisor exposes, not a chip) |
 | Rosetta (x86_64 build on arm64 Mac) | `sysctl.proc_translated == 1` | `is_translated: true`; banner; CI rejects |
 | Intel Mac | `hw.cputype == CPU_TYPE_X86_64` | `arch: x86_64`; report x86 `hw.optional.*` keys unannotated; no ARM security claims; the matrix groups by arch |
 
@@ -282,9 +287,11 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
     "is_simulator": false,
     "is_translated": false,
     "is_ios_app_on_mac": false,
-    "is_catalyst": false
+    "is_catalyst": false,
+    "is_virtual_machine": false
   },
   "device": {
+    "identity": "Watch8,1",
     "hw_product": "Watch8,1",
     "hw_machine": "Watch8,1",
     "hw_model": "N207AP",
@@ -313,7 +320,7 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
       "category": "capability_bitmask",
       "kind": "bitmask",
       "provenance": "measured",
-      "state": "present",
+      "state": "value",
       "discovered_by": "both",
       "raw": { "key": "hw.optional.arm.caps", "format": "int64_t", "length": 12, "value_hex": "ffef...", "errno": null }
     },
@@ -342,15 +349,24 @@ Versioned JSON. Stable schema, published as `Schema/export-v1.schema.json` (JSON
     }
   ],
   "unrecognized_keys": [
-    { "key": "hw.optional.arm.FEAT_XYZ", "format": "int", "length": 4, "value": 1 }
+    {
+      "id": "unrecognized.hw.optional.arm.FEAT_XYZ",
+      "display_name": "hw.optional.arm.FEAT_XYZ",
+      "category": "unrecognized",
+      "kind": "unknown",
+      "provenance": "measured",
+      "state": "value",
+      "discovered_by": "walk",
+      "raw": { "key": "hw.optional.arm.FEAT_XYZ", "format": "int", "length": 4, "value": 1, "errno": null }
+    }
   ]
 }
 ```
 
 Design notes:
 
-- **`state` is one enum for every fact:** `present | not_present | key_absent | restricted | not_applicable | error | unknown`. Measured facts use the first six; documented and inferred facts use `present`, `not_present`, or `unknown`.
-- `unrecognized_keys` is deliberately a top-level field, not buried. It's where new discoveries show up. It is scoped to the walk root (`hw.optional`), never to `kern.*` or `vm.*`.
+- **`state` is one enum for every fact:** `present | not_present | value | key_absent | restricted | not_applicable | error | unknown`. Measured facts use every state but `unknown`; `present`/`not_present` are for `flag` kinds only and `value` for every other kind that read successfully; documented and inferred facts use `present`, `not_present`, or `unknown`.
+- **`unrecognized_keys` entries are ordinary measured facts** (same schema, `provenance: measured`, `discovered_by: walk`, `kind: unknown`, `category: unrecognized`, `display_name` = the key). They are kept in their own top-level array so discoveries are visible at a glance, and they carry their own provenance and read outcome rather than inheriting it from the array. Scoped to the walk root (`hw.optional`), never `kern.*` or `vm.*`.
 - `collection.walk_succeeded: false` means the result is not evidence of absence for keys outside the inventory.
 - Everything under `device` ending in `_inferred` is a lookup, not a measurement, and the app has no way to verify it. `soc_id` and `cpufamily` are measured.
 - `os_build` (from `kern.osversion`) is the conflict-resolution key in §9, not `os_version`.
@@ -363,9 +379,9 @@ Design notes:
 
 The repo hosts a `results/` directory of contributed export files, plus a generated matrix (Markdown table and a small static site) mapping chip → feature → state.
 
-Contribution flow: user exports JSON from the app, opens a PR adding it under `results/<hw_product>/`. CI validates it against `Schema/export-v1.schema.json` (which rejects any field outside the allowlist), rejects `is_simulator`, `is_translated`, or `is_ios_app_on_mac` results, and regenerates the matrix grouped by `arch`, then `soc_id`, then `hw_product`.
+Contribution flow: user exports JSON from the app, opens a PR adding it under `results/<identity>/` (`device.identity`, §4.3). CI validates it against `Schema/export-v1.schema.json` (which rejects any field outside the allowlist), rejects `is_simulator`, `is_translated`, `is_ios_app_on_mac`, or `is_virtual_machine` results, and regenerates the matrix grouped by `arch`, then `soc_id`, then `identity`.
 
-Conflict handling: when two submissions for the same `(hw_product, os_build)` disagree on a measured fact, do not silently pick one. Surface the disagreement in the generated matrix. Disagreements usually mean a bug in the app, an environment flag that slipped through, or something genuinely interesting. Submissions for the same `hw_product` on different `os_build`s that disagree are not conflicts; they are the OS-version boundary the app exists to detect, and the matrix shows them side by side.
+Conflict handling: when two submissions for the same `(identity, os_build)` disagree on a measured fact, do not silently pick one. Surface the disagreement in the generated matrix. Disagreements usually mean a bug in the app, an environment flag that slipped through, or something genuinely interesting. Submissions for the same `identity` on different `os_build`s that disagree are not conflicts; they are the OS-version boundary the app exists to detect, and the matrix shows them side by side.
 
 This database is arguably more valuable than the app. The app is the collection mechanism.
 
@@ -456,7 +472,7 @@ silicon-audit/
 
 **The simulator lies.** A simulator process reports the host Mac's CPU features, not the simulated device's. A watchOS simulator on an M-series Mac will happily report feature flags the physical watch does not have. So does an iOS app running on an Apple silicon Mac, and so does an x86_64 build under Rosetta (which reports x86 keys). These are the most likely sources of bad data in the community database.
 
-Mitigations, all of them: detect each condition at runtime and set the corresponding `environment` flag; display a persistent, unmissable banner in the UI; make CI reject any submitted result with any of the flags set; and say so in the contribution docs.
+Mitigations, all of them: detect each condition at runtime and set the corresponding `environment` flag; display a persistent, unmissable banner in the UI; make CI reject any submitted result with any of the flags set (`is_simulator`, `is_translated`, `is_ios_app_on_mac`, `is_virtual_machine`); and say so in the contribution docs. GitHub's macOS runners are `VMAPPLE` guests: the project's own CI is a virtual machine and must never be a data source.
 
 **Other test requirements:**
 

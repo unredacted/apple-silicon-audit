@@ -64,7 +64,18 @@ public struct MIBWalker: Sendable {
         var current = rootOID
         var steps = 0
 
-        while let next = sysctl.nextOID(after: current) {
+        walk: while true {
+            let next: [Int32]
+            switch sysctl.nextOID(after: current) {
+            case .end:
+                break walk
+            case .failed(let err):
+                // A refused NEXT mid-walk means the inventory is partial; never call that success.
+                return WalkResult(root: root, keys: keys, succeeded: false,
+                                  failure: "CTL_SYSCTL_NEXT failed with errno \(err) after \(keys.count) keys", unnamedOIDCount: unnamed)
+            case .next(let oid):
+                next = oid
+            }
             steps += 1
             if steps > limit {
                 return WalkResult(root: root, keys: keys, succeeded: false, failure: "walk exceeded \(limit) steps", unnamedOIDCount: unnamed)

@@ -37,10 +37,12 @@ public struct RawAuditResult: Equatable, Sendable {
 public struct Auditor: Sendable {
     let sysctl: any SysctlReading
 
-    /// Keys read by name on every run. Context and identity keys, the MTE headline
-    /// group (also found by the walk, deliberately duplicated so the union can be
-    /// checked), and the OS-level memory-tagging counters that live outside `hw.optional`.
-    /// Nothing from the spec §10 never-read list may appear here.
+    /// Keys read by name on every run, so a failed or restricted walk still yields a
+    /// five-way outcome for every curated security key (spec §4.2: walk ∪ known list).
+    /// Context and identity keys, every security-relevant `hw.optional` key from the
+    /// §4.3 inventory including legacy aliases, and the OS-level memory-tagging
+    /// counters that live outside `hw.optional`. Phase 3 replaces this literal with
+    /// `known-keys.json`. Nothing from the spec §10 never-read list may appear here.
     public static let namedKeys: [String] = [
         "hw.product", "hw.machine", "hw.model", "hw.target", "hw.targettype",
         "hw.cputype", "hw.cpusubtype", "hw.cpufamily", "hw.cpusubfamily",
@@ -52,7 +54,20 @@ public struct Auditor: Sendable {
         "hw.optional.arm.FEAT_MTE", "hw.optional.arm.FEAT_MTE2", "hw.optional.arm.FEAT_MTE3", "hw.optional.arm.FEAT_MTE4",
         "hw.optional.arm.FEAT_MTE_ASYNC", "hw.optional.arm.FEAT_MTE_CANONICAL_TAGS",
         "hw.optional.arm.FEAT_MTE_STORE_ONLY", "hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS",
-        "vm.mte.tagged", "vm.mte.tag_storage.activations", "vm.mte.cell.active",
+        // Pointer authentication
+        "hw.optional.arm.FEAT_PAuth", "hw.optional.arm.FEAT_PAuth2", "hw.optional.arm.FEAT_FPAC",
+        "hw.optional.arm.FEAT_FPACCOMBINE", "hw.optional.arm.FEAT_PACIMP",
+        // Control flow, speculation, constant time
+        "hw.optional.arm.FEAT_BTI",
+        "hw.optional.arm.FEAT_CSV2", "hw.optional.arm.FEAT_CSV3", "hw.optional.arm.FEAT_SB",
+        "hw.optional.arm.FEAT_SSBS", "hw.optional.arm.FEAT_SPECRES", "hw.optional.arm.FEAT_SPECRES2",
+        "hw.optional.arm.FEAT_DIT",
+        // Legacy aliases (directly under hw.optional., the only names on old kernels)
+        "hw.optional.arm64", "hw.optional.armv8_1_atomics", "hw.optional.armv8_2_fhm",
+        "hw.optional.armv8_2_sha3", "hw.optional.armv8_2_sha512", "hw.optional.armv8_3_compnum",
+        "hw.optional.armv8_crc32", "hw.optional.armv8_gpi",
+        // OS-level memory tagging: gauges (tagged, cell.active) and one cumulative counter
+        "vm.mte.tagged", "vm.mte.cell.active", "vm.mte.tag_storage.activations",
     ]
 
     /// Keys that must never be read or exported (spec §10). Enforced by a test.
