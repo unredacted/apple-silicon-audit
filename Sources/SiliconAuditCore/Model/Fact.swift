@@ -139,6 +139,8 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
     /// One-sentence plain-English meaning from the inventory. Not exported (the schema is strict);
     /// carried for the UI.
     public var description: String?
+    /// The inventory's `security_relevant` flag. Not exported; drives the headline view.
+    public var securityRelevant: Bool
 
     enum CodingKeys: String, CodingKey {
         case id, category, kind, provenance, state, raw, source, reasoning
@@ -147,7 +149,8 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
     }
 
     public init(id: String, displayName: String?, category: String, kind: FactKind?, provenance: Provenance, state: FactState,
-                discoveredBy: DiscoveredBy? = nil, raw: RawReading? = nil, source: FactSource? = nil, reasoning: String? = nil, description: String? = nil) {
+                discoveredBy: DiscoveredBy? = nil, raw: RawReading? = nil, source: FactSource? = nil, reasoning: String? = nil,
+                description: String? = nil, securityRelevant: Bool = false) {
         self.id = id
         self.displayName = displayName
         self.category = category
@@ -159,13 +162,35 @@ public struct Fact: Codable, Equatable, Sendable, Identifiable {
         self.source = source
         self.reasoning = reasoning
         self.description = description
+        self.securityRelevant = securityRelevant
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = try c.decode(String.self, forKey: .id)
+        displayName = try c.decodeIfPresent(String.self, forKey: .displayName)
+        category = try c.decode(String.self, forKey: .category)
+        kind = try c.decodeIfPresent(FactKind.self, forKey: .kind)
+        provenance = try c.decode(Provenance.self, forKey: .provenance)
+        state = try c.decode(FactState.self, forKey: .state)
+        discoveredBy = try c.decodeIfPresent(DiscoveredBy.self, forKey: .discoveredBy)
+        raw = try c.decodeIfPresent(RawReading.self, forKey: .raw)
+        source = try c.decodeIfPresent(FactSource.self, forKey: .source)
+        reasoning = try c.decodeIfPresent(String.self, forKey: .reasoning)
+        description = nil
+        securityRelevant = false
     }
 
     /// State for a measured reading given the key's kind (SPEC §4.1).
     public static func state(for outcome: ProbeOutcome, kind: FactKind) -> FactState {
         switch outcome {
         case .value:
-            if kind == .flag { return (outcome.flagIsSet ?? false) ? .present : .notPresent }
+            if kind == .flag {
+                // A flag whose bytes do not decode as an integer (width mismatch) is an error,
+                // never a confident "not present".
+                guard let set = outcome.flagIsSet else { return .error }
+                return set ? .present : .notPresent
+            }
             return .value
         case .absent: return .keyAbsent
         case .restricted: return .restricted

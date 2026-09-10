@@ -177,7 +177,9 @@ public struct Report: Codable, Equatable, Sendable {
     public var measuredFacts: [Fact] { facts.filter { $0.provenance == .measured } }
     public var documentedFacts: [Fact] { facts.filter { $0.provenance == .documented } }
     public var inferredFacts: [Fact] { facts.filter { $0.provenance == .inferred } }
-    public var securityFacts: [Fact] { facts.filter { Report.securityCategories.contains($0.category) } }
+    /// The headline view: security categories plus any row the inventory marks security-relevant
+    /// (legacy PAC alias, Security Research Device flag, x86 security features).
+    public var securityFacts: [Fact] { facts.filter { $0.securityRelevant || Report.securityCategories.contains($0.category) } }
 
     public static let securityCategories: Set<String> = [
         "memory_tagging", "pointer_authentication", "control_flow", "speculation", "constant_time", "capability_bitmask", "os_memory_tagging",
@@ -187,7 +189,7 @@ public struct Report: Codable, Equatable, Sendable {
     public static let categoryOrder: [String] = [
         "memory_tagging", "os_memory_tagging", "pointer_authentication", "control_flow", "speculation", "constant_time",
         "capability_bitmask", "kernel_integrity", "identity", "legacy_alias", "isa_crypto", "isa_simd", "isa_sme", "isa_misc",
-        "debug", "x86_isa", "context_identity", "context_cpu", "context_os", "unrecognized",
+        "debug", "x86_isa", "context_identity", "context_cpu", "context_os", "deprecated", "unrecognized",
     ]
 
     // MARK: - Encoding

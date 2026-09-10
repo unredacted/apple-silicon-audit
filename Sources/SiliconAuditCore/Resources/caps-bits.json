@@ -288,10 +288,6 @@
     {
       "bit": 91,
       "name": "FEAT_SVE_B16B16"
-    },
-    {
-      "bit": 92,
-      "name": "NB"
     }
   ]
 }

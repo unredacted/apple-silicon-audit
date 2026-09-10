@@ -52,10 +52,11 @@ public struct AuditEnvironment: Equatable, Hashable, Sendable {
 
     /// Detects the current environment. Compile-time facts come from the build;
     /// everything else is read through `sysctl` so fixtures can drive it.
-    public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> AuditEnvironment {
+    public static func detect(using sysctl: any SysctlReading, inventory: KnownKeyInventory = DataStore.shared.knownKeys,
+                              processInfo: ProcessInfo = .processInfo) -> AuditEnvironment {
         // Sandboxes that refuse OIDFMT (iOS) still answer sysctlbyname; decode with the inventory's formats.
-        func string(_ name: String) -> String? { sysctl.read(name).withInventoryFormat(for: name).value?.payload.stringValue }
-        func flag(_ name: String) -> Bool? { sysctl.read(name).withInventoryFormat(for: name).flagIsSet }
+        func string(_ name: String) -> String? { sysctl.read(name).withInventoryFormat(for: name, inventory: inventory).value?.payload.stringValue }
+        func flag(_ name: String) -> Bool? { sysctl.read(name).withInventoryFormat(for: name, inventory: inventory).flagIsSet }
         let productName = string("hw.product") ?? string("hw.machine") ?? ""
         let model = string("hw.model") ?? ""
         let kernel = string("kern.version") ?? ""

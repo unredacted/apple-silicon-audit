@@ -6,41 +6,43 @@ import Foundation
 /// `OIDFormat.Source.inventory` so exports can say the type came from us, not the kernel.
 /// Phase 3 moves this table into `known-keys.json`.
 public enum KnownFormats {
-    public static func format(for name: String) -> OIDFormat? {
-        if let f = DataStore.shared.knownKeys.format(for: name) { return f }
+    /// Declared format for `name` from the given inventory, falling back to the built-in table
+    /// (which exists so environment detection works even if the bundle is unreadable).
+    public static func format(for name: String, inventory: KnownKeyInventory) -> OIDFormat? {
+        if let f = inventory.format(for: name) { return f }
         if let f = table[name] { return f }
         // Every hw.optional leaf XNU registers is a SYSCTL_INT except `caps` (listed above).
-        if name.hasPrefix("hw.optional.") { return inventory(.int) }
+        if name.hasPrefix("hw.optional.") { return inv(.int) }
         return nil
     }
 
-    static func inventory(_ f: OIDFormat) -> OIDFormat {
+    static func inv(_ f: OIDFormat) -> OIDFormat {
         OIDFormat(kind: f.kind, formatString: f.formatString, source: .inventory)
     }
 
     static let table: [String: OIDFormat] = [
-        "hw.product": inventory(.string), "hw.machine": inventory(.string), "hw.model": inventory(.string),
-        "hw.target": inventory(.string), "hw.targettype": inventory(.string),
-        "hw.cputype": inventory(.int), "hw.cpusubtype": inventory(.int),
-        "hw.cpufamily": inventory(.int), "hw.cpusubfamily": inventory(.int),
-        "hw.ncpu": inventory(.int), "hw.nperflevels": inventory(.int),
-        "hw.memsize": inventory(.quad), "hw.pagesize": inventory(.quad),
-        "hw.features.allows_security_research": inventory(.int), "hw.engineering_sample": inventory(.int),
-        "kern.version": inventory(.string), "kern.osversion": inventory(.string),
-        "kern.osproductversion": inventory(.string), "kern.osreleasetype": inventory(.string),
-        "kern.hv_support": inventory(.int), "kern.hv_vmm_present": inventory(.int),
-        "sysctl.proc_translated": inventory(.int),
-        "hw.optional.arm.caps": inventory(.quad),
-        "vm.mte.tagged": inventory(.int), "vm.mte.cell.active": inventory(.int),
-        "vm.mte.tag_storage.activations": inventory(.quad),
+        "hw.product": inv(.string), "hw.machine": inv(.string), "hw.model": inv(.string),
+        "hw.target": inv(.string), "hw.targettype": inv(.string),
+        "hw.cputype": inv(.int), "hw.cpusubtype": inv(.int),
+        "hw.cpufamily": inv(.int), "hw.cpusubfamily": inv(.int),
+        "hw.ncpu": inv(.int), "hw.nperflevels": inv(.int),
+        "hw.memsize": inv(.quad), "hw.pagesize": inv(.quad),
+        "hw.features.allows_security_research": inv(.int), "hw.engineering_sample": inv(.int),
+        "kern.version": inv(.string), "kern.osversion": inv(.string),
+        "kern.osproductversion": inv(.string), "kern.osreleasetype": inv(.string),
+        "kern.hv_support": inv(.int), "kern.hv_vmm_present": inv(.int),
+        "sysctl.proc_translated": inv(.int),
+        "hw.optional.arm.caps": inv(.quad),
+        "vm.mte.tagged": inv(.int), "vm.mte.cell.active": inv(.int),
+        "vm.mte.tag_storage.activations": inv(.quad),
     ]
 }
 
 extension ProbeOutcome {
     /// If the kernel supplied no format, re-decode the same bytes with the inventory's
     /// declared format for this key. Bytes are never altered; only their interpretation.
-    public func withInventoryFormat(for name: String) -> ProbeOutcome {
-        guard case .value(let v) = self, v.format == nil, let known = KnownFormats.format(for: name) else { return self }
+    public func withInventoryFormat(for name: String, inventory: KnownKeyInventory) -> ProbeOutcome {
+        guard case .value(let v) = self, v.format == nil, let known = KnownFormats.format(for: name, inventory: inventory) else { return self }
         return .value(SysctlValue(format: known, bytes: v.rawBytes))
     }
 }

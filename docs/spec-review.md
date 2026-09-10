@@ -215,6 +215,19 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## G. From the Phase 3 pull-request review (Codex, 2026-09-10)
+
+63. **Truncated `caps` buffers are not decoded.** A plain `sysctl -a` dump prints the declared 8-byte scalar; decoding it would silently drop bits 64–91. The engine decodes only a buffer covering `CAP_BIT_NB` and otherwise emits `caps.consistency: unknown` with the truncation explained.
+64. **Cross-check completeness.** `caps.consistency` is `present` only when every named bit was actually compared; an absent key counts as a comparison against a clear bit, while restricted or undecodable keys make the verdict `unknown`, never a false clean bill.
+65. **Undecodable flags are `error`**, not `not_present`.
+66. **`security_relevant` drives the headline view**, so the legacy PAC alias and the Security Research Device flag are counted.
+67. **Masked compatibility nodes** found by the walk are recorded under a `deprecated` category, not presented as discoveries.
+68. **Injected inventories are honored** end to end: the walker, the by-name reads and environment detection re-decode with the auditor's own `DataStore`, not the global one.
+69. **Base45 hygiene:** empty input throws instead of trapping, and `import` strips only line endings because a space is a Base45 digit.
+70. **`hw.perflevelN.*` context keys** (levels 0–2) are in the inventory and read by name. The generator also stopped treating `CAP_BIT_NB` as a capability bit (71 real bits).
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.

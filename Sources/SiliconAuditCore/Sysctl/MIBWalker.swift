@@ -46,11 +46,14 @@ public struct MIBWalker: Sendable {
     public static let defaultRoot = "hw.optional"
 
     let sysctl: any SysctlReading
+    /// Declared formats for keys whose OIDFMT the kernel refuses.
+    let inventory: KnownKeyInventory
     /// Hard stop to guarantee termination even against a misbehaving fake or kernel.
     let limit: Int
 
-    public init(sysctl: any SysctlReading, limit: Int = 8192) {
+    public init(sysctl: any SysctlReading, inventory: KnownKeyInventory = DataStore.shared.knownKeys, limit: Int = 8192) {
         self.sysctl = sysctl
+        self.inventory = inventory
         self.limit = limit
     }
 
@@ -91,7 +94,7 @@ public struct MIBWalker: Sendable {
             }
             guard name.hasPrefix(prefix) else { break }
             let format = sysctl.format(forOID: next)
-            let outcome = sysctl.readOID(next).withInventoryFormat(for: name)
+            let outcome = sysctl.readOID(next).withInventoryFormat(for: name, inventory: inventory)
             keys.append(DiscoveredKey(name: name, oid: next, format: format ?? outcome.value?.format, outcome: outcome))
         }
 

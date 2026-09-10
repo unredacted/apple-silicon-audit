@@ -1321,6 +1321,336 @@
       "description": "VM page size in bytes."
     },
     {
+      "id": "hw.perflevel0.cpusperl2",
+      "key": "hw.perflevel0.cpusperl2",
+      "display_name": "Perf level 0 CPUs per L2",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: CPUs per L2. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.cpusperl3",
+      "key": "hw.perflevel0.cpusperl3",
+      "display_name": "Perf level 0 CPUs per L3",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: CPUs per L3. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.l1dcachesize",
+      "key": "hw.perflevel0.l1dcachesize",
+      "display_name": "Perf level 0 L1 data cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 0: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.l1icachesize",
+      "key": "hw.perflevel0.l1icachesize",
+      "display_name": "Perf level 0 L1 instruction cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 0: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.l2cachesize",
+      "key": "hw.perflevel0.l2cachesize",
+      "display_name": "Perf level 0 L2 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 0: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.l3cachesize",
+      "key": "hw.perflevel0.l3cachesize",
+      "display_name": "Perf level 0 L3 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 0: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.logicalcpu",
+      "key": "hw.perflevel0.logicalcpu",
+      "display_name": "Perf level 0 logical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: logical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.logicalcpu_max",
+      "key": "hw.perflevel0.logicalcpu_max",
+      "display_name": "Perf level 0 logical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: logical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.name",
+      "key": "hw.perflevel0.name",
+      "display_name": "Perf level 0 cluster name",
+      "category": "context_cpu",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Core cluster 0: cluster name. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.physicalcpu",
+      "key": "hw.perflevel0.physicalcpu",
+      "display_name": "Perf level 0 physical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: physical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel0.physicalcpu_max",
+      "key": "hw.perflevel0.physicalcpu_max",
+      "display_name": "Perf level 0 physical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 0: physical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.cpusperl2",
+      "key": "hw.perflevel1.cpusperl2",
+      "display_name": "Perf level 1 CPUs per L2",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: CPUs per L2. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.cpusperl3",
+      "key": "hw.perflevel1.cpusperl3",
+      "display_name": "Perf level 1 CPUs per L3",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: CPUs per L3. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.l1dcachesize",
+      "key": "hw.perflevel1.l1dcachesize",
+      "display_name": "Perf level 1 L1 data cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 1: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.l1icachesize",
+      "key": "hw.perflevel1.l1icachesize",
+      "display_name": "Perf level 1 L1 instruction cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 1: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.l2cachesize",
+      "key": "hw.perflevel1.l2cachesize",
+      "display_name": "Perf level 1 L2 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 1: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.l3cachesize",
+      "key": "hw.perflevel1.l3cachesize",
+      "display_name": "Perf level 1 L3 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 1: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.logicalcpu",
+      "key": "hw.perflevel1.logicalcpu",
+      "display_name": "Perf level 1 logical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: logical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.logicalcpu_max",
+      "key": "hw.perflevel1.logicalcpu_max",
+      "display_name": "Perf level 1 logical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: logical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.name",
+      "key": "hw.perflevel1.name",
+      "display_name": "Perf level 1 cluster name",
+      "category": "context_cpu",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Core cluster 1: cluster name. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.physicalcpu",
+      "key": "hw.perflevel1.physicalcpu",
+      "display_name": "Perf level 1 physical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: physical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel1.physicalcpu_max",
+      "key": "hw.perflevel1.physicalcpu_max",
+      "display_name": "Perf level 1 physical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 1: physical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.cpusperl2",
+      "key": "hw.perflevel2.cpusperl2",
+      "display_name": "Perf level 2 CPUs per L2",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: CPUs per L2. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.cpusperl3",
+      "key": "hw.perflevel2.cpusperl3",
+      "display_name": "Perf level 2 CPUs per L3",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: CPUs per L3. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.l1dcachesize",
+      "key": "hw.perflevel2.l1dcachesize",
+      "display_name": "Perf level 2 L1 data cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 2: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.l1icachesize",
+      "key": "hw.perflevel2.l1icachesize",
+      "display_name": "Perf level 2 L1 instruction cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 2: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.l2cachesize",
+      "key": "hw.perflevel2.l2cachesize",
+      "display_name": "Perf level 2 L2 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 2: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.l3cachesize",
+      "key": "hw.perflevel2.l3cachesize",
+      "display_name": "Perf level 2 L3 cache",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "Q",
+      "security_relevant": false,
+      "description": "Core cluster 2: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.logicalcpu",
+      "key": "hw.perflevel2.logicalcpu",
+      "display_name": "Perf level 2 logical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: logical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.logicalcpu_max",
+      "key": "hw.perflevel2.logicalcpu_max",
+      "display_name": "Perf level 2 logical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: logical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.name",
+      "key": "hw.perflevel2.name",
+      "display_name": "Perf level 2 cluster name",
+      "category": "context_cpu",
+      "kind": "string",
+      "format": "A",
+      "security_relevant": false,
+      "description": "Core cluster 2: cluster name. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.physicalcpu",
+      "key": "hw.perflevel2.physicalcpu",
+      "display_name": "Perf level 2 physical CPUs",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: physical CPUs. Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
+      "id": "hw.perflevel2.physicalcpu_max",
+      "key": "hw.perflevel2.physicalcpu_max",
+      "display_name": "Perf level 2 physical CPUs (max)",
+      "category": "context_cpu",
+      "kind": "count",
+      "format": "I",
+      "security_relevant": false,
+      "description": "Core cluster 2: physical CPUs (max). Context only; the kernel exposes no per-cluster ISA feature flags."
+    },
+    {
       "id": "hw.product",
       "key": "hw.product",
       "display_name": "Product identifier",

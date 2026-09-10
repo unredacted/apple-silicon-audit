@@ -115,6 +115,61 @@ struct ReportTests {
         #expect(u.displayName == "hw.optional.arm.FEAT_XYZ")
     }
 
+    @Test("an 8-byte caps scalar (plain sysctl -a) is not decoded as a full bitmask")
+    func truncatedCaps() throws {
+        // Drop the 12-byte line so the parser falls back to the 8-byte scalar sysctl(8) prints.
+        let text = try String(contentsOf: Self.fixtureURL, encoding: .utf8)
+            .split(separator: "\n").filter { !$0.contains("bytes[0..11]") }.joined(separator: "\n")
+        let report = Auditor(sysctl: TextDumpSysctl(text: text, inventory: Self.data.knownKeys), data: Self.data).audit()
+        #expect(report.facts.first { $0.id == "arm.caps" }?.raw?.length == 8)
+        #expect(report.capabilities == nil, "a truncated buffer must not produce popcount/named bits")
+        let c = try #require(report.facts.first { $0.id == "caps.consistency" })
+        #expect(c.state == .unknown)
+        #expect(c.reasoning?.contains("truncated") == true)
+    }
+
+    @Test("caps cross-check is unknown, not present, when FEAT_* keys could not be compared")
+    func incompleteCrossCheck() throws {
+        let a = try Self.auditor(restricted: ["hw.optional.arm.FEAT_BTI", "hw.optional.arm.FEAT_DIT"])
+        let report = a.audit()
+        let c = try #require(report.facts.first { $0.id == "caps.consistency" })
+        #expect(c.state == .unknown)
+        #expect(c.reasoning?.contains("FEAT_BTI") == true)
+        #expect(report.capabilities?.mismatches.isEmpty == true)
+    }
+
+    @Test("a flag whose bytes do not decode is an error, never not_present")
+    func undecodableFlag() {
+        let outcome = ProbeOutcome.value(SysctlValue(format: .int, bytes: [1, 0]))
+        #expect(Fact.state(for: outcome, kind: .flag) == .error)
+        #expect(Fact.state(for: outcome, kind: .count) == .value)
+    }
+
+    @Test("masked compatibility nodes are recorded as deprecated, not as discoveries")
+    func maskedNotDiscovery() {
+        let result = Auditor(sysctl: Trees.device(includeMasked: true), data: Self.data).audit()
+        #expect(result.unrecognizedKeys.contains { $0.raw?.key == "hw.optional.old_compat" } == false)
+        let dep = result.facts.first { $0.raw?.key == "hw.optional.old_compat" }
+        #expect(dep?.category == "deprecated")
+        #expect(dep?.raw?.masked == true)
+    }
+
+    @Test("security view honors the inventory's security_relevant flag")
+    func securityRelevant() throws {
+        let report = try Self.auditor().audit()
+        #expect(report.securityFacts.contains { $0.id == "armv8_gpi" }, "legacy PAC alias is security-relevant")
+        #expect(report.securityFacts.contains { $0.id == "hw.features.allows_security_research" })
+        #expect(!report.securityFacts.contains { $0.id == "arm.FEAT_SHA3" })
+    }
+
+    @Test("per-performance-level context keys are in the inventory and read")
+    func perflevels() throws {
+        let report = try Self.auditor().audit()
+        #expect(report.facts.first { $0.id == "hw.perflevel0.name" }?.state == .value)
+        #expect(report.facts.first { $0.id == "hw.perflevel1.physicalcpu" }?.raw?.value == .int(12))
+        #expect(report.facts.first { $0.id == "hw.perflevel2.name" }?.state == .keyAbsent)
+    }
+
     @Test("no forbidden key is ever read or exported")
     func forbidden() throws {
         let auditor = try Self.auditor()
@@ -153,8 +208,8 @@ struct ExportTests {
 
         // `description` is UI-only and never exported; compare with it stripped.
         var exported = report
-        exported.facts = report.facts.map { var f = $0; f.description = nil; return f }
-        exported.unrecognizedKeys = report.unrecognizedKeys.map { var f = $0; f.description = nil; return f }
+        exported.facts = report.facts.map { var f = $0; f.description = nil; f.securityRelevant = false; return f }
+        exported.unrecognizedKeys = report.unrecognizedKeys.map { var f = $0; f.description = nil; f.securityRelevant = false; return f }
         let decoded = try Report.decode(data)
         #expect(decoded == exported)
     }
@@ -180,7 +235,11 @@ struct ExportTests {
         #expect(text.allSatisfy { Base45.index[$0] != nil })
         #expect(text.count < 3300, "QR version 40 at error-correction M holds 3391 alphanumeric characters; got \(text.count)")
         let back = try CompactExport.decode(text)
-        #expect(back == report.compact())
+        var expected = report.compact()
+        expected.facts = expected.facts.map { var f = $0; f.securityRelevant = false; return f }
+        #expect(back == expected)
+        #expect(throws: CompactExport.Error.invalidBase45) { try CompactExport.decode("") }
+        #expect(throws: CompactExport.Error.decompressionFailed) { try CompactExport.decode("00") }
     }
 
     @Test("Base45 matches the RFC 9285 vectors")

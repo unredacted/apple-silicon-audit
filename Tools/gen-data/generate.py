@@ -36,8 +36,10 @@ def write(name, obj):
 # ---------------------------------------------------------------- caps-bits
 def caps_bits():
     text = header("arm/cpu_capabilities_public.h")
-    entries = [{"bit": int(b), "name": n} for n, b in re.findall(r"#define CAP_BIT_(\w+)\s+(\d+)\n", text)]
     nb = int(re.search(r"#define CAP_BIT_NB\s+(\d+)", text).group(1))
+    # CAP_BIT_NB is the bit count, not a capability; everything else below it is a real bit.
+    entries = [{"bit": int(b), "name": n} for n, b in re.findall(r"#define CAP_BIT_(\w+)\s+(\d+)\n", text)
+               if n != "NB" and int(b) < nb]
     return {
         "schema_version": "1", "version": TODAY, "verified": TODAY,
         "source": "<arm/cpu_capabilities_public.h>, macOS SDK; bit positions are ABI and never change",
@@ -149,6 +151,16 @@ ctx = {
 }
 for k, (d, cat, kind, desc, fmt) in ctx.items():
     add(k, d, cat, kind, k.startswith("vm.mte") or k in ("hw.features.allows_security_research",), desc, fmt=fmt)
+# Per-performance-level context (SPEC §4.3): counts, caches and cluster name only; no ISA flags exist here.
+for n in range(3):
+    for leaf, (d, kind, fmt) in {"physicalcpu": ("physical CPUs", "count", "I"), "physicalcpu_max": ("physical CPUs (max)", "count", "I"),
+                                 "logicalcpu": ("logical CPUs", "count", "I"), "logicalcpu_max": ("logical CPUs (max)", "count", "I"),
+                                 "l1icachesize": ("L1 instruction cache", "count", "Q"), "l1dcachesize": ("L1 data cache", "count", "Q"),
+                                 "l2cachesize": ("L2 cache", "count", "Q"), "cpusperl2": ("CPUs per L2", "count", "I"),
+                                 "l3cachesize": ("L3 cache", "count", "Q"), "cpusperl3": ("CPUs per L3", "count", "I"),
+                                 "name": ("cluster name", "string", "A")}.items():
+        add(f"hw.perflevel{n}.{leaf}", f"Perf level {n} {d}", "context_cpu", kind, False,
+            f"Core cluster {n}: {d}. Context only; the kernel exposes no per-cluster ISA feature flags.", fmt=fmt)
 
 def observed_keys():
     keys = set()

@@ -85,11 +85,11 @@ public struct Auditor: Sendable {
     }
 
     public func rawAudit(now: Date = Date()) -> RawAuditResult {
-        let environment = AuditEnvironment.detect(using: sysctl)
-        let walk = MIBWalker(sysctl: sysctl).walk()
+        let environment = AuditEnvironment.detect(using: sysctl, inventory: data.knownKeys)
+        let walk = MIBWalker(sysctl: sysctl, inventory: data.knownKeys).walk()
         var named: [String: ProbeOutcome] = [:]
         for key in namedKeys {
-            named[key] = sysctl.read(key).withInventoryFormat(for: key)
+            named[key] = sysctl.read(key).withInventoryFormat(for: key, inventory: data.knownKeys)
         }
         return RawAuditResult(environment: environment, walk: walk, namedReads: named, collectedAt: now)
     }
@@ -111,32 +111,55 @@ public struct Auditor: Sendable {
                 id: entry.id, displayName: entry.displayName, category: entry.category, kind: entry.kind,
                 provenance: .measured, state: Fact.state(for: outcome, kind: entry.kind), discoveredBy: discovered,
                 raw: RawReading(key: entry.key, outcome: outcome, masked: walked?.isMasked ?? false),
-                description: entry.description))
+                description: entry.description, securityRelevant: entry.securityRelevant))
         }
 
-        // Unrecognized walk discoveries: full measured facts in their own array.
+        // Walk discoveries outside the inventory. CTLFLAG_MASKED nodes are deprecated
+        // compatibility aliases that sysctl(8) hides; they are recorded, not celebrated.
         let known = Set(data.knownKeys.keys)
-        let unrecognized: [Fact] = raw.walk.keys.filter { !known.contains($0.name) }.map { k in
+        let novel = raw.walk.keys.filter { !known.contains($0.name) }
+        for k in novel where k.isMasked {
+            facts.append(Fact(id: "deprecated." + k.name, displayName: k.name, category: "deprecated", kind: .unknown,
+                              provenance: .measured, state: Fact.state(for: k.outcome, kind: .unknown), discoveredBy: .walk,
+                              raw: RawReading(key: k.name, outcome: k.outcome, masked: true),
+                              description: "Deprecated compatibility node (CTLFLAG_MASKED); hidden by sysctl(8)."))
+        }
+        let unrecognized: [Fact] = novel.filter { !$0.isMasked }.map { k in
             Fact(id: "unrecognized." + k.name, displayName: k.name, category: "unrecognized", kind: .unknown,
                  provenance: .measured, state: Fact.state(for: k.outcome, kind: .unknown), discoveredBy: .walk,
-                 raw: RawReading(key: k.name, outcome: k.outcome, masked: k.isMasked),
+                 raw: RawReading(key: k.name, outcome: k.outcome, masked: false),
                  description: "Discovered by the walk; not yet in the inventory.")
         }
 
-        // Capabilities bitmask decode and cross-check.
+        // Capabilities bitmask decode and cross-check. Only a buffer covering every header bit
+        // is decoded: an 8-byte scalar (what `sysctl -a` prints) would silently drop bits 64–91.
         var capabilities: Report.Capabilities?
         if let capsBytes = raw.outcome(for: "hw.optional.arm.caps")?.value?.rawBytes, !data.capsBits.entries.isEmpty {
             let decoded = CapsDecoder.decode(capsBytes, table: data.capsBits)
-            let mismatches = CapsDecoder.mismatches(decoded, table: data.capsBits) { raw.outcome(for: $0) }
-            capabilities = Report.Capabilities(byteCount: decoded.byteCount, popcount: decoded.popcount,
-                                               namedBits: decoded.namedBits, unnamedBits: decoded.unnamedBits, mismatches: mismatches)
-            facts.append(Fact(
-                id: "caps.consistency", displayName: "Capability bitmask agrees with FEAT_* keys", category: "capability_bitmask",
-                kind: .claim, provenance: .inferred, state: mismatches.isEmpty ? .present : .notPresent,
-                reasoning: mismatches.isEmpty
-                    ? "Every named bit in hw.optional.arm.caps matches its hw.optional.arm.FEAT_* key (\(decoded.namedBits.count) named bits, \(decoded.unnamedBits.count) unnamed)."
-                    : "Disagreements: " + mismatches.joined(separator: "; "),
-                description: "The kernel publishes the same features twice, as a bitmask and as keys; they should agree."))
+            if decoded.covers(data.capsBits) {
+                let check = CapsDecoder.crossCheck(decoded, table: data.capsBits) { raw.outcome(for: $0) }
+                capabilities = Report.Capabilities(byteCount: decoded.byteCount, popcount: decoded.popcount,
+                                                   namedBits: decoded.namedBits, unnamedBits: decoded.unnamedBits, mismatches: check.mismatches)
+                let state: FactState = !check.mismatches.isEmpty ? .notPresent : (check.isComplete ? .present : .unknown)
+                let reasoning: String
+                if !check.mismatches.isEmpty {
+                    reasoning = "Disagreements: " + check.mismatches.joined(separator: "; ")
+                } else if check.isComplete {
+                    reasoning = "Every named bit in hw.optional.arm.caps matches its hw.optional.arm.FEAT_* key (\(check.compared) compared, \(decoded.unnamedBits.count) unnamed bits)."
+                } else {
+                    reasoning = "\(check.compared) named bits matched their keys, but \(check.unchecked.count) could not be compared (key absent, restricted, or undecodable): \(check.unchecked.prefix(6).joined(separator: ", "))\(check.unchecked.count > 6 ? ", …" : "")."
+                }
+                facts.append(Fact(
+                    id: "caps.consistency", displayName: "Capability bitmask agrees with FEAT_* keys", category: "capability_bitmask",
+                    kind: .claim, provenance: .inferred, state: state, reasoning: reasoning,
+                    description: "The kernel publishes the same features twice, as a bitmask and as keys; they should agree."))
+            } else {
+                facts.append(Fact(
+                    id: "caps.consistency", displayName: "Capability bitmask agrees with FEAT_* keys", category: "capability_bitmask",
+                    kind: .claim, provenance: .inferred, state: .unknown,
+                    reasoning: "hw.optional.arm.caps read as \(decoded.byteCount) bytes but the header defines \(data.capsBits.capBitNB) bits (\((data.capsBits.capBitNB + 7) / 8) bytes); the buffer is truncated (typical of a `sysctl -a` text dump), so it is not decoded.",
+                    description: "The kernel publishes the same features twice, as a bitmask and as keys; they should agree."))
+            }
         }
 
         // Inferred identity facts.

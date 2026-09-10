@@ -18,7 +18,9 @@ public enum CompactExport {
     }
 
     public static func decode(_ text: String) throws -> Report {
+        guard !text.isEmpty else { throw Error.invalidBase45 }
         let compressed = try Base45.decode(text)
+        guard !compressed.isEmpty else { throw Error.decompressionFailed }
         let json = try decompress(compressed)
         return try Report.decode(json)
     }
@@ -32,6 +34,7 @@ public enum CompactExport {
     }
 
     private static func transcode(_ input: Data, operation: compression_stream_operation, capacity: Int, error: Error) throws -> Data {
+        guard !input.isEmpty else { throw error }
         var output = Data()
         var dst = [UInt8](repeating: 0, count: capacity)
         try input.withUnsafeBytes { (src: UnsafeRawBufferPointer) in

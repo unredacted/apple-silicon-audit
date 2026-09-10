@@ -82,7 +82,8 @@ struct Import: ParsableCommand {
         } else if FileManager.default.fileExists(atPath: text) {
             text = try String(contentsOfFile: text, encoding: .utf8)
         }
-        let report = try CompactExport.decode(text.trimmingCharacters(in: .whitespacesAndNewlines))
+        // Only line endings are stripped: a space is a Base45 digit and may legitimately begin or end the payload.
+        let report = try CompactExport.decode(text.trimmingCharacters(in: .newlines))
         print(String(decoding: try report.jsonData(), as: UTF8.self))
     }
 }
