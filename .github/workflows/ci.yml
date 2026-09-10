@@ -1,0 +1,21 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+jobs:
+  swift:
+    name: Build and test (macOS 26, arm64)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          xcodebuild -version
+          swift --version
+      - name: Build
+        run: swift build
+      - name: Test
+        run: swift test
+      - name: CLI smoke
+        run: swift run silicon-audit --version
