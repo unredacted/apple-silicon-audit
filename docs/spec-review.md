@@ -240,6 +240,15 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 
 ---
 
+## I. From Phase 5 implementation (watchOS app)
+
+78. **The spike code is retired.** `Apps/Shared/Spike` and `Apps/Shared/Connectivity` are gone; the watch app is built from the shared `SiliconAuditUI` rows, Overview topics and detail views, with a compact summary row instead of the card. (§7)
+79. **Transfer carries the real `Report`.** `ReportTransferBridge` sends the full JSON via `transferFile` with schema/identity metadata; the phone's `ReceivedReportStore` validates the schema version, stores one file per identity and build in Application Support, and restores on launch. Garbage deliveries are rejected, never shown as received. (§7)
+80. **No gzip layer.** The ~70 KB uncompressed export is well within what `transferFile` handles; the spec's gzip suggestion was dropped as needless complexity. The compact Base45 code is the watch's standalone `ShareLink` fallback. (§7, §8)
+81. **`ReportListContent`** is the one list body used by the phone's own report, a received watch report and the watch itself, so the three never drift. (§6.4)
+
+---
+
 ## Open items not resolvable from a Mac
 
 1. ~~Whether iOS and watchOS container sandboxes permit `sysctlbyname` on `hw.optional.arm.*`, the raw meta-OID walk, and `vm.mte.*` reads.~~ Answered on both: yes / no / no (iOS: `vm.mte` restricted; watchOS: absent). See `docs/evidence/spike-M0.md`.

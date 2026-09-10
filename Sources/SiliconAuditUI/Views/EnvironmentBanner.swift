@@ -12,8 +12,13 @@ public struct EnvironmentBanner: View {
             Label {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title).font(.subheadline.weight(.semibold))
+                    #if os(watchOS)
+                    Text(String(localized: "Host values, not this device. Do not submit.", bundle: .module))
+                        .font(.caption2)
+                    #else
                     Text(String(localized: "These values describe the host, not a real device. Do not submit them to the results database.", bundle: .module))
                         .font(.caption)
+                    #endif
                 }
             } icon: {
                 Image(systemName: "exclamationmark.triangle.fill")

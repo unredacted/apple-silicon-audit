@@ -45,43 +45,10 @@ public struct AuditRootView: View {
     private var compactLayout: some View {
         NavigationStack {
             List {
-                if let report = model.report {
-                    Section {
-                        EnvironmentBanner(report.environment)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                        SummaryCard(report: report, summary: model.securitySummary)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                    }
-                    if let companion { companion() }
-                    if mode == .overview {
-                        Section {
-                            OverviewList(report: report)
-                        } header: {
-                            Text(String(localized: "What this chip protects", bundle: .module))
-                        } footer: {
-                            Text(footerText)
-                        }
-                    } else {
-                        ForEach(model.securitySections) { section in
-                            sectionView(section)
-                        }
-                        Section {
-                            NavigationLink {
-                                AllSectionsView(sections: model.otherSections)
-                            } label: {
-                                Label(String(localized: "Everything else", bundle: .module), systemImage: "list.bullet.indent")
-                            }
-                        } footer: {
-                            Text(footerText)
-                        }
-                    }
-                } else {
-                    loadingRow
-                }
+                if let companion, model.report != nil { companion() }
+                ReportListContent(model: model, mode: mode)
             }
-            .navigationDestination(for: String.self) { factDestination($0) }
+            .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
             .navigationTitle("Silicon Audit")
             .toolbar {
                 modePicker
@@ -142,38 +109,34 @@ public struct AuditRootView: View {
         if let report = model.report {
             if selection == nil || selection == AuditRootView.summaryID || mode == .overview {
                 List {
-                    Section {
-                        EnvironmentBanner(report.environment)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                        SummaryCard(report: report, summary: model.securitySummary)
-                            .listRowInsets(EdgeInsets())
-                            .listRowBackground(Color.clear)
-                    }
                     if let companion { companion() }
                     if mode == .overview {
-                        Section {
-                            OverviewList(report: report)
-                        } header: {
-                            Text(String(localized: "What this chip protects", bundle: .module))
-                        } footer: {
-                            Text(footerText)
-                        }
+                        ReportListContent(model: model, mode: .overview)
                     } else {
-                        Section { } footer: { Text(footerText) }
+                        Section {
+                            EnvironmentBanner(report.environment)
+                                .listRowInsets(EdgeInsets())
+                                .listRowBackground(Color.clear)
+                            SummaryCard(report: report, summary: model.securitySummary)
+                                .listRowInsets(EdgeInsets())
+                                .listRowBackground(Color.clear)
+                        } footer: {
+                            Text(ReportListContent.footer(for: report))
+                        }
                     }
                 }
+                .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
                 .frame(maxWidth: 820)
                 .navigationTitle(mode == .overview ? String(localized: "Overview", bundle: .module) : String(localized: "Summary", bundle: .module))
             } else if let section = model.sections.first(where: { $0.id == selection }) {
                 List {
                     sectionView(section)
                 }
-                .navigationDestination(for: String.self) { factDestination($0) }
+                .navigationDestination(for: String.self) { ReportListContent.destination(for: $0, in: model.report) }
                 .navigationTitle(section.title)
             }
         } else {
-            List { loadingRow }
+            List { ReportListContent(model: model, mode: mode) }
         }
     }
 
@@ -197,22 +160,6 @@ public struct AuditRootView: View {
                 }
             }
         }
-    }
-
-    /// Destination for `NavigationLink(value:)` rows; must hang off the List, not a Section.
-    @ViewBuilder
-    private func factDestination(_ id: String) -> some View {
-        if let fact = model.report?.facts.first(where: { $0.id == id }) ?? model.report?.unrecognizedKeys.first(where: { $0.id == id }) {
-            FactDetailView(fact)
-        }
-    }
-
-    private var loadingRow: some View {
-        HStack {
-            ProgressView()
-            Text(String(localized: "Reading this kernel…", bundle: .module))
-        }
-        .accessibilityElement(children: .combine)
     }
 
     private var modePicker: some ToolbarContent {
@@ -240,27 +187,6 @@ public struct AuditRootView: View {
         }
     }
 
-    private var footerText: String {
-        guard let report = model.report else { return "" }
-        return String(localized: "Measured means reported by this kernel, not present in the silicon. Documented claims come from Apple's published materials and show their dates. Inventory \(report.collection.knownKeysVersion), engine \(report.appVersion).", bundle: .module)
-    }
 }
 
-/// Non-security sections behind one tap on iPhone.
-struct AllSectionsView: View {
-    let sections: [ReportModel.Section]
-
-    var body: some View {
-        List {
-            ForEach(sections) { section in
-                Section(section.title) {
-                    ForEach(section.facts) { fact in
-                        NavigationLink { FactDetailView(fact) } label: { FactRow(fact) }
-                    }
-                }
-            }
-        }
-        .navigationTitle(String(localized: "Everything else", bundle: .module))
-    }
-}
 #endif

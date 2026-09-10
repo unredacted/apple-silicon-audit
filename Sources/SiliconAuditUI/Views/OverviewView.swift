@@ -24,6 +24,22 @@ struct TopicRow: View {
     let verdict: TopicVerdict
 
     var body: some View {
+        #if os(watchOS)
+        // 42mm: stack everything; the badge under the title instead of beside it.
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 6) {
+                Image(systemName: topic.symbol).foregroundStyle(.tint).accessibilityHidden(true)
+                Text(topic.title).font(.headline).lineLimit(2)
+            }
+            VerdictBadge(verdict)
+            Text(verdict.sentence).font(.caption2).foregroundStyle(.secondary).lineLimit(4)
+            Text(sourceLine).font(.caption2).foregroundStyle(.tertiary)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(topic.title))
+        .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(sourceLine)"))
+        #else
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: topic.symbol)
                 .font(.title2)
@@ -48,6 +64,7 @@ struct TopicRow: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(topic.title))
         .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(sourceLine)"))
+        #endif
     }
 
     var sourceLine: String {
@@ -73,7 +90,7 @@ struct VerdictBadge: View {
             .foregroundStyle(tint)
             .labelStyle(.titleAndIcon)
             .lineLimit(1)
-            .fixedSize()
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     var symbol: String {

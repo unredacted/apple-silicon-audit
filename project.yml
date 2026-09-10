@@ -39,10 +39,6 @@ targets:
     sources:
       - path: Apps/SiliconAudit
       - path: Apps/Shared/Resources
-      - path: Apps/Shared/Connectivity
-        destinationFilters: [iOS]
-      - path: Apps/Shared/Spike
-        destinationFilters: [iOS]
     dependencies:
       - package: SiliconAuditPackage
         products: [SiliconAuditCore, SiliconAuditUI]
@@ -66,13 +62,12 @@ targets:
         "ENABLE_HARDENED_RUNTIME[sdk=macosx*]": YES
         "ENABLE_APP_SANDBOX[sdk=macosx*]": YES
 
-  # Phase 2 spike UI stays on the watch until Phase 5 replaces it with the shared views.
   SiliconAuditWatch:
     type: application
     platform: watchOS
     sources:
       - path: Apps/SiliconAuditWatch
-      - path: Apps/Shared
+      - path: Apps/Shared/Resources
     dependencies:
       - package: SiliconAuditPackage
         products: [SiliconAuditCore, SiliconAuditUI]
