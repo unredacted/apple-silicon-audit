@@ -5,82 +5,275 @@
   "description": "One device's audit result. additionalProperties is false everywhere and raw sysctl keys are restricted to an allowlist: the schema is also the privacy guard enforced by CI.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "app_version", "collected_at", "collection", "environment", "device", "facts", "unrecognized_keys"],
+  "required": [
+    "schema_version",
+    "app_version",
+    "collected_at",
+    "collection",
+    "environment",
+    "device",
+    "facts",
+    "unrecognized_keys"
+  ],
   "properties": {
-    "schema_version": { "type": "string", "pattern": "^1\\.[0-9]+\\.[0-9]+$" },
-    "app_version": { "type": "string" },
-    "variant": { "type": "string", "enum": ["full", "compact"], "default": "full" },
-    "collected_at": { "type": "string", "format": "date-time" },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^1\\.[0-9]+\\.[0-9]+$"
+    },
+    "app_version": {
+      "type": "string"
+    },
+    "variant": {
+      "type": "string",
+      "enum": [
+        "full",
+        "compact"
+      ],
+      "default": "full"
+    },
+    "collected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
     "collection": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["walk_succeeded", "walk_root", "known_keys_version"],
+      "required": [
+        "walk_succeeded",
+        "walk_root",
+        "known_keys_version"
+      ],
       "properties": {
-        "walk_succeeded": { "type": "boolean" },
-        "walk_root": { "type": "string", "const": "hw.optional" },
-        "walk_failure": { "type": ["string", "null"] },
-        "known_keys_version": { "$ref": "#/$defs/calendar_date" }
+        "walk_succeeded": {
+          "type": "boolean"
+        },
+        "walk_root": {
+          "type": "string",
+          "const": "hw.optional"
+        },
+        "walk_failure": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "known_keys_version": {
+          "$ref": "#/$defs/calendar_date"
+        }
       }
     },
     "environment": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["platform", "arch", "os_version", "os_build", "kernel_version", "is_simulator", "is_translated", "is_ios_app_on_mac", "is_catalyst"],
+      "required": [
+        "platform",
+        "arch",
+        "os_version",
+        "os_build",
+        "kernel_version",
+        "is_simulator",
+        "is_translated",
+        "is_ios_app_on_mac",
+        "is_catalyst",
+        "is_virtual_machine"
+      ],
       "properties": {
-        "platform": { "type": "string", "enum": ["iOS", "iPadOS", "macOS", "watchOS", "tvOS", "visionOS", "unknown"] },
-        "arch": { "type": "string", "enum": ["arm64", "arm64e", "x86_64", "unknown"] },
-        "os_version": { "type": "string" },
-        "os_build": { "type": "string" },
-        "kernel_version": { "type": "string" },
-        "is_simulator": { "type": "boolean" },
-        "is_translated": { "type": "boolean" },
-        "is_ios_app_on_mac": { "type": "boolean" },
-        "is_catalyst": { "type": "boolean" }
+        "platform": {
+          "type": "string",
+          "enum": [
+            "iOS",
+            "iPadOS",
+            "macOS",
+            "watchOS",
+            "tvOS",
+            "visionOS",
+            "unknown"
+          ]
+        },
+        "arch": {
+          "type": "string",
+          "enum": [
+            "arm64",
+            "arm64e",
+            "x86_64",
+            "unknown"
+          ]
+        },
+        "os_version": {
+          "type": "string"
+        },
+        "os_build": {
+          "type": "string"
+        },
+        "kernel_version": {
+          "type": "string"
+        },
+        "is_simulator": {
+          "type": "boolean"
+        },
+        "is_translated": {
+          "type": "boolean"
+        },
+        "is_ios_app_on_mac": {
+          "type": "boolean"
+        },
+        "is_catalyst": {
+          "type": "boolean"
+        },
+        "is_virtual_machine": {
+          "type": "boolean"
+        }
       }
     },
     "device": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["hw_product", "hw_machine", "hw_model", "cpufamily", "cpufamily_name", "soc_id", "soc_name_inferred", "marketing_name_inferred"],
+      "required": [
+        "identity",
+        "hw_product",
+        "hw_machine",
+        "hw_model",
+        "cpufamily",
+        "cpufamily_name",
+        "soc_id",
+        "soc_name_inferred",
+        "marketing_name_inferred"
+      ],
       "properties": {
-        "hw_product": { "type": ["string", "null"] },
-        "hw_machine": { "type": ["string", "null"] },
-        "hw_model": { "type": ["string", "null"] },
-        "hw_target": { "type": ["string", "null"] },
-        "cpufamily": { "type": ["string", "null"], "pattern": "^0x[0-9a-f]{8}$" },
-        "cpufamily_name": { "type": "string" },
-        "cpusubfamily": { "type": ["integer", "null"] },
-        "cpusubfamily_name": { "type": "string" },
-        "soc_id": { "type": ["string", "null"], "pattern": "^T[0-9]{4,5}$" },
-        "soc_name_inferred": { "type": "string" },
-        "soc_inference_confidence": { "type": "string", "enum": ["verified", "reported", "none"] },
-        "marketing_name_inferred": { "type": "string" }
+        "identity": {
+          "type": "string",
+          "minLength": 1,
+          "description": "First non-empty of hw_product, hw_model (Macs), hw_machine. Results and conflict key."
+        },
+        "hw_product": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_machine": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "hw_target": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cpufamily": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^0x[0-9a-f]{8}$"
+        },
+        "cpufamily_name": {
+          "type": "string"
+        },
+        "cpusubfamily": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "cpusubfamily_name": {
+          "type": "string"
+        },
+        "soc_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^T[0-9]{4,5}$"
+        },
+        "soc_name_inferred": {
+          "type": "string"
+        },
+        "soc_inference_confidence": {
+          "type": "string",
+          "enum": [
+            "verified",
+            "reported",
+            "none"
+          ]
+        },
+        "marketing_name_inferred": {
+          "type": "string"
+        }
       }
     },
     "facts": {
       "type": "array",
-      "items": { "$ref": "#/$defs/fact" }
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
     },
     "unrecognized_keys": {
       "type": "array",
-      "items": { "$ref": "#/$defs/unrecognized_key" }
+      "items": {
+        "$ref": "#/$defs/unrecognized_fact"
+      }
     }
   },
   "allOf": [
     {
       "description": "Compact variant (watch ShareLink, tvOS QR): measured facts only, display names omitted.",
-      "if": { "required": ["variant"], "properties": { "variant": { "const": "compact" } } },
+      "if": {
+        "required": [
+          "variant"
+        ],
+        "properties": {
+          "variant": {
+            "const": "compact"
+          }
+        }
+      },
       "then": {
         "properties": {
           "facts": {
-            "items": { "properties": { "provenance": { "const": "measured" } } }
+            "items": {
+              "properties": {
+                "provenance": {
+                  "const": "measured"
+                }
+              }
+            }
+          },
+          "unrecognized_keys": {
+            "items": {
+              "properties": {
+                "provenance": {
+                  "const": "measured"
+                }
+              }
+            }
           }
         }
       },
       "else": {
         "properties": {
           "facts": {
-            "items": { "required": ["display_name"] }
+            "items": {
+              "required": [
+                "display_name"
+              ]
+            }
+          },
+          "unrecognized_keys": {
+            "items": {
+              "required": [
+                "display_name"
+              ]
+            }
           }
         }
       }
@@ -99,102 +292,330 @@
     },
     "state": {
       "type": "string",
-      "enum": ["present", "not_present", "key_absent", "restricted", "error", "unknown"]
+      "enum": [
+        "present",
+        "not_present",
+        "value",
+        "key_absent",
+        "restricted",
+        "error",
+        "unknown"
+      ]
     },
     "measured_state": {
       "type": "string",
-      "enum": ["present", "not_present", "key_absent", "restricted", "error"]
+      "enum": [
+        "present",
+        "not_present",
+        "value",
+        "key_absent",
+        "restricted",
+        "error"
+      ]
     },
     "claim_state": {
       "type": "string",
-      "enum": ["present", "not_present", "unknown"]
-    },
-    "read_outcome": {
-      "description": "What the kernel said when the key was read.",
-      "type": "string",
-      "enum": ["value", "absent", "restricted", "error"]
+      "enum": [
+        "present",
+        "not_present",
+        "unknown"
+      ]
     },
     "provenance": {
       "type": "string",
-      "enum": ["measured", "documented", "inferred", "unknown"]
+      "enum": [
+        "measured",
+        "documented",
+        "inferred",
+        "unknown"
+      ]
     },
     "kind": {
       "type": "string",
-      "enum": ["flag", "count", "bitmask", "string", "claim"]
+      "enum": [
+        "flag",
+        "count",
+        "bitmask",
+        "string",
+        "unknown",
+        "claim"
+      ]
     },
     "raw": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "format", "length", "errno"],
+      "required": [
+        "key",
+        "format",
+        "length",
+        "errno"
+      ],
       "properties": {
-        "key": { "$ref": "#/$defs/allowed_sysctl_key" },
-        "format": { "type": ["string", "null"] },
-        "length": { "type": "integer", "minimum": 0 },
-        "value": { "type": ["integer", "string", "null"] },
-        "value_hex": { "type": "string", "pattern": "^[0-9a-f]*$" },
-        "errno": { "type": ["integer", "null"] },
-        "masked": { "type": "boolean" }
-      }
-    },
-    "unrecognized_key": {
-      "description": "A key the walk found that the inventory does not annotate. Carries the read outcome so restricted and error are never conflated with a value.",
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["key", "format", "length", "outcome", "errno"],
-      "properties": {
-        "key": { "type": "string", "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$" },
-        "format": { "type": ["string", "null"] },
-        "length": { "type": "integer", "minimum": 0 },
-        "outcome": { "$ref": "#/$defs/read_outcome" },
-        "errno": { "type": ["integer", "null"] },
-        "value": { "type": ["integer", "string", "null"] },
-        "value_hex": { "type": "string", "pattern": "^[0-9a-f]*$" },
-        "masked": { "type": "boolean" }
+        "key": {
+          "$ref": "#/$defs/allowed_sysctl_key"
+        },
+        "format": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "value": {
+          "type": [
+            "integer",
+            "string",
+            "null"
+          ]
+        },
+        "value_hex": {
+          "type": "string",
+          "pattern": "^[0-9a-f]*$"
+        },
+        "errno": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "masked": {
+          "type": "boolean"
+        }
       }
     },
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["url", "published", "verified"],
+      "required": [
+        "url",
+        "published",
+        "verified"
+      ],
       "properties": {
-        "url": { "type": "string", "format": "uri" },
-        "published": { "$ref": "#/$defs/calendar_date" },
-        "verified": { "$ref": "#/$defs/calendar_date" },
-        "note": { "type": "string" }
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "published": {
+          "$ref": "#/$defs/calendar_date"
+        },
+        "verified": {
+          "$ref": "#/$defs/calendar_date"
+        },
+        "note": {
+          "type": "string"
+        }
       }
     },
     "fact": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "category", "provenance", "state"],
+      "required": [
+        "id",
+        "category",
+        "provenance",
+        "state"
+      ],
       "properties": {
-        "id": { "type": "string" },
-        "display_name": { "type": "string" },
-        "category": { "type": "string" },
-        "kind": { "$ref": "#/$defs/kind" },
-        "provenance": { "$ref": "#/$defs/provenance" },
-        "state": { "$ref": "#/$defs/state" },
-        "discovered_by": { "type": "string", "enum": ["walk", "known_list", "both"] },
-        "raw": { "$ref": "#/$defs/raw" },
-        "source": { "$ref": "#/$defs/source" },
-        "reasoning": { "type": "string" }
+        "id": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "kind": {
+          "$ref": "#/$defs/kind"
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "state": {
+          "$ref": "#/$defs/state"
+        },
+        "discovered_by": {
+          "type": "string",
+          "enum": [
+            "walk",
+            "known_list",
+            "both"
+          ]
+        },
+        "raw": {
+          "$ref": "#/$defs/raw"
+        },
+        "source": {
+          "$ref": "#/$defs/source"
+        },
+        "reasoning": {
+          "type": "string"
+        }
       },
       "allOf": [
         {
-          "if": { "properties": { "provenance": { "const": "measured" } } },
-          "then": { "required": ["raw", "discovered_by"], "properties": { "state": { "$ref": "#/$defs/measured_state" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "measured"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "raw",
+              "discovered_by"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/measured_state"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "const": "documented" } } },
-          "then": { "required": ["source"], "properties": { "state": { "$ref": "#/$defs/claim_state" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "documented"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/claim_state"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "const": "inferred" } } },
-          "then": { "required": ["reasoning"], "properties": { "state": { "$ref": "#/$defs/claim_state" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "inferred"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "reasoning"
+            ],
+            "properties": {
+              "state": {
+                "$ref": "#/$defs/claim_state"
+              }
+            }
+          }
         },
         {
-          "if": { "properties": { "provenance": { "const": "unknown" } } },
-          "then": { "properties": { "state": { "const": "unknown" } } }
+          "if": {
+            "properties": {
+              "provenance": {
+                "const": "unknown"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "unknown"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "const": "flag"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "const": "value"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "kind"
+            ],
+            "properties": {
+              "kind": {
+                "enum": [
+                  "count",
+                  "bitmask",
+                  "string",
+                  "unknown"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "not": {
+                  "enum": [
+                    "present",
+                    "not_present"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "unrecognized_fact": {
+      "description": "A key the walk found that the inventory does not annotate: an ordinary measured fact with its own provenance and read outcome, constrained to the walk root.",
+      "allOf": [
+        {
+          "$ref": "#/$defs/fact"
+        },
+        {
+          "properties": {
+            "provenance": {
+              "const": "measured"
+            },
+            "discovered_by": {
+              "const": "walk"
+            },
+            "kind": {
+              "const": "unknown"
+            },
+            "category": {
+              "const": "unrecognized"
+            },
+            "raw": {
+              "properties": {
+                "key": {
+                  "pattern": "^hw\\.optional\\.[A-Za-z0-9_.]+$"
+                }
+              }
+            }
+          },
+          "required": [
+            "kind",
+            "discovered_by",
+            "raw"
+          ]
         }
       ]
     }
