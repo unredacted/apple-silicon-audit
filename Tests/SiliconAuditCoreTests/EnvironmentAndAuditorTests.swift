@@ -65,6 +65,32 @@ struct AuditorTests {
         #expect(result.restrictedCount == 1)
     }
 
+    @Test("when the kernel gives no format, known keys decode with the inventory's format, marked as such")
+    func inventoryFormatFallback() {
+        let noFormat: [FakeSysctl.Entry] = [
+            .init(oid: [6, 2], name: "hw.product", format: nil, outcome: .value(SysctlValue(format: nil, bytes: Array("iPhone18,2".utf8) + [0]))),
+            .init(oid: [6, 110, 1, 4], name: "hw.optional.arm.FEAT_MTE4", format: nil, outcome: .value(SysctlValue(format: nil, bytes: le(UInt32(1))))),
+            .init(oid: [6, 110, 1, 5], name: "hw.optional.arm.caps", format: nil, outcome: .value(SysctlValue(format: nil, bytes: [UInt8](repeating: 1, count: 12)))),
+            .init(oid: [6, 110, 1, 9], name: "hw.optional.arm.FEAT_NEW", format: nil, outcome: .value(SysctlValue(format: nil, bytes: le(UInt32(0))))),
+            .init(oid: [1, 66], name: "kern.osproductversion", format: nil, outcome: .value(SysctlValue(format: nil, bytes: Array("26.6.2".utf8) + [0]))),
+        ]
+        let result = Auditor(sysctl: FakeSysctl(entries: noFormat, nodes: ["hw.optional": Trees.hwOptional])).rawAudit()
+        #expect(!result.kernelFormatsAvailable)
+        let product = result.namedReads["hw.product"]?.value
+        #expect(product?.payload.stringValue == "iPhone18,2")
+        #expect(product?.format?.source == .inventory)
+        #expect(result.outcome(for: "hw.optional.arm.FEAT_MTE4")?.flagIsSet == true)
+        #expect(result.outcome(for: "hw.optional.arm.FEAT_NEW")?.flagIsSet == false, "unknown hw.optional leaves default to int")
+        #expect(result.outcome(for: "hw.optional.arm.caps")?.value?.payload.bytesValue?.count == 12, "12 bytes against a declared quad stays bytes")
+        #expect(result.environment.osVersion == "26.6.2")
+        let env = AuditEnvironment.detect(using: FakeSysctl(entries: noFormat + [
+            .init(oid: [1, 65], name: "kern.osversion", format: nil, outcome: .value(SysctlValue(format: nil, bytes: Array("23G90".utf8) + [0]))),
+            .init(oid: [1, 67], name: "kern.version", format: nil, outcome: .value(SysctlValue(format: nil, bytes: Array("Darwin ... RELEASE_ARM64_T8160".utf8) + [0]))),
+        ]))
+        #expect(env.osBuild == "23G90")
+        #expect(env.kernelVersion.hasSuffix("T8160"))
+    }
+
     @Test("the named-key list covers every curated security key and legacy alias")
     func namedKeysCoverInventory() {
         for key in ["hw.optional.arm.FEAT_PAuth", "hw.optional.arm.FEAT_BTI", "hw.optional.arm.FEAT_SSBS",

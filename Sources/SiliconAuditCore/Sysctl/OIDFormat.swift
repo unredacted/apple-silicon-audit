@@ -13,10 +13,19 @@ public struct OIDFormat: Equatable, Hashable, Sendable {
     public let kind: UInt32
     /// Format string, e.g. "I" (int), "IU" (unsigned int), "Q" (int64), "L" (long), "A" (string), "S,x" (struct), "N" (node).
     public let formatString: String
+    /// Who declared this format: the kernel (OIDFMT) or our own inventory (used when a
+    /// sandbox blocks OIDFMT). Exports surface this so a decoded value is never
+    /// mistaken for a kernel-typed one.
+    public let source: Source
 
-    public init(kind: UInt32, formatString: String) {
+    public enum Source: String, Codable, Sendable {
+        case kernel, inventory
+    }
+
+    public init(kind: UInt32, formatString: String, source: Source = .kernel) {
         self.kind = kind
         self.formatString = formatString
+        self.source = source
     }
 
     /// `CTLTYPE` values from `<sys/sysctl.h>`.
