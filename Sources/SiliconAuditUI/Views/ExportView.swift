@@ -1,4 +1,63 @@
-#if !os(watchOS)
+#if os(tvOS)
+import SiliconAuditCore
+import SwiftUI
+
+/// Export surface on Apple TV (SPEC §6.4, §8): there is no share sheet, file system access, or
+/// pasteboard, so the compact export is shown as a QR code to be scanned by another device and
+/// decoded with `silicon-audit import`.
+public struct ExportView: View {
+    let model: ReportModel
+    @State private var compact: String?
+    @State private var error: String?
+
+    public init(model: ReportModel) { self.model = model }
+
+    public var body: some View {
+        // A centered column, like the lists on the other screens: the tvOS sidebar floats over the
+        // leading edge of the detail column, so nothing may sit there.
+        ScrollView {
+            VStack(spacing: 28) {
+                Text(String(localized: "Scan to export", bundle: .module))
+                    .font(.title2.weight(.semibold))
+                if let compact {
+                    QRCodeView(text: compact, label: String(localized: "QR code of the compact export", bundle: .module))
+                        .frame(width: 560, height: 560)
+                    Text(String(localized: "\(compact.count) characters, Base45 over deflate, error correction level M.", bundle: .module))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                } else if let error {
+                    Label(error, systemImage: "exclamationmark.triangle")
+                        .frame(height: 560)
+                } else {
+                    ProgressView()
+                        .frame(height: 560)
+                }
+                Text(String(localized: "Point a phone camera at the code and copy the text it reads. The silicon-audit import command decodes it into the same JSON the other platforms export.", bundle: .module))
+                    .multilineTextAlignment(.center)
+                Text(String(localized: "Security-relevant measured facts and identity only. The full export, with every fact and Apple's documented claims, is available from the Mac, iPhone, iPad, and Apple Vision Pro apps.", bundle: .module))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                if let report = model.report {
+                    EnvironmentBanner(report.environment)
+                }
+            }
+            .frame(maxWidth: 900)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 40)
+        }
+        .navigationTitle(String(localized: "Export", bundle: .module))
+        .task {
+            do {
+                compact = try model.compactText()
+            } catch {
+                self.error = error.localizedDescription
+            }
+        }
+    }
+}
+
+#elseif !os(watchOS)
 import SiliconAuditCore
 import SwiftUI
 import UniformTypeIdentifiers

@@ -1,4 +1,5 @@
-#if canImport(WatchConnectivity)
+// visionOS can import WatchConnectivity but pairs with nothing; only iPhone and watch take part.
+#if canImport(WatchConnectivity) && (os(iOS) || os(watchOS))
 import Foundation
 import Observation
 import SiliconAuditCore

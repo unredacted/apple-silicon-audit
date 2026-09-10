@@ -116,7 +116,7 @@ Notes from reading `bsd/kern/kern_newsysctl.c`:
 - **macOS App Sandbox:** resolved. `application.sb` imports `system.sb`, which contains an unconditional `(allow sysctl-read)`. Confirm once in a sandboxed build; do not spend spike time here.
 - **iOS (measured, M0 spike on iPhone18,2 / 26.6.2, see `docs/evidence/spike-M0.md`):** `sysctlbyname` works for every `hw.optional.arm.*` key and the identity/context keys; `CTL_SYSCTL_NEXT` returns `EPERM`, and `CTL_SYSCTL_OIDFMT` is refused. So on iOS the by-name inventory *is* the collection path and every export has `walk_succeeded: false`; the walk is a macOS/CLI discovery tool. `vm.mte.*`, `kern.hv_support`, `hw.engineering_sample`, and `hw.features.allows_security_research` read `restricted`.
 - **watchOS (measured, M0 spike on Watch7,1 / 26.6):** identical to iOS: by-name reads work, `CTL_SYSCTL_NEXT` returns `EPERM`, OIDFMT is refused. `vm.mte.*` is `absent` (the watch kernel has no such namespace), not `restricted`.
-- **tvOS, visionOS:** not yet measured; expect the iOS behavior.
+- **tvOS, visionOS:** not yet measured on hardware; expect the iOS behavior. In the simulators (Phase 8, 2026-09-10) the app runs against the host Mac's kernel, so by-name reads, the walk and OIDFMT all succeed there; that says nothing about the device sandboxes.
 
 **Consequence: the inventory carries declared formats.** When OIDFMT is refused, a value has no kernel-declared type and the decoder must not guess. The known-key inventory therefore records each key's format (`I`, `Q`, `A`, …) and the engine re-decodes the same bytes with it, marking the result `format_source: inventory` (kernel-declared types are `kernel`). Unknown `hw.optional` leaves default to `I`, because every leaf XNU registers there is a `SYSCTL_INT` except `caps`. The UI and export must show which source typed a value.
 
@@ -212,8 +212,8 @@ Two requirements:
 | iOS / iPadOS | P0 | Reference implementation, easiest to test; hosts the watch companion |
 | macOS | P0 | Also ships the CLI target; Intel and Rosetta handled (§6.2) |
 | watchOS | P0 | The motivating case; hardest constraints |
-| tvOS | P1 | No share sheet, no WatchConnectivity — QR export (§8) |
-| visionOS | P1 | Standard share sheet |
+| tvOS | P1 | No share sheet, files, pasteboard, browser, toolbars or size classes: sidebar-driven split view, QR export (§8), launch argument `-initialSelection <route>` for scripted screenshots |
+| visionOS | P1 | Same split view as iPad; mode switch in the bottom ornament; standard share sheet |
 
 ### 6.1 Architecture
 
@@ -380,7 +380,7 @@ Design notes:
 - `collection.walk_succeeded: false` means the result is not evidence of absence for keys outside the inventory.
 - Everything under `device` ending in `_inferred` is a lookup, not a measurement, and the app has no way to verify it. `soc_id` and `cpufamily` are measured.
 - `os_build` (from `kern.osversion`) is the conflict-resolution key in §9, not `os_version`.
-- **Compact variant** (`"variant": "compact"`): the security-relevant measured facts (memory tagging, pointer authentication, control flow, speculation, constant time, capability bitmask, OS tagging) plus identity/context and legacy-alias rows and all `unrecognized_keys`, no display names or descriptions, deflate-compressed and Base45-encoded (RFC 9285) for QR (tvOS) and watch `ShareLink`. ISA/SIMD and x86 rows are full-export only so the payload stays under QR capacity (measured: ~2.5K characters for an M5 Mac). The companion app or the CI tool expands it against the same `known_keys_version`.
+- **Compact variant** (`"variant": "compact"`): the security-relevant measured facts (memory tagging, pointer authentication, control flow, speculation, constant time, capability bitmask, OS tagging) plus identity/context and legacy-alias rows and all `unrecognized_keys`, no display names or descriptions, deflate-compressed and Base45-encoded (RFC 9285) for QR (tvOS) and watch `ShareLink`. ISA/SIMD and x86 rows are full-export only so the payload stays under QR capacity (measured: 3,027 characters for an M5 Mac). Base45's alphabet is exactly QR's alphanumeric character set and CoreImage's `CIQRCodeGenerator` encodes it in alphanumeric mode, so capacity is 4,296 characters at error-correction level L and 3,391 at level M; the tvOS app renders level M, and `ExportTests` keeps the payload under 3,300 characters. The companion app or the CI tool expands it against the same `known_keys_version`.
 - No serial number, no UDID, no identifierForVendor, no account, no IP-derived location, no hostname, no boot time, no boot-session UUID.
 
 ---

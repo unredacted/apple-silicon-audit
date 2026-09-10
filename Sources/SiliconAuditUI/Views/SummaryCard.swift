@@ -95,16 +95,22 @@ public struct SummaryCard: View {
     }
 }
 
-/// Liquid Glass on OS 26, a material elsewhere. Kept as a modifier so it is the one place
-/// the availability check lives.
+/// Liquid Glass on OS 26, a material elsewhere. tvOS has no glassEffect and visionOS marks it
+/// unavailable (its windows are already glass, and a material is the platform's card idiom), so
+/// both always use the material. Kept as a modifier so it is the one place the check lives.
 struct CardBackground: ViewModifier {
     func body(content: Content) -> some View {
-        if #available(iOS 26, macOS 26, visionOS 26, watchOS 26, tvOS 26, *) {
+        #if os(tvOS) || os(visionOS)
+        content
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        #else
+        if #available(iOS 26, macOS 26, watchOS 26, *) {
             content
                 .glassEffect(.regular, in: .rect(cornerRadius: 20))
         } else {
             content
                 .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
+        #endif
     }
 }

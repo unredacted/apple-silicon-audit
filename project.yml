@@ -1,5 +1,5 @@
 # XcodeGen spec. Regenerate with Scripts/gen-project.sh; the .xcodeproj is gitignored.
-# SiliconAudit is a multiplatform target (iOS/iPadOS + macOS, visionOS/tvOS join in Phase 8);
+# SiliconAudit is one multiplatform target (iOS/iPadOS, macOS, tvOS, visionOS);
 # SiliconAuditWatch is embedded in the iOS build.
 name: SiliconAudit
 options:
@@ -9,6 +9,8 @@ options:
     iOS: "18.0"
     macOS: "15.0"
     watchOS: "11.0"
+    tvOS: "18.0"
+    visionOS: "2.0"
   createIntermediateGroups: true
   groupSortPosition: top
 
@@ -35,7 +37,7 @@ packages:
 targets:
   SiliconAudit:
     type: application
-    supportedDestinations: [iOS, macOS]
+    supportedDestinations: [iOS, macOS, tvOS, visionOS]
     sources:
       - path: Apps/SiliconAudit
       - path: Apps/Shared/Resources
@@ -50,8 +52,11 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit
         PRODUCT_NAME: Silicon Audit
         TARGETED_DEVICE_FAMILY: "1,2"
+        "TARGETED_DEVICE_FAMILY[sdk=appletv*]": "3"
+        "TARGETED_DEVICE_FAMILY[sdk=xr*]": "7"
         SUPPORTS_MACCATALYST: NO
         SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: NO
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: NO
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight

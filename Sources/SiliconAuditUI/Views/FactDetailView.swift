@@ -120,10 +120,10 @@ public struct FactDetailView: View {
 }
 
 extension View {
-    /// `textSelection` does not exist on watchOS; everywhere else the raw key and value are selectable.
+    /// `textSelection` does not exist on watchOS or tvOS; everywhere else the raw key and value are selectable.
     @ViewBuilder
     func selectableText() -> some View {
-        #if os(watchOS)
+        #if os(watchOS) || os(tvOS)
         self
         #else
         self.textSelection(.enabled)

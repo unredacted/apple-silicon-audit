@@ -174,17 +174,31 @@ public struct AboutDataView: View {
             } footer: {
                 Text(String(localized: "Data ships inside the app; updating it never requires a code change. Engine \(report.appVersion), export schema \(report.schemaVersion). The app makes no network requests.", bundle: .module))
             }
-            Section(String(localized: "Sources", bundle: .module)) {
+            Section {
                 ForEach(Array(Set(data.matrix.entries.map(\.source.url))).sorted(), id: \.self) { url in
                     if let u = URL(string: url) {
+                        #if os(tvOS)
+                        Label(url, systemImage: "safari").font(.callout)
+                        #else
                         Link(destination: u) {
                             Label(u.host() ?? url, systemImage: "safari")
                         }
+                        #endif
                     }
                 }
                 if let repo = URL(string: "https://github.com/unredacted/apple-silicon-audit") {
+                    #if os(tvOS)
+                    Label(repo.absoluteString, systemImage: "chevron.left.forwardslash.chevron.right").font(.callout)
+                    #else
                     Link(destination: repo) { Label(String(localized: "Source code and results database", bundle: .module), systemImage: "chevron.left.forwardslash.chevron.right") }
+                    #endif
                 }
+            } header: {
+                Text(String(localized: "Sources", bundle: .module))
+            } footer: {
+                #if os(tvOS)
+                Text(String(localized: "Apple TV has no browser; open these on another device.", bundle: .module))
+                #endif
             }
         }
         .navigationTitle(String(localized: "About the data", bundle: .module))
