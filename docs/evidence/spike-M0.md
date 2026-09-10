@@ -43,11 +43,44 @@ Consequences for the design:
 - `T8150` is the A19 Pro (this device), so the seeded SoC map's "A18 Pro" guess for T8150 was
   wrong and has been corrected; every unverified entry in that map stays `reported`, not `verified`.
 
-## Apple Watch — pending
+## Apple Watch Series 9 — Watch7,1, board N207sAP, watchOS 26.6 (23U67), kernel target T8310
 
-The watch app is embedded in the iOS build. Steps: open Silicon Audit on the Watch, then tap
-"Send to iPhone"; the phone stores the report in its Documents directory, from where it is
-pulled the same way. Results will be appended here.
+Raw report: [spike-Watch7,1-23U67.json](spike-Watch7,1-23U67.json). Collected 2026-09-10, pulled
+directly from the watch's app container over the CoreDevice tunnel.
+
+| M0 question | Answer |
+|---|---|
+| `sysctlbyname` on `hw.optional.arm.*` | **Works**, exactly as on iOS. |
+| `hw.optional.arm.caps` | Readable, **12 bytes**, hex `ffeffffb9f000e0c00020000`. |
+| Raw `sysctl(2)` MIB walk (`CTL_SYSCTL_NEXT`) | **Refused: errno 1 (EPERM).** Same as iOS. |
+| `CTL_SYSCTL_OIDFMT` | **Refused.** Types come from the inventory. |
+| `hw.product` | `Watch7,1` (`hw.model`/`hw.target` = `N207sAP`). |
+| `vm.mte.*` | **Absent (ENOENT)** — the watch kernel has no `vm.mte` namespace at all, unlike iOS where it exists but is restricted. The absent/restricted distinction earns its keep. |
+| Restricted keys | `hw.engineering_sample`, `hw.features.allows_security_research`, `kern.hv_support`. |
+| `kern.version` | `RELEASE_ARM64_T8310`. `T8310` is therefore the S9 (verified). |
+| `hw.cpufamily` | `0x8765edea` = `CPUFAMILY_ARM_EVEREST_SAWTOOTH`: the S9's cores are A16-generation. |
+
+Memory tagging on the S9: every `FEAT_MTE*` key reads **0** (known to the kernel, reported off), not
+absent. That is the answer the project was built to give: the kernel knows the keys, the S9 does
+not have the feature.
+
+Capability bitmask decoded against `<arm/cpu_capabilities_public.h>`, S9 vs M5/A19 Pro:
+- 40 bits set on the S9, 64 on the M5. Missing on the S9: all MTE bits, all SME/SVE bits,
+  FEAT_CSSC, FEAT_EBF16, FEAT_HBC, FEAT_WFxT, FEAT_FPACCOMBINE.
+- Security-relevant bits present on the S9: FEAT_PAuth, FEAT_PAuth2, FEAT_FPAC, FEAT_PACIMP,
+  FEAT_BTI, FEAT_CSV2, FEAT_CSV3, FEAT_SB, FEAT_DIT, **FEAT_SSBS**.
+- **FEAT_SSBS is set on the S9 and clear on both the M5 and the A19 Pro.** Whether that is a
+  hardware difference or the newer kernels masking it is exactly the kind of question the
+  measured/documented split is for; the app must report it, not explain it away.
+
+## Hardware access notes (for contributors)
+
+Reaching the Watch from the Mac needed: Developer Mode on the Watch, the Watch unlocked and on
+the same Wi-Fi as the Mac (the Watch drops Wi-Fi while Bluetooth-connected to the phone, so
+turning the phone's Bluetooth off briefly helps), and the Mac firewall's "block all incoming
+connections" off for the duration; the tunnel is `localNetwork` and negotiated through the
+phone. Free-team profiles only include devices Xcode has connected to, so the watch app cannot
+install until that first connection registers the Watch.
 
 ## Simulator (for the record, never a data source)
 

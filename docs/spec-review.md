@@ -196,6 +196,8 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 49. **Inventory must carry formats.** Without OIDFMT the decoder had nothing to type values with and left `hw.product` and every flag as bytes. Added declared formats to the inventory with a `format_source` marker. (§4.2, engine `KnownFormats`)
 50. **`vm.mte.*` is restricted on iOS**, along with `kern.hv_support`, `hw.engineering_sample`, `hw.features.allows_security_research`. OS-level tagging activity is measurable from macOS only. (§4.4)
 51. **A19 Pro and M5 report the same EMTE profile and a byte-identical `caps`.** MTE, MTE2, MTE4, canonical tags, store-only, no-address-tags set; MTE3 and async clear. (evidence)
+53. **watchOS behaves like iOS** for sysctl access (by-name yes, walk and OIDFMT no). `vm.mte.*` is *absent* on the S9 kernel, where iOS reports *restricted*; the schema's distinction is load-bearing. (§4.2, §4.4)
+54. **S9 facts:** `T8310`, `hw.cpufamily` `0x8765edea` = `CPUFAMILY_ARM_EVEREST_SAWTOOTH` (A16-class cores), every `FEAT_MTE*` = 0, 40 capability bits vs 64 on the M5. **FEAT_SSBS is set on the S9 but clear on the M5 and A19 Pro**, an unexplained difference the app must surface as measured. (evidence)
 52. **`T8150` is the A19 Pro**, not A18 Pro as seeded; `hw.cpufamily` `0xab345f09` is `CPUFAMILY_ARM_THERA`. (SoC map confidence levels earn their keep.)
 
 ---

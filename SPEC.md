@@ -115,7 +115,8 @@ Notes from reading `bsd/kern/kern_newsysctl.c`:
 
 - **macOS App Sandbox:** resolved. `application.sb` imports `system.sb`, which contains an unconditional `(allow sysctl-read)`. Confirm once in a sandboxed build; do not spend spike time here.
 - **iOS (measured, M0 spike on iPhone18,2 / 26.6.2, see `docs/evidence/spike-M0.md`):** `sysctlbyname` works for every `hw.optional.arm.*` key and the identity/context keys; `CTL_SYSCTL_NEXT` returns `EPERM`, and `CTL_SYSCTL_OIDFMT` is refused. So on iOS the by-name inventory *is* the collection path and every export has `walk_succeeded: false`; the walk is a macOS/CLI discovery tool. `vm.mte.*`, `kern.hv_support`, `hw.engineering_sample`, and `hw.features.allows_security_research` read `restricted`.
-- **watchOS, tvOS, visionOS:** container profiles are not inspectable from macOS; expect the iOS behavior and verify on hardware (watch: M0 spike).
+- **watchOS (measured, M0 spike on Watch7,1 / 26.6):** identical to iOS: by-name reads work, `CTL_SYSCTL_NEXT` returns `EPERM`, OIDFMT is refused. `vm.mte.*` is `absent` (the watch kernel has no such namespace), not `restricted`.
+- **tvOS, visionOS:** not yet measured; expect the iOS behavior.
 
 **Consequence: the inventory carries declared formats.** When OIDFMT is refused, a value has no kernel-declared type and the decoder must not guess. The known-key inventory therefore records each key's format (`I`, `Q`, `A`, …) and the engine re-decodes the same bytes with it, marking the result `format_source: inventory` (kernel-declared types are `kernel`). Unknown `hw.optional` leaves default to `I`, because every leaf XNU registers there is a `SYSCTL_INT` except `caps`. The UI and export must show which source typed a value.
 
@@ -453,7 +454,7 @@ silicon-audit/
 
 ## 13. Milestones
 
-**M0 — Feasibility spike (do this first).** iPhone half done 2026-09-10, results in `docs/evidence/spike-M0.md`; watch half pending. A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
+**M0 — Feasibility spike (do this first).** Done 2026-09-10 on iPhone18,2 and Watch7,1; results in `docs/evidence/spike-M0.md`. Verdict: by-name reads work in both sandboxes, the walk and OIDFMT do not; the by-name inventory with declared formats is the collection path on iOS and watchOS. A throwaway app on a physical iPhone and a physical Apple Watch. Checklist, in order: `sysctlbyname` on four `hw.optional.arm.*` keys; the raw `sysctl` meta-OID walk from `hw.optional`; byte length of `hw.optional.arm.caps`; presence of `hw.product`; readability of `vm.mte.tagged`; a `WCSession.transferFile` round-trip watch → phone. The only goal is answering whether iOS and watchOS permit this. Everything downstream depends on it. Timebox it. (macOS is already known good from the sandbox profile.)
 
 **M1 — Core engine.** `SiliconAuditCore` with the five-way probe, MIB walk unioned with the known list, `Environment` detection (simulator, Rosetta, iOS-on-Mac, Intel), known-key inventory generated from the two public headers, `soc_id` parsing, fact model, JSON export plus compact variant. Unit tested against recorded fixtures, starting with `docs/evidence/Mac17,7-25G83.txt`.
 
