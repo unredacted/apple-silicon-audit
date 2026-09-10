@@ -59,7 +59,14 @@
           ]
         },
         "known_keys_version": {
-          "$ref": "#/$defs/calendar_date"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/calendar_date"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "kernel_formats_available": {
           "type": "boolean",
@@ -77,22 +84,57 @@
           ],
           "properties": {
             "known_keys": {
-              "$ref": "#/$defs/calendar_date"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "caps_bits": {
-              "$ref": "#/$defs/calendar_date"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "cpufamily_names": {
-              "$ref": "#/$defs/calendar_date"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "soc_map": {
-              "$ref": "#/$defs/calendar_date"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             },
             "documented_matrix": {
-              "$ref": "#/$defs/calendar_date"
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/calendar_date"
+                },
+                {
+                  "type": "null"
+                }
+              ]
             }
           },
-          "description": "verified dates of the bundled data files that annotated this export."
+          "description": "verified dates of the bundled data files that annotated this export; null when a file could not be loaded (never a fabricated date)."
         }
       }
     },

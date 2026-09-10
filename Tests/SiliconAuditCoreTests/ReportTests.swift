@@ -170,6 +170,18 @@ struct ReportTests {
         #expect(report.facts.first { $0.id == "hw.perflevel2.name" }?.state == .keyAbsent)
     }
 
+    @Test("an unloadable data store exports null versions, never a fabricated date")
+    func emptyStoreVersions() throws {
+        let report = Auditor(sysctl: Trees.device(), data: .empty).audit()
+        #expect(report.collection.knownKeysVersion == nil)
+        #expect(report.collection.dataVersions?.documentedMatrix == nil)
+        let object = try #require(JSONSerialization.jsonObject(with: report.jsonData()) as? [String: Any])
+        let collection = try #require(object["collection"] as? [String: Any])
+        #expect(collection["known_keys_version"] is NSNull)
+        let versions = try #require(collection["data_versions"] as? [String: Any])
+        #expect(versions["soc_map"] is NSNull)
+    }
+
     @Test("no forbidden key is ever read or exported")
     func forbidden() throws {
         let auditor = try Self.auditor()
@@ -206,8 +218,8 @@ struct ExportTests {
         #expect(raw["value"] as? Int == 1)
         #expect(object["collected_at"] as? String == "2027-01-15T08:00:00Z")
         let collection = try #require(object["collection"] as? [String: Any])
-        let versions = try #require(collection["data_versions"] as? [String: String])
-        #expect(versions["documented_matrix"] == "2026-09-10")
+        let versions = try #require(collection["data_versions"] as? [String: Any])
+        #expect(versions["documented_matrix"] as? String == "2026-09-10")
         #expect(versions.count == 5)
 
         // `description` is UI-only and never exported; compare with it stripped.

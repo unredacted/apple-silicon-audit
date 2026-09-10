@@ -179,7 +179,7 @@ enum Table {
         if env.isMisleading {
             Swift.print("!! WARNING: simulator=\(env.isSimulator) translated=\(env.isTranslated) iOS-on-Mac=\(env.isiOSAppOnMac) VM=\(env.isVirtualMachine) — values describe the host, not the device")
         }
-        Swift.print("Collection: walk \(report.collection.walkSucceeded ? "ok" : "failed (\(report.collection.walkFailure ?? "?"))") · kernel types \(report.collection.kernelFormatsAvailable ? "yes" : "no (inventory)") · inventory \(report.collection.knownKeysVersion)")
+        Swift.print("Collection: walk \(report.collection.walkSucceeded ? "ok" : "failed (\(report.collection.walkFailure ?? "?"))") · kernel types \(report.collection.kernelFormatsAvailable ? "yes" : "no (inventory)") · inventory \(report.collection.knownKeysVersion ?? "unknown")")
         if let caps = report.capabilities {
             Swift.print("caps: \(caps.byteCount) bytes, \(caps.popcount) bits set (\(caps.namedBits.count) named, unnamed \(caps.unnamedBits)), mismatches \(caps.mismatches.count)")
         }

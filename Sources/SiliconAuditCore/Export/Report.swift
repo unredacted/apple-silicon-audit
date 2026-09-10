@@ -9,10 +9,21 @@ public struct Report: Codable, Equatable, Sendable {
         public var walkSucceeded: Bool
         public var walkRoot: String
         public var walkFailure: String?
-        public var knownKeysVersion: String
+        /// Inventory version date, or nil if the inventory could not be loaded (never invented).
+        public var knownKeysVersion: String?
         public var kernelFormatsAvailable: Bool
         /// `verified` date of every bundled data file that annotated this export (SPEC §5).
         public var dataVersions: DataVersions?
+
+        public func encode(to encoder: any Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(walkSucceeded, forKey: .walkSucceeded)
+            try c.encode(walkRoot, forKey: .walkRoot)
+            try c.encodeIfPresent(walkFailure, forKey: .walkFailure)
+            try c.encode(knownKeysVersion, forKey: .knownKeysVersion)   // explicit null when unknown
+            try c.encode(kernelFormatsAvailable, forKey: .kernelFormatsAvailable)
+            try c.encodeIfPresent(dataVersions, forKey: .dataVersions)
+        }
 
         enum CodingKeys: String, CodingKey {
             case walkSucceeded = "walk_succeeded"
@@ -24,12 +35,14 @@ public struct Report: Codable, Equatable, Sendable {
         }
     }
 
+    /// Verified dates of the data files that annotated a report. A file that could not be loaded
+    /// is `nil` (exported as null), never a made-up date.
     public struct DataVersions: Codable, Equatable, Sendable {
-        public var knownKeys: String
-        public var capsBits: String
-        public var cpufamilyNames: String
-        public var socMap: String
-        public var documentedMatrix: String
+        public var knownKeys: String?
+        public var capsBits: String?
+        public var cpufamilyNames: String?
+        public var socMap: String?
+        public var documentedMatrix: String?
 
         enum CodingKeys: String, CodingKey {
             case knownKeys = "known_keys"
@@ -40,12 +53,26 @@ public struct Report: Codable, Equatable, Sendable {
         }
 
         public init(_ data: DataStore) {
-            func d(_ s: String) -> String { s.isEmpty ? "1970-01-01" : s }
+            func d(_ s: String) -> String? { s.isEmpty ? nil : s }
             knownKeys = d(data.knownKeys.verified)
             capsBits = d(data.capsBits.verified)
             cpufamilyNames = d(data.cpufamilies.verified)
             socMap = d(data.socMap.verified)
             documentedMatrix = d(data.matrix.verified)
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var c = encoder.container(keyedBy: CodingKeys.self)
+            try c.encode(knownKeys, forKey: .knownKeys)
+            try c.encode(capsBits, forKey: .capsBits)
+            try c.encode(cpufamilyNames, forKey: .cpufamilyNames)
+            try c.encode(socMap, forKey: .socMap)
+            try c.encode(documentedMatrix, forKey: .documentedMatrix)
+        }
+
+        /// The five values as labeled rows, for display.
+        public var rows: [(label: String, date: String?)] {
+            [("known_keys", knownKeys), ("caps_bits", capsBits), ("cpufamily_names", cpufamilyNames), ("soc_map", socMap), ("documented_matrix", documentedMatrix)]
         }
     }
 

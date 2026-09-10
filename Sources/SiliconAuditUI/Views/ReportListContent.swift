@@ -86,7 +86,7 @@ public struct ReportListContent: View {
     }
 
     public static func footer(for report: Report) -> String {
-        String(localized: "Measured means reported by this kernel, not present in the silicon. Documented claims come from Apple's published materials and show their dates. Inventory \(report.collection.knownKeysVersion), engine \(report.appVersion).", bundle: .module)
+        String(localized: "Measured means reported by this kernel, not present in the silicon. Documented claims come from Apple's published materials and show their dates. Inventory \(report.collection.knownKeysVersion ?? "unknown"), engine \(report.appVersion).", bundle: .module)
     }
 
     /// Fact lookup for `navigationDestination(for: String.self)`.

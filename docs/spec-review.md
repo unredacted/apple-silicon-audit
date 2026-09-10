@@ -258,6 +258,8 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 85. **`AboutDataView`** shows the provenance legend, each data file's `verified` date with counts, and the sources. The export gains `collection.data_versions` so a result in the database says which data annotated it. (§5, §8)
 86. **CLI** gains `documented` and `data` to print the same. (§6)
 
+87. **Phase 6 review (Codex):** the documented screen distinguishes "no ARM kernel target measured" (Intel Macs) from "target not in the map"; its footer lists every distinct source instead of attributing all rows to the first; About the data shows a received report's own recorded `data_versions` when they differ from the bundle; and versions are `null` when a data file failed to load, never a fabricated 1970 date (`known_keys_version` is nullable too). (§5, §8)
+
 ---
 
 ## Open items not resolvable from a Mac

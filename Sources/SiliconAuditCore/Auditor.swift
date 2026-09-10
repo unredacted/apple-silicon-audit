@@ -182,7 +182,7 @@ public struct Auditor: Sendable {
             variant: "full",
             collectedAt: Report.timestamp(raw.collectedAt),
             collection: Report.Collection(walkSucceeded: raw.walk.succeeded, walkRoot: raw.walk.root, walkFailure: raw.walk.failure,
-                                          knownKeysVersion: data.knownKeys.version.isEmpty ? "1970-01-01" : data.knownKeys.version,
+                                          knownKeysVersion: data.knownKeys.version.isEmpty ? nil : data.knownKeys.version,
                                           kernelFormatsAvailable: raw.kernelFormatsAvailable,
                                           dataVersions: Report.DataVersions(data)),
             environment: Report.Environment(raw.environment),
