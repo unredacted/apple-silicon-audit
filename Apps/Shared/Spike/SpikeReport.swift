@@ -21,6 +21,7 @@ struct SpikeReport: Codable, Equatable, Sendable {
     var isSimulator: Bool
     var isTranslated: Bool
     var isiOSAppOnMac: Bool
+    var isVirtualMachine: Bool
     var collectedAt: Date
 
     // Identity
@@ -33,6 +34,8 @@ struct SpikeReport: Codable, Equatable, Sendable {
     // The M0 questions
     var walkSucceeded: Bool
     var walkFailure: String?
+    /// False means CTL_SYSCTL_OIDFMT was refused and every type came from the inventory (`*` in results).
+    var kernelFormatsAvailable: Bool
     var keyCount: Int
     var maskedCount: Int
     var unnamedCount: Int
@@ -57,6 +60,7 @@ struct SpikeReport: Codable, Equatable, Sendable {
         isSimulator = env.isSimulator
         isTranslated = env.isTranslated
         isiOSAppOnMac = env.isiOSAppOnMac
+        isVirtualMachine = env.isVirtualMachine
         collectedAt = r.collectedAt
 
         hwProduct = r.namedReads["hw.product"]?.value?.payload.stringValue
@@ -68,6 +72,7 @@ struct SpikeReport: Codable, Equatable, Sendable {
 
         walkSucceeded = r.walk.succeeded
         walkFailure = r.walk.failure
+        kernelFormatsAvailable = r.kernelFormatsAvailable
         keyCount = r.walk.keys.count
         maskedCount = r.walk.keys.filter(\.isMasked).count
         unnamedCount = r.walk.unnamedOIDCount
@@ -92,14 +97,15 @@ struct SpikeReport: Codable, Equatable, Sendable {
         lines.append(walkSucceeded ? "Walk: OK, \(keyCount) keys under hw.optional" : "Walk: FAILED — \(walkFailure ?? "unknown")")
         let armReadable = walked.filter { $0.key.hasPrefix("hw.optional.arm.") && !$0.result.hasPrefix("restricted") }.count
         lines.append("hw.optional.arm.* readable: \(armReadable > 0 ? "yes (\(armReadable))" : "NO")")
+        lines.append("OIDFMT (kernel types): \(kernelFormatsAvailable ? "available" : "REFUSED — types from inventory (*)")")
         lines.append("Restricted reads: \(restrictedCount)")
         lines.append("Not applicable (other arch): \(notApplicableCount)")
         if let capsLength { lines.append("caps length: \(capsLength) bytes") } else { lines.append("caps: not read") }
         lines.append("hw.product: \(hwProduct ?? "absent")")
         lines.append("vm.mte.tagged: \(osTagging.first(where: { $0.key == "vm.mte.tagged" })?.result ?? "-")")
         if let socID { lines.append("SoC id from kern.version: \(socID)") }
-        if isSimulator || isTranslated || isiOSAppOnMac {
-            lines.append("WARNING: simulator/translated/iOS-on-Mac — values describe the host")
+        if isSimulator || isTranslated || isiOSAppOnMac || isVirtualMachine {
+            lines.append("WARNING: simulator/translated/iOS-on-Mac/VM — values describe the host")
         }
         return lines
     }
@@ -121,7 +127,7 @@ struct SpikeReport: Codable, Equatable, Sendable {
         case .notApplicable: return "not applicable (ENOTSUP)"
         case .error(let e): return "error errno=\(e)"
         case .value(let v):
-            let type = v.format?.typeName ?? "?"
+            let type = (v.format?.typeName ?? "?") + (v.format?.source == .inventory ? "*" : "")
             switch v.payload {
             case .int(let n): return "\(n) [\(type), \(v.length)B]"
             case .uint(let n): return "\(n) [\(type), \(v.length)B]"
