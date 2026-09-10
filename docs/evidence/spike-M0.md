@@ -73,6 +73,14 @@ Capability bitmask decoded against `<arm/cpu_capabilities_public.h>`, S9 vs M5/A
   hardware difference or the newer kernels masking it is exactly the kind of question the
   measured/documented split is for; the app must report it, not explain it away.
 
+## WatchConnectivity round trip — confirmed
+
+With the watch app running, "Send to iPhone" queued the report with `WCSession.transferFile`. The
+file arrived in the iPhone app's WatchConnectivity inbox within seconds (phone unlocked, Bluetooth
+just re-enabled), and on the next launch the iOS receiver copied it to `Documents/spike-watchOS-Watch7,1-23U67.json`.
+The delivered JSON is byte-identical to the report pulled directly from the watch's container.
+`transferFile` is therefore the export path for the watch app (SPEC §7).
+
 ## Hardware access notes (for contributors)
 
 Reaching the Watch from the Mac needed: Developer Mode on the Watch, the Watch unlocked and on
