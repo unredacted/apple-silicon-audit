@@ -29,10 +29,16 @@ public struct AuditRootView: View {
     public init(model: ReportModel = ReportModel(), companion: (() -> AnyView)? = nil) {
         _model = State(initialValue: model)
         self.companion = companion
-        // Launch argument `-initialSelection <route>` opens a sidebar destination directly. Used by
-        // Scripts/ and UI verification on Apple TV, where the simulator accepts no touch input.
+        // Launch argument `-initialSelection <route>` opens a sidebar destination directly: a section
+        // id, `__documented__`, `__about_data__`, or (tvOS only) `__export__`. Written for Apple TV,
+        // where the simulator accepts no touch input; it works for scripted screenshots elsewhere too.
+        // Off tvOS the export route is a sheet, not a sidebar destination, so it is ignored there.
         if let initial = UserDefaults.standard.string(forKey: "initialSelection"), !initial.isEmpty {
+            #if os(tvOS)
             _selection = State(initialValue: initial)
+            #else
+            if initial != AuditRootView.exportRoute { _selection = State(initialValue: initial) }
+            #endif
         }
     }
 
@@ -152,7 +158,7 @@ public struct AuditRootView: View {
                     DocumentedView(report: report)
                 } else if selection == AuditRootView.aboutDataRoute {
                     AboutDataView(report: report)
-                } else if selection == AuditRootView.exportRoute {
+                } else if isExportRouteSelected {
                     ExportView(model: model)
                 } else if selection == nil || selection == AuditRootView.summaryID || mode == .overview {
                     List {
@@ -190,6 +196,16 @@ public struct AuditRootView: View {
         // The tvOS sidebar floats over the detail column's leading edge; keep every screen in a
         // centered band that clears it (the overview list already limits itself to 820pt).
         .frame(maxWidth: 1100)
+        #endif
+    }
+
+    /// Export is a sidebar destination only on Apple TV; elsewhere it is a sheet, so the route is
+    /// never selected there (and `-initialSelection __export__` is ignored in `init`).
+    private var isExportRouteSelected: Bool {
+        #if os(tvOS)
+        selection == AuditRootView.exportRoute
+        #else
+        false
         #endif
     }
 

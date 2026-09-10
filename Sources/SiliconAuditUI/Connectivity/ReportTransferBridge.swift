@@ -1,4 +1,5 @@
-// visionOS can import WatchConnectivity but pairs with nothing; only iPhone and watch take part.
+// visionOS can import WatchConnectivity, but Vision Pro pairs with no watch; only iPhone and watch
+// take part (and the visionOS SDK does not accept the iOS-only delegate methods anyway).
 #if canImport(WatchConnectivity) && (os(iOS) || os(watchOS))
 import Foundation
 import Observation

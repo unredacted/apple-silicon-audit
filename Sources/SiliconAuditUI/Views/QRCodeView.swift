@@ -1,4 +1,6 @@
-#if canImport(CoreImage) && !os(watchOS)
+// Only the tvOS export screen shows a QR code; keeping this tvOS-only keeps CoreImage out of the
+// other platforms' link.
+#if os(tvOS)
 import CoreImage
 import CoreImage.CIFilterBuiltins
 import SwiftUI
