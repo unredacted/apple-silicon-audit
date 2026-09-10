@@ -111,9 +111,12 @@ public struct Auditor: Sendable {
     /// The tagged-pointer self-test as a fact (SPEC §11). `present`: this process's heap is tagged.
     /// `not_present`: it is not (the description says whether the entitlement was declared).
     /// `not_applicable`: the kernel reports no memory-tagging hardware, so no process can be.
-    public static func taggedPointerFact(_ selfTest: SelfTestResult, mteState: FactState?) -> Fact {
+    /// `mteStates` are the states of the kernel's own MTE flags (FEAT_MTE4, FEAT_MTE); hardware is
+    /// absent only when every one of them reads off, absent, or not-applicable and none reads on.
+    public static func taggedPointerFact(_ selfTest: SelfTestResult, mteStates: [FactState]) -> Fact {
         let p = selfTest.probe
-        let hardwareAbsent = mteState == .notPresent || mteState == .keyAbsent || mteState == .notApplicable
+        let offStates: Set<FactState> = [.notPresent, .keyAbsent, .notApplicable]
+        let hardwareAbsent = !mteStates.isEmpty && !mteStates.contains(.present) && mteStates.allSatisfy { offStates.contains($0) }
         let state: FactState = hardwareAbsent ? .notApplicable : (p.tagged > 0 ? .present : .notPresent)
         let description: String
         switch state {
@@ -217,8 +220,8 @@ public struct Auditor: Sendable {
         // Self-test (SPEC §11, probe 2a): a per-process measured fact. The kernel's own memory-tagging
         // flags gate it: on a chip with no tagging hardware the question does not apply.
         if let selfTest = raw.selfTest {
-            facts.append(Auditor.taggedPointerFact(selfTest, mteState: facts.first { $0.id == "arm.FEAT_MTE4" }?.state
-                                                       ?? facts.first { $0.id == "arm.FEAT_MTE" }?.state))
+            let mteStates = ["arm.FEAT_MTE4", "arm.FEAT_MTE"].compactMap { id in facts.first { $0.id == id }?.state }
+            facts.append(Auditor.taggedPointerFact(selfTest, mteStates: mteStates))
         }
 
         // Documented claims via soc_id → column.

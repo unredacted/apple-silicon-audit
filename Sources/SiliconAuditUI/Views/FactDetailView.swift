@@ -14,9 +14,11 @@ public struct FactDetailView: View {
                     StateGlyph(fact.state)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(StateStyle.label(fact.state, provenance: fact.provenance)).font(.headline)
-                        if fact.probe == nil {
-                            // Self-test facts carry their own sentence in `description`; the generic
-                            // sysctl wording would mislead there.
+                        if let probe = fact.probe {
+                            // Self-test facts explain themselves from the probe: the generic sysctl
+                            // wording would mislead, and imported reports carry no description.
+                            Text(SelfTestCopy.explanation(state: fact.state, probe: probe)).font(.subheadline).foregroundStyle(.secondary)
+                        } else {
                             Text(StateStyle.explanation(fact.state, provenance: fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
                         }
                     }

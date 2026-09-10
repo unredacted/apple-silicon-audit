@@ -52,6 +52,14 @@ faulting frames: _platform_memmove ← UnsafeMutableRawPointer.storeBytes ← Fa
 The faulting address carries tag 0x7 in bits 59:56 and the fault lands on the store instruction itself:
 the check is synchronous.
 
+## Verdict rule
+
+The parent cannot read the child's kernel exit reason with public API, so the child prints
+`SILICON_AUDIT_FAULT_CHILD storing` immediately before the store and `… survived` after it. SIGKILL between
+the two markers is the tag-check kill; a normal exit after the survival marker is a survived store; anything
+else is inconclusive and exports as state `error`. Re-run after this change: unsigned `not_present` /
+`not_present`; hardened `present` / `present`, same numbers as above.
+
 ## Hardened app
 
 `xcodebuild -scheme "SiliconAudit Hardened" -configuration DebugHardened -destination platform=macOS` signs

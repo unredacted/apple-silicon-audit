@@ -37,9 +37,18 @@ public struct ReportListContent: View {
             if let afterSummary { afterSummary() }
             if mode == .overview {
                 Section {
-                    OverviewList(report: report)
+                    OverviewList(report: report, scope: .device)
                 } header: {
                     Text(String(localized: "What this chip protects", bundle: .module))
+                }
+                if OverviewList.hasContent(.process, in: report) {
+                    Section {
+                        OverviewList(report: report, scope: .process)
+                    } header: {
+                        Text(String(localized: "What the OS does for this app", bundle: .module))
+                    } footer: {
+                        Text(String(localized: "Measured inside this app. It depends on how this build was signed, not on the chip; another app on the same device can differ.", bundle: .module))
+                    }
                 }
                 Section {
                     NavigationLink { DocumentedView(report: report) } label: {

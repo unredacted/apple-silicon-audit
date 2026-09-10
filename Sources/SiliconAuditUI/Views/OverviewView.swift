@@ -5,10 +5,20 @@ import SwiftUI
 /// and where the answer came from. Tapping a card lists the facts behind it.
 public struct OverviewList: View {
     let report: Report
-    public init(report: Report) { self.report = report }
+    let scope: Topic.Scope
+    public init(report: Report, scope: Topic.Scope = .device) {
+        self.report = report
+        self.scope = scope
+    }
+
+    /// Whether any topic of this scope has a fact to draw on in the report (imported or fixture
+    /// reports may carry no self-test, and then the per-app section is not shown at all).
+    public static func hasContent(_ scope: Topic.Scope, in report: Report) -> Bool {
+        Topic.all.contains { topic in topic.scope == scope && topic.factIDs.contains { id in report.facts.contains { $0.id == id } } }
+    }
 
     public var body: some View {
-        ForEach(Topic.all) { topic in
+        ForEach(Topic.all.filter { $0.scope == scope }) { topic in
             let verdict = topic.verdict(in: report)
             NavigationLink {
                 TopicDetailView(topic: topic, verdict: verdict, report: report)

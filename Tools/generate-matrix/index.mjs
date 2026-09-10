@@ -98,6 +98,8 @@ for (const file of walk(resultsDir)) {
   if (dirName !== doc.device.identity) problems.push(`${rel}: directory '${dirName}' does not match device.identity '${doc.device.identity}'`);
   if (!new RegExp(`^${build.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-\\d+$`).test(fileName)) problems.push(`${rel}: file name must be '${build}-<n>.json' (os_build followed by a sequence number)`);
   if (doc.variant === "compact") problems.push(`${rel}: compact exports are for QR/sharing; submit the full export`);
+  // Invariants JSON Schema cannot express: a probe never reports more tagged blocks than it sampled.
+  for (const f of doc.facts) if (f.probe && f.probe.tagged !== undefined && f.probe.tagged > f.probe.samples) problems.push(`${rel}: fact ${f.id} reports ${f.probe.tagged} tagged of ${f.probe.samples} sampled`);
   results.push({ rel, doc });
 }
 
@@ -139,7 +141,7 @@ for (const [key, members] of groups) {
   const measured = new Set();
   // Self-test facts (a `probe` instead of `raw`, SPEC §11) describe the exporting build, not the
   // device: two apps on one device may legitimately differ, so they never count as conflicts.
-  for (const m of members) for (const f of allFacts(m.doc)) if (f.provenance === "measured" && !f.probe) measured.add(f.id);
+  for (const m of members) for (const f of allFacts(m.doc)) if (f.provenance === "measured" && f.discovered_by !== "self_test") measured.add(f.id);
   for (const id of measured) {
     const states = new Map();
     for (const m of members) states.set(m.rel, comparable(findFact(m.doc, id)));
@@ -226,8 +228,8 @@ function selfTestNote(doc) {
   if (!tags && !fault) return "";
   const word = (f) => ({ present: "yes", not_present: "no", not_applicable: "no hardware" }[f.state] ?? f.state);
   let s = `; self-test of the exporting app: tagging ${tags ? word(tags) : "not run"}`;
-  if (tags?.probe) s += ` (${tags.probe.tagged}/${tags.probe.samples} tagged, entitlement ${tags.probe.entitlement})`;
-  if (fault) s += `, tag-mismatch fault ${fault.state === "present" ? `stopped it (signal ${fault.probe?.child_signal})` : word(fault)}`;
+  if (tags?.probe?.samples !== undefined) s += ` (${tags.probe.tagged}/${tags.probe.samples} tagged, entitlement ${tags.probe.entitlement})`;
+  if (fault) s += `, tag-mismatch fault ${fault.state === "present" ? `stopped it (signal ${fault.probe?.child_signal})` : fault.state === "error" ? "inconclusive" : word(fault)}`;
   return s;
 }
 

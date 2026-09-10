@@ -50,12 +50,20 @@ public struct Topic: Identifiable, Equatable, Sendable {
         case selfTest(String)
     }
 
+    /// Device topics describe the chip and kernel; process topics describe this build of the app
+    /// (SPEC §11) and are listed under their own heading so nobody reads them as chip properties.
+    public enum Scope: Equatable, Sendable { case device, process }
+
     public let id: String
     public let title: String
     public let symbol: String
     /// What this protection does, in one or two plain sentences.
     public let plain: String
     public let rule: Rule
+    public var scope: Scope = .device
+
+    public static var deviceTopics: [Topic] { all.filter { $0.scope == .device } }
+    public static var processTopics: [Topic] { all.filter { $0.scope == .process } }
 
     /// Every fact id the topic draws on, for the drill-down list.
     public var factIDs: [String] {
@@ -93,7 +101,7 @@ public struct Topic: Identifiable, Equatable, Sendable {
               rule: .gauge("vm.mte.tagged")),
         Topic(id: "enforcement", title: String(localized: "Memory tagging active for this app", bundle: .module), symbol: "checkmark.seal",
               plain: String(localized: "Whether the operating system tags this app's own memory, measured from inside the app. It says something about this build, not about the device.", bundle: .module),
-              rule: .selfTest("self_test.tagged_pointers")),
+              rule: .selfTest("self_test.tagged_pointers"), scope: .process),
     ]
 
     // MARK: - Verdicts
@@ -210,15 +218,19 @@ public struct Topic: Identifiable, Equatable, Sendable {
         switch f.state {
         case .present:
             return TopicVerdict(level: .yes, word: String(localized: "Yes", bundle: .module),
-                                sentence: String(localized: "This app's own heap allocations carry memory tags: the OS enforces tagging for this process.", bundle: .module),
+                                sentence: String(localized: "This app's own heap allocations carry memory tags: the OS tags this process's memory. Tags alone do not show that a mismatched access would be stopped.", bundle: .module),
                                 provenance: .measured, source: nil)
         case .notPresent:
-            let entitled = f.probe?.entitlement == "declared"
-            return TopicVerdict(level: .no, word: String(localized: "No", bundle: .module),
-                                sentence: entitled
-                                    ? String(localized: "This app's allocations carry no tags even though this build declares the Enhanced Security entitlement.", bundle: .module)
-                                    : String(localized: "This app's allocations carry no tags. This build does not declare the Enhanced Security entitlement, so the OS does not tag its memory.", bundle: .module),
-                                provenance: .measured, source: nil)
+            let sentence: String
+            switch f.probe?.entitlement {
+            case "declared":
+                sentence = String(localized: "This app's allocations carry no tags even though this build declares the Enhanced Security entitlement.", bundle: .module)
+            case "not_declared":
+                sentence = String(localized: "This app's allocations carry no tags. This build does not declare the Enhanced Security entitlement, so the OS does not tag its memory.", bundle: .module)
+            default:
+                sentence = String(localized: "This app's allocations carry no tags. Whether this build declares the Enhanced Security entitlement could not be determined.", bundle: .module)
+            }
+            return TopicVerdict(level: .no, word: String(localized: "No", bundle: .module), sentence: sentence, provenance: .measured, source: nil)
         case .notApplicable:
             return TopicVerdict(level: .unknown, word: String(localized: "No hardware", bundle: .module),
                                 sentence: String(localized: "This chip's kernel reports no memory-tagging hardware, so no app on this device can be tagged.", bundle: .module),

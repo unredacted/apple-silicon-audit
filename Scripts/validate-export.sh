@@ -9,7 +9,7 @@ for f in "$@"; do
   if npx --yes -p ajv-cli@5 -p ajv-formats@2 ajv validate --spec=draft2020 -c ajv-formats --errors=text -s Schema/export-v1.schema.json -d "$f" 2>&1 | grep -vE '^npm|^$|strict mode' | grep -q ' valid$'; then
     echo "valid    $f"
   else
-    echo "INVALID  $f"; npx --yes -p ajv-cli@5 -p ajv-formats@2 ajv validate --spec=draft2020 -c ajv-formats --errors=text -s Schema/export-v1.schema.json -d "$f" 2>&1 | grep -vE '^npm|^$|strict mode' | tail -5; rc=1
+    echo "INVALID  $f"; { npx --yes -p ajv-cli@5 -p ajv-formats@2 ajv validate --spec=draft2020 -c ajv-formats --errors=text -s Schema/export-v1.schema.json -d "$f" 2>&1 | grep -vE '^npm|^$|strict mode' | tail -5; } || true; rc=1
   fi
 done
 exit $rc

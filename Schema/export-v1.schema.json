@@ -611,23 +611,190 @@
             "required": [
               "discovered_by"
             ],
-            "oneOf": [
-              {
-                "required": [
-                  "raw"
-                ]
-              },
-              {
-                "required": [
-                  "probe"
-                ]
-              }
-            ],
             "properties": {
               "state": {
                 "$ref": "#/$defs/measured_state"
               }
-            }
+            },
+            "oneOf": [
+              {
+                "description": "A sysctl reading.",
+                "required": [
+                  "raw"
+                ],
+                "properties": {
+                  "discovered_by": {
+                    "enum": [
+                      "walk",
+                      "known_list",
+                      "both"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "probe"
+                  ]
+                }
+              },
+              {
+                "description": "A self-test measured inside the exporting process (SPEC §11); only these two facts.",
+                "required": [
+                  "probe"
+                ],
+                "properties": {
+                  "discovered_by": {
+                    "const": "self_test"
+                  },
+                  "category": {
+                    "const": "enforcement"
+                  },
+                  "id": {
+                    "enum": [
+                      "self_test.tagged_pointers",
+                      "self_test.tag_check_fault"
+                    ]
+                  }
+                },
+                "not": {
+                  "required": [
+                    "raw"
+                  ]
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tagged_pointers"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "samples",
+                            "tagged",
+                            "distinct_tags"
+                          ],
+                          "properties": {
+                            "method": {
+                              "const": "tagged_pointer_observation"
+                            }
+                          },
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "child_signal"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "child_exit_status"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "properties": {
+                            "method": {
+                              "const": "child_process_tag_mismatch_store"
+                            }
+                          },
+                          "not": {
+                            "anyOf": [
+                              {
+                                "required": [
+                                  "samples"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "tagged"
+                                ]
+                              },
+                              {
+                                "required": [
+                                  "distinct_tags"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        },
+                        "state": {
+                          "const": "present"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "child_signal"
+                          ],
+                          "not": {
+                            "required": [
+                              "child_exit_status"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": {
+                        "id": {
+                          "const": "self_test.tag_check_fault"
+                        },
+                        "state": {
+                          "const": "not_present"
+                        }
+                      }
+                    },
+                    "then": {
+                      "properties": {
+                        "probe": {
+                          "required": [
+                            "child_exit_status"
+                          ],
+                          "not": {
+                            "required": [
+                              "child_signal"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
           }
         },
         {
@@ -813,16 +980,12 @@
           ]
         },
         "child_signal": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": "integer",
+          "minimum": 1
         },
         "child_exit_status": {
-          "type": [
-            "integer",
-            "null"
-          ]
+          "type": "integer",
+          "minimum": 0
         }
       }
     }

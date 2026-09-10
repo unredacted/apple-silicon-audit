@@ -127,58 +127,97 @@ public struct SelfTestResult: Equatable, Sendable {
 #if os(macOS)
 /// SPEC §11, probe 2b: a deliberate tag-mismatch store, isolated in a child process of the same
 /// binary so a fault can never touch the parent. Under checked allocations the store one granule
-/// past a 32-byte block hits the neighbour's tag and the kernel kills the child (SIGKILL on
-/// macOS 26, measured on Mac17,7 / 25G83); without enforcement the store lands and the child
-/// exits normally. macOS and the CLI only: nothing on iOS may spawn a process.
+/// past a 32-byte block hits the neighbour's tag and the kernel kills the child with SIGKILL
+/// (exit reason MTE_FAIL, `EXC_ARM_MTE_TAGCHECK_FAIL`; measured on Mac17,7 / 25G83); without
+/// enforcement the store lands and the child exits normally.
+///
+/// The parent cannot read the kernel's exit reason with public API, so the child announces the
+/// store on its stdout immediately before making it and reports back if it survives. Only "killed
+/// by SIGKILL after the announcement and before the survival report" counts as a tag-check kill;
+/// any other signal (a sanitizer's SIGABRT, Guard Malloc's SIGSEGV, an outside signal) or a
+/// missing announcement is inconclusive. macOS and the CLI only: nothing on iOS may spawn.
 public enum FaultTest {
     public enum Outcome: Equatable, Sendable {
-        case terminated(signal: Int32)
+        /// SIGKILL after the child announced the store: the OS stopped the mismatched access.
+        case tagCheckKill
+        /// The child made the store and exited normally: no check applied to it.
         case survived(exitStatus: Int32)
+        /// The child ended some other way; says nothing about tag checks.
+        case inconclusive(String)
+        /// The child could not be run at all.
         case failed(String)
     }
 
     public static let childArguments = ["self-test", "--fault-child"]
+    static let storeMarker = "SILICON_AUDIT_FAULT_CHILD storing"
+    static let survivedMarker = "SILICON_AUDIT_FAULT_CHILD survived"
 
     /// Runs in the child. Never call this in a process whose state matters.
     public static func performFault() {
         guard let block = malloc(32) else { return }
         memset(block, 1, 32)
+        print(storeMarker)
+        fflush(stdout)
         let past = block.advanced(by: 48)
         past.storeBytes(of: 7, as: UInt8.self)
         let readBack = past.load(as: UInt8.self)
-        print("tag-mismatch store survived (read back \(readBack)); tag checks are not enforced for this binary")
+        print("\(survivedMarker) (read back \(readBack)); tag checks are not enforced for this binary")
+        fflush(stdout)
     }
 
     public static func runChild(executable: URL, arguments: [String] = childArguments, timeout: TimeInterval = 15) -> Outcome {
         let process = Process()
+        let pipe = Pipe()
         process.executableURL = executable
         process.arguments = arguments
-        process.standardOutput = FileHandle.nullDevice
+        process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
         do { try process.run() } catch { return .failed(error.localizedDescription) }
+        let output = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
         let deadline = Date().addingTimeInterval(timeout)
         while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.02) }
         if process.isRunning { process.terminate(); return .failed("child did not finish within \(Int(timeout)) s") }
-        if process.terminationReason == .uncaughtSignal { return .terminated(signal: process.terminationStatus) }
-        return .survived(exitStatus: process.terminationStatus)
+        return classify(reason: process.terminationReason, status: process.terminationStatus, output: output)
     }
 
-    /// The measured fact for an outcome (SPEC §11): `present` means the OS detected the mismatch.
+    /// Pure, so it can be tested without spawning anything.
+    public static func classify(reason: Process.TerminationReason, status: Int32, output: String) -> Outcome {
+        let announced = output.contains(storeMarker)
+        let survived = output.contains(survivedMarker)
+        switch reason {
+        case .uncaughtSignal where status == SIGKILL && announced && !survived:
+            return .tagCheckKill
+        case .uncaughtSignal:
+            return .inconclusive("the child ended with \(signalName(status))\(announced ? "" : " before reaching the store"); only SIGKILL at the store is how the OS reports a tag-check failure, so this says nothing about tag checks")
+        case .exit where status == 0 && survived:
+            return .survived(exitStatus: status)
+        case .exit:
+            return .inconclusive("the child exited with status \(status)\(survived ? "" : " without reporting the store"); nothing can be concluded")
+        @unknown default:
+            return .inconclusive("unrecognized termination reason")
+        }
+    }
+
+    /// The measured fact for an outcome (SPEC §11): `present` means the OS stopped the mismatched
+    /// store, `not_present` means the store went through, `error` means the test was inconclusive.
     public static func fact(for outcome: Outcome, entitlement: EnhancedSecurity.Declaration) -> Fact {
         let state: FactState
         let description: String
         var probe = ProbeDetails(method: "child_process_tag_mismatch_store", entitlement: entitlement.rawValue)
         switch outcome {
-        case .terminated(let signal):
+        case .tagCheckKill:
             state = .present
-            probe.childSignal = signal
-            description = "A child process of this binary stored one granule past a 32-byte heap block and was killed by signal \(signal) (\(signalName(signal))): the OS detected the tag mismatch and stopped the process. This is a per-process fact about this build, not about the device."
+            probe.childSignal = SIGKILL
+            description = "A child process of this binary announced a store one granule past a 32-byte heap block and was killed by SIGKILL before it could report back, which is how macOS reports a tag-check failure (the child's crash report names EXC_ARM_MTE_TAGCHECK_FAIL). The OS stopped the mismatched access. This is a per-process fact about this build, not about the device."
         case .survived(let status):
             state = .notPresent
             probe.childExitStatus = status
             description = entitlement == .declared
                 ? "The child's out-of-bounds store succeeded and it exited normally although this binary declares the checked-allocations entitlement: tag checks are not enforced for it here."
                 : "The child's out-of-bounds store succeeded and it exited normally. This binary does not declare the Enhanced Security checked-allocations entitlement, so no tag check applies to it."
+        case .inconclusive(let why):
+            state = .error
+            description = "Inconclusive: \(why)."
         case .failed(let why):
             state = .error
             description = "The fault test could not run: \(why)."

@@ -18,12 +18,16 @@ struct SelfTestTests {
     func factStates() {
         let tagged = SelfTestResult(probe: .init(samples: 65, tagged: 55, distinctTags: 16), entitlement: .declared)
         let untagged = SelfTestResult(probe: .init(samples: 65, tagged: 0, distinctTags: 1), entitlement: .notDeclared)
-        #expect(Auditor.taggedPointerFact(tagged, mteState: .present).state == .present)
-        #expect(Auditor.taggedPointerFact(untagged, mteState: .present).state == .notPresent)
-        #expect(Auditor.taggedPointerFact(untagged, mteState: .notPresent).state == .notApplicable)
-        #expect(Auditor.taggedPointerFact(untagged, mteState: .keyAbsent).state == .notApplicable)
-        #expect(Auditor.taggedPointerFact(tagged, mteState: .restricted).state == .present)
-        let f = Auditor.taggedPointerFact(untagged, mteState: .present)
+        #expect(Auditor.taggedPointerFact(tagged, mteStates: [.present, .present]).state == .present)
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.present, .present]).state == .notPresent)
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.notPresent, .notPresent]).state == .notApplicable)
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.keyAbsent, .keyAbsent]).state == .notApplicable)
+        // MTE4 absent but base MTE present: hardware exists, so the answer is a real no, not "not applicable".
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.keyAbsent, .present]).state == .notPresent)
+        // Nothing readable about the hardware: report what was measured.
+        #expect(Auditor.taggedPointerFact(tagged, mteStates: [.restricted, .restricted]).state == .present)
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: []).state == .notPresent)
+        let f = Auditor.taggedPointerFact(untagged, mteStates: [.present])
         #expect(f.description?.contains("does not declare") == true)
         #expect(f.probe?.entitlement == "not_declared")
         #expect(f.raw == nil && f.discoveredBy == .selfTest && f.category == "enforcement" && f.securityRelevant)
@@ -31,7 +35,7 @@ struct SelfTestTests {
 
     @Test("self-test facts export a probe object and no raw reading, and decode back")
     func encoding() throws {
-        let f = Auditor.taggedPointerFact(SelfTestResult(probe: .init(samples: 65, tagged: 55, distinctTags: 16), entitlement: .declared), mteState: .present)
+        let f = Auditor.taggedPointerFact(SelfTestResult(probe: .init(samples: 65, tagged: 55, distinctTags: 16), entitlement: .declared), mteStates: [.present])
         let data = try JSONEncoder().encode(f)
         let json = try #require(JSONSerialization.jsonObject(with: data) as? [String: Any])
         #expect(json["raw"] == nil)
@@ -56,11 +60,27 @@ struct SelfTestTests {
     #if os(macOS)
     @Test("the fault-test fact maps outcomes to states")
     func faultFact() {
-        #expect(FaultTest.fact(for: .terminated(signal: 9), entitlement: .declared).state == .present)
-        #expect(FaultTest.fact(for: .terminated(signal: 9), entitlement: .declared).probe?.childSignal == 9)
+        #expect(FaultTest.fact(for: .tagCheckKill, entitlement: .declared).state == .present)
+        #expect(FaultTest.fact(for: .tagCheckKill, entitlement: .declared).probe?.childSignal == SIGKILL)
         #expect(FaultTest.fact(for: .survived(exitStatus: 0), entitlement: .notDeclared).state == .notPresent)
+        #expect(FaultTest.fact(for: .survived(exitStatus: 0), entitlement: .notDeclared).probe?.childExitStatus == 0)
+        #expect(FaultTest.fact(for: .inconclusive("x"), entitlement: .declared).state == .error)
         #expect(FaultTest.fact(for: .failed("x"), entitlement: .unknown).state == .error)
         #expect(FaultTest.fact(for: .survived(exitStatus: 0), entitlement: .declared).description?.contains("although") == true)
+    }
+
+    @Test("only SIGKILL after the store announcement counts as a tag-check kill")
+    func faultClassification() {
+        let announced = "SILICON_AUDIT_FAULT_CHILD storing\n"
+        #expect(FaultTest.classify(reason: .uncaughtSignal, status: SIGKILL, output: announced) == .tagCheckKill)
+        #expect(FaultTest.classify(reason: .exit, status: 0, output: announced + "SILICON_AUDIT_FAULT_CHILD survived (read back 7)\n") == .survived(exitStatus: 0))
+        // A sanitizer abort, a Guard Malloc segfault, or an outside signal prove nothing.
+        for sig in [SIGABRT, SIGSEGV, SIGBUS, SIGTERM] {
+            if case .inconclusive = FaultTest.classify(reason: .uncaughtSignal, status: sig, output: announced) {} else { Issue.record("signal \(sig) treated as evidence") }
+        }
+        // SIGKILL before the store was announced, or after the child already reported survival, is not a tag check either.
+        if case .inconclusive = FaultTest.classify(reason: .uncaughtSignal, status: SIGKILL, output: "") {} else { Issue.record("SIGKILL without announcement treated as evidence") }
+        if case .inconclusive = FaultTest.classify(reason: .exit, status: 3, output: announced) {} else { Issue.record("odd exit treated as evidence") }
     }
     #endif
 }
