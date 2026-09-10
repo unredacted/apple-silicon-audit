@@ -21,6 +21,13 @@ public struct RawAuditResult: Equatable, Sendable {
         walk.key(named: key)?.outcome ?? namedReads[key]
     }
 
+    /// True when at least one value carries a kernel-declared format, i.e. CTL_SYSCTL_OIDFMT
+    /// answered. False means every decoded type came from the inventory (iOS sandbox).
+    public var kernelFormatsAvailable: Bool {
+        namedReads.values.contains { $0.value?.format?.source == .kernel }
+            || walk.keys.contains { $0.format?.source == .kernel }
+    }
+
     /// Walked keys registered for another architecture (ENOTSUP).
     public var notApplicableCount: Int {
         walk.keys.filter { $0.outcome == .notApplicable }.count
@@ -84,7 +91,7 @@ public struct Auditor: Sendable {
         let walk = MIBWalker(sysctl: sysctl).walk()
         var named: [String: ProbeOutcome] = [:]
         for key in Auditor.namedKeys {
-            named[key] = sysctl.read(key)
+            named[key] = sysctl.read(key).withInventoryFormat(for: key)
         }
         return RawAuditResult(environment: environment, walk: walk, namedReads: named, collectedAt: now)
     }

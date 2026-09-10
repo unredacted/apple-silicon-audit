@@ -33,6 +33,7 @@ struct Raw: ParsableCommand {
         }
         print("Walk:        root=\(result.walk.root) succeeded=\(result.walk.succeeded) keys=\(result.walk.keys.count) masked=\(result.walk.keys.filter(\.isMasked).count) unnamed=\(result.walk.unnamedOIDCount) notApplicable=\(result.notApplicableCount) restricted=\(result.restrictedCount)")
         if let f = result.walk.failure { print("Walk failure: \(f)") }
+        print("OIDFMT:      \(result.kernelFormatsAvailable ? "kernel-declared formats available" : "unavailable; types from inventory")")
         print("")
         print("Named reads:")
         for key in Auditor.namedKeys {
@@ -55,7 +56,7 @@ struct Raw: ParsableCommand {
         case .notApplicable: return "not applicable (ENOTSUP)"
         case .error(let e): return "error errno=\(e)"
         case .value(let v):
-            let type = v.format?.typeName ?? "?"
+            let type = (v.format?.typeName ?? "?") + (v.format?.source == .inventory ? "*" : "")
             switch v.payload {
             case .int(let n): return "\(n)  [\(type), \(v.length)B]"
             case .uint(let n): return "\(n)  [\(type), \(v.length)B]"

@@ -53,22 +53,22 @@ public struct AuditEnvironment: Equatable, Hashable, Sendable {
     /// Detects the current environment. Compile-time facts come from the build;
     /// everything else is read through `sysctl` so fixtures can drive it.
     public static func detect(using sysctl: any SysctlReading, processInfo: ProcessInfo = .processInfo) -> AuditEnvironment {
-        let productName = sysctl.read("hw.product").value?.payload.stringValue
-            ?? sysctl.read("hw.machine").value?.payload.stringValue
-            ?? ""
-        let model = sysctl.read("hw.model").value?.payload.stringValue ?? ""
-        let kernel = sysctl.read("kern.version").value?.payload.stringValue ?? ""
-        let hvGuest = sysctl.read("kern.hv_vmm_present").flagIsSet ?? false
+        // Sandboxes that refuse OIDFMT (iOS) still answer sysctlbyname; decode with the inventory's formats.
+        func string(_ name: String) -> String? { sysctl.read(name).withInventoryFormat(for: name).value?.payload.stringValue }
+        func flag(_ name: String) -> Bool? { sysctl.read(name).withInventoryFormat(for: name).flagIsSet }
+        let productName = string("hw.product") ?? string("hw.machine") ?? ""
+        let model = string("hw.model") ?? ""
+        let kernel = string("kern.version") ?? ""
+        let hvGuest = flag("kern.hv_vmm_present") ?? false
 
         return AuditEnvironment(
             platform: compiledPlatform(productName: productName),
             arch: compiledArch,
-            osVersion: sysctl.read("kern.osproductversion").value?.payload.stringValue
-                ?? fallbackOSVersion(processInfo),
-            osBuild: sysctl.read("kern.osversion").value?.payload.stringValue ?? "",
+            osVersion: string("kern.osproductversion") ?? fallbackOSVersion(processInfo),
+            osBuild: string("kern.osversion") ?? "",
             kernelVersion: kernel,
             isSimulator: compiledSimulator || processInfo.environment["SIMULATOR_DEVICE_NAME"] != nil,
-            isTranslated: sysctl.read("sysctl.proc_translated").flagIsSet ?? false,
+            isTranslated: flag("sysctl.proc_translated") ?? false,
             isiOSAppOnMac: processInfo.isiOSAppOnMac,
             isCatalyst: compiledCatalyst,
             isVirtualMachine: hvGuest || kernel.contains("VMAPPLE") || model.hasPrefix("VirtualMac")

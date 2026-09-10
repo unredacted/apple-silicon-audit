@@ -91,7 +91,8 @@ public struct MIBWalker: Sendable {
             }
             guard name.hasPrefix(prefix) else { break }
             let format = sysctl.format(forOID: next)
-            keys.append(DiscoveredKey(name: name, oid: next, format: format, outcome: sysctl.readOID(next)))
+            let outcome = sysctl.readOID(next).withInventoryFormat(for: name)
+            keys.append(DiscoveredKey(name: name, oid: next, format: format ?? outcome.value?.format, outcome: outcome))
         }
 
         if keys.isEmpty {
