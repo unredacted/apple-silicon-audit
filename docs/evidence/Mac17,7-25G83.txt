@@ -1,0 +1,208 @@
+# Evidence fixture: Mac17,7 (M5-class), macOS 26.6.2 (25G83), kernel target T6050
+# Collected 2026-09-10 with the stock sysctl(8) tool. No identifiers: hostname, UUIDs, boot time, serials excluded.
+
+## Identity / context
+hw.machine: arm64
+hw.model: Mac17,7
+hw.product: Mac17,7
+hw.target: J714cAP
+hw.targettype: J714c
+hw.cputype: 16777228
+hw.cpusubtype: 2
+hw.cpufamily: -143893734
+hw.cpusubfamily: 5
+hw.ncpu: 18
+hw.nperflevels: 2
+hw.memsize: 137438953472
+hw.pagesize: 16384
+hw.features.allows_security_research: 0
+hw.engineering_sample: 0
+kern.osversion: 25G83
+kern.osproductversion: 26.6.2
+kern.osreleasetype: User
+kern.version: Darwin Kernel Version 25.6.0: Fri Jul 31 19:19:08 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6050
+kern.hv_support: 1
+sysctl.proc_translated: 0
+
+## hw.cpufamily as unsigned hex
+hw.cpufamily: 0xf76c5b1a
+
+## Per-perf-level (note: no ISA flags here)
+hw.perflevel0.physicalcpu: 6
+hw.perflevel0.physicalcpu_max: 6
+hw.perflevel0.logicalcpu: 6
+hw.perflevel0.logicalcpu_max: 6
+hw.perflevel0.l1icachesize: 196608
+hw.perflevel0.l1dcachesize: 131072
+hw.perflevel0.l2cachesize: 16777216
+hw.perflevel0.cpusperl2: 6
+hw.perflevel0.name: Super
+hw.perflevel1.physicalcpu: 12
+hw.perflevel1.physicalcpu_max: 12
+hw.perflevel1.logicalcpu: 12
+hw.perflevel1.logicalcpu_max: 12
+hw.perflevel1.l1icachesize: 131072
+hw.perflevel1.l1dcachesize: 65536
+hw.perflevel1.l2cachesize: 8388608
+hw.perflevel1.cpusperl2: 6
+hw.perflevel1.name: Performance
+
+## hw.optional (full subtree, sorted)
+hw.optional.arm.AdvSIMD: 1
+hw.optional.arm.AdvSIMD_HPFPCvt: 1
+hw.optional.arm.FEAT_AES: 1
+hw.optional.arm.FEAT_AFP: 1
+hw.optional.arm.FEAT_BF16: 1
+hw.optional.arm.FEAT_BTI: 1
+hw.optional.arm.FEAT_CRC32: 1
+hw.optional.arm.FEAT_CSSC: 1
+hw.optional.arm.FEAT_CSV2: 1
+hw.optional.arm.FEAT_CSV3: 1
+hw.optional.arm.FEAT_DIT: 1
+hw.optional.arm.FEAT_DPB2: 1
+hw.optional.arm.FEAT_DPB: 1
+hw.optional.arm.FEAT_DotProd: 1
+hw.optional.arm.FEAT_EBF16: 1
+hw.optional.arm.FEAT_ECV: 1
+hw.optional.arm.FEAT_FCMA: 1
+hw.optional.arm.FEAT_FHM: 1
+hw.optional.arm.FEAT_FP16: 1
+hw.optional.arm.FEAT_FPAC: 1
+hw.optional.arm.FEAT_FPACCOMBINE: 1
+hw.optional.arm.FEAT_FRINTTS: 1
+hw.optional.arm.FEAT_FlagM2: 1
+hw.optional.arm.FEAT_FlagM: 1
+hw.optional.arm.FEAT_HBC: 1
+hw.optional.arm.FEAT_I8MM: 1
+hw.optional.arm.FEAT_JSCVT: 1
+hw.optional.arm.FEAT_LRCPC2: 1
+hw.optional.arm.FEAT_LRCPC: 1
+hw.optional.arm.FEAT_LSE2: 1
+hw.optional.arm.FEAT_LSE: 1
+hw.optional.arm.FEAT_MTE2: 1
+hw.optional.arm.FEAT_MTE3: 0
+hw.optional.arm.FEAT_MTE4: 1
+hw.optional.arm.FEAT_MTE: 1
+hw.optional.arm.FEAT_MTE_ASYNC: 0
+hw.optional.arm.FEAT_MTE_CANONICAL_TAGS: 1
+hw.optional.arm.FEAT_MTE_NO_ADDRESS_TAGS: 1
+hw.optional.arm.FEAT_MTE_STORE_ONLY: 1
+hw.optional.arm.FEAT_PACIMP: 1
+hw.optional.arm.FEAT_PAuth2: 1
+hw.optional.arm.FEAT_PAuth: 1
+hw.optional.arm.FEAT_PMULL: 1
+hw.optional.arm.FEAT_RDM: 1
+hw.optional.arm.FEAT_RPRES: 1
+hw.optional.arm.FEAT_SB: 1
+hw.optional.arm.FEAT_SHA1: 1
+hw.optional.arm.FEAT_SHA256: 1
+hw.optional.arm.FEAT_SHA3: 1
+hw.optional.arm.FEAT_SHA512: 1
+hw.optional.arm.FEAT_SME2: 1
+hw.optional.arm.FEAT_SME2p1: 1
+hw.optional.arm.FEAT_SME: 1
+hw.optional.arm.FEAT_SME_B16B16: 1
+hw.optional.arm.FEAT_SME_F16F16: 1
+hw.optional.arm.FEAT_SME_F64F64: 1
+hw.optional.arm.FEAT_SME_I16I64: 1
+hw.optional.arm.FEAT_SPECRES2: 0
+hw.optional.arm.FEAT_SPECRES: 0
+hw.optional.arm.FEAT_SSBS: 0
+hw.optional.arm.FEAT_SVE_B16B16: 1
+hw.optional.arm.FEAT_WFxT: 1
+hw.optional.arm.FP_SyncExceptions: 1
+hw.optional.arm.SME_B16F32: 1
+hw.optional.arm.SME_BI32I32: 1
+hw.optional.arm.SME_F16F32: 1
+hw.optional.arm.SME_F32F32: 1
+hw.optional.arm.SME_I16I32: 1
+hw.optional.arm.SME_I8I32: 1
+hw.optional.arm.caps: -4612108402691149825
+hw.optional.arm.sme_max_svl_b: 64
+hw.optional.arm64: 1
+hw.optional.armv8_1_atomics: 1
+hw.optional.armv8_2_fhm: 1
+hw.optional.armv8_2_sha3: 1
+hw.optional.armv8_2_sha512: 1
+hw.optional.armv8_3_compnum: 1
+hw.optional.armv8_crc32: 1
+hw.optional.armv8_gpi: 1
+hw.optional.breakpoint: 6
+hw.optional.floatingpoint: 1
+hw.optional.neon: 1
+hw.optional.neon_fp16: 1
+hw.optional.neon_hpfp: 1
+hw.optional.ucnormal_mem: 1
+hw.optional.watchpoint: 4
+
+## Types and byte lengths (OIDFMT via {0,4})
+hw.optional.arm.FEAT_MTE: integer
+hw.optional.arm.caps: int64_t
+hw.memsize: int64_t
+hw.cpufamily: integer
+hw.model: string
+kern.version: string
+hw.cacheconfig: opaque
+hw.optional.arm.caps: 12: -4612108402691149825
+hw.optional.arm.FEAT_MTE: 4: 1
+hw.cpufamily: 4: -143893734
+hw.memsize: 8: 137438953472
+hw.optional.arm.caps: 0xbffe7fd7ffffefff
+
+## OIDDESCR ({0,5}) returns empty descriptions on XNU
+hw.ncpu: 
+hw.optional.arm.FEAT_MTE: 
+
+## vm.mte.* and kern.mte_* (OS-level MTE tag-storage counters)
+vm.mte.cell.activating: 0
+vm.mte.cell.active: 13774
+vm.mte.cell.active_0: 111
+vm.mte.cell.claimed: 235930
+vm.mte.cell.deactivating: 0
+vm.mte.cell.disabled: 12032
+vm.mte.cell.disabled_recursive: 8192
+vm.mte.cell.disabled_unmanaged: 3840
+vm.mte.cell.inactive: 401
+vm.mte.cell.pinned: 7
+vm.mte.cell.reclaiming: 0
+vm.mte.cell.retired: 0
+vm.mte.compress_non_ts_pages_used: 89265
+vm.mte.compress_overhead_bytes: 1851392
+vm.mte.compress_pages: 13238
+vm.mte.compress_pages_compressed: 19867
+vm.mte.compress_pages_corrupted: 0
+vm.mte.compress_pages_decompressed: 5665
+vm.mte.compress_pages_freed: 964
+vm.mte.compress_ts_pages_used: 47045
+vm.mte.free.claimable: 252
+vm.mte.free.cpu_claimed: 404
+vm.mte.free.cpu_tagged: 36878240
+vm.mte.free.cpu_untagged: 7263813751
+vm.mte.free.tag_storage_active_0: 1675
+vm.mte.free.tag_storage_active_1: 746
+vm.mte.free.tag_storage_active_2: 497
+vm.mte.free.tag_storage_active_3: 3014
+vm.mte.free.tag_storage_untaggable_0: 91063
+vm.mte.free.tag_storage_untaggable_1: 734
+vm.mte.free.tag_storage_untaggable_2: 25
+vm.mte.free.tag_storage_untaggable_activating: 0
+vm.mte.free.taggable: 25203
+vm.mte.free.total: 272994
+vm.mte.no_compressor_pager_for_mte: 0
+vm.mte.refill_thread_wakeups: 328
+vm.mte.tag_storage.activations: 41138
+vm.mte.tag_storage.compressor_relocations: 1394
+vm.mte.tag_storage.cpu_allocated_claimed: 235587
+vm.mte.tag_storage.deactivations: 27364
+vm.mte.tag_storage.fragmentation: 290
+vm.mte.tag_storage.fragmentation_actual: 296
+vm.mte.tag_storage.free_unmanaged: 0
+vm.mte.tag_storage.reclaim_compressor_failures: 0
+vm.mte.tag_storage.reclaim_failures: 242
+vm.mte.tag_storage.reclaim_wired_failures: 8
+vm.mte.tag_storage.reclaims: 6150
+vm.mte.tag_storage.reclaims_from_cpu: 4
+vm.mte.tag_storage.reserved: 100
+vm.mte.tag_storage.wire_relocations: 0
+vm.mte.tag_storage.wired: 159
+vm.mte.tagged: 310530
