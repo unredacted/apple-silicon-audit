@@ -268,6 +268,13 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 89. **CI**: pull requests touching results run the validator; pushes to `main` regenerate and commit the matrix and publish the site with GitHub Pages (the repository's Pages source must be set to "GitHub Actions" once). (§9)
 90. **Seeded** with this Mac's live export and the real Watch report from the Phase 5 round trip. The iPhone's full export is not yet in the database; it needs a device window. (§9)
 
+From the Phase 7 pull-request review (Codex, 2026-09-10):
+
+91. **Unrecognized keys take part in conflicts.** The conflict loop and every fact lookup read `facts` and `unrecognized_keys` together, and for `kind: unknown` facts (always state `value`) the raw value is compared as well; a key only one submission walked reports as `(missing)` versus `value=…`. Verified with two fixture exports differing only in a walked `FEAT_NEWTHING` value. (§9)
+92. **Legacy aliases fill measured columns.** The generator loads `known-keys.json`, builds canonical → alias ids from `alias_of`, and when a `FEAT_*` column is `key_absent` renders the alias's state marked ᴬ. Verified with a fixture whose `arm.FEAT_PAuth` is `key_absent` and `armv8_gpi` present: the PAuth cell reads ●ᴬ instead of –. (§4.3, §9)
+93. **Newest documentation snapshot per device.** The documented table used to keep whichever result sorted first; it now picks, per `(soc_id, identity)`, the result with the newest `data_versions.documented_matrix` (fallback: newest `source.verified`) and adds "data verified" and "results (N data snapshots)" columns. Verified with an older-data fixture whose MIE row read `unknown`: the newer snapshot is shown. (§9)
+94. **Serialized publish.** `results.yml` gets a concurrency group (`results-main` for pushes, never cancelled; per-PR groups for validation, cancellable) and the regenerate job rebases its generated commit onto `origin/main` and retries, regenerating from scratch if the rebase conflicts on `MATRIX.md`. (§9)
+
 ---
 
 ## Open items not resolvable from a Mac

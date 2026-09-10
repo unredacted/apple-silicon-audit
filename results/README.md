@@ -27,9 +27,19 @@ It does contain the device model, OS build, kernel version string, and the time 
 ## Conflicts
 
 Two results for the same `identity` and `os_build` that disagree on a measured fact are shown as a
-conflict in the matrix, never silently resolved. Usually this means a bug in the app, an
-environment flag that slipped through, or something genuinely interesting. Different `os_build`s
-for the same device are not conflicts; they are the OS-version boundary the app exists to detect.
+conflict in the matrix, never silently resolved. That includes `unrecognized_keys`: a key one
+submission's walk found and another's did not, or whose value differs, is a conflict too. Usually
+this means a bug in the app, an environment flag that slipped through, or something genuinely
+interesting. Different `os_build`s for the same device are not conflicts; they are the OS-version
+boundary the app exists to detect.
+
+## How the matrix reads a result
+
+- A `FEAT_*` column whose key the kernel does not register falls back to the legacy `armv8_*` alias
+  the app's inventory maps to it, marked ᴬ in the cell.
+- The documented table shows, per device, the result annotated with the newest documentation data
+  and says how many results and distinct data snapshots it stands for. Apple's claims come from the
+  app's bundled data at export time, so a newer export can carry revised claims.
 
 ## Running the tooling locally
 

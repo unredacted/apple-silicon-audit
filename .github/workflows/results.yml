@@ -11,6 +11,13 @@ permissions:
   pages: write
   id-token: write
 
+# Pushes to main regenerate and commit MATRIX.md/site; two overlapping runs would race on that commit,
+# so main runs are serialized (never cancelled: the newest run regenerates from the newest tip anyway).
+# Pull-request runs only validate and can safely cancel a stale run of the same PR.
+concurrency:
+  group: ${{ github.event_name == 'push' && 'results-main' || format('results-pr-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name != 'push' }}
+
 jobs:
   validate:
     name: Validate contributed results
@@ -49,8 +56,16 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add MATRIX.md site/index.html
-          git diff --cached --quiet || git commit -m "Regenerate results matrix"
-          git push
+          if git diff --cached --quiet; then echo "matrix unchanged"; exit 0; fi
+          git commit -m "Regenerate results matrix"
+          # If main moved while this job ran, replay the generated commit on top and retry a few times.
+          for attempt in 1 2 3; do
+            git push && exit 0
+            echo "push rejected (attempt $attempt); rebasing onto origin/main"
+            git fetch origin main
+            git rebase origin/main || { git rebase --abort; git reset --hard origin/main; cd Tools/generate-matrix && npm run generate && cd ../.. && git add MATRIX.md site/index.html && git commit -m "Regenerate results matrix"; }
+          done
+          exit 1
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
