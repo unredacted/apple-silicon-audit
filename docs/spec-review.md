@@ -247,6 +247,9 @@ It is present in kernel strings but `sysctlbyname` returns `ENOENT` on macOS 26.
 80. **No gzip layer.** The ~70 KB uncompressed export is well within what `transferFile` handles; the spec's gzip suggestion was dropped as needless complexity. The compact Base45 code is the watch's standalone `ShareLink` fallback. (§7, §8)
 81. **`ReportListContent`** is the one list body used by the phone's own report, a received watch report and the watch itself, so the three never drift. (§6.4)
 
+82. **Real-report round trip verified on hardware** (Watch7,1 → iPhone18,2): 82,555-byte export delivered by `transferFile`, ingested into Application Support, pulled back and validated unchanged. See `docs/evidence/watch-roundtrip.md`. (§7)
+83. **Inventory formats are load-bearing where OIDFMT is refused.** The S9 run exposed cache-size keys declared `Q` in the inventory but `I` in the kernel; on macOS the kernel's type masked the error, on watchOS it produced raw bytes. Fixed; `sysctl -t` is the reference for every inventory format. Also observed: `l3cachesize`/`cpusperl3` return `EINVAL` on a chip with no L3, recorded as `error` with errno 22. (§4.2, §4.3)
+
 ---
 
 ## Open items not resolvable from a Mac

@@ -1346,7 +1346,7 @@
       "display_name": "Perf level 0 L1 data cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 0: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1356,7 +1356,7 @@
       "display_name": "Perf level 0 L1 instruction cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 0: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1366,7 +1366,7 @@
       "display_name": "Perf level 0 L2 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 0: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1376,7 +1376,7 @@
       "display_name": "Perf level 0 L3 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 0: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1456,7 +1456,7 @@
       "display_name": "Perf level 1 L1 data cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 1: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1466,7 +1466,7 @@
       "display_name": "Perf level 1 L1 instruction cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 1: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1476,7 +1476,7 @@
       "display_name": "Perf level 1 L2 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 1: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1486,7 +1486,7 @@
       "display_name": "Perf level 1 L3 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 1: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1566,7 +1566,7 @@
       "display_name": "Perf level 2 L1 data cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 2: L1 data cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1576,7 +1576,7 @@
       "display_name": "Perf level 2 L1 instruction cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 2: L1 instruction cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1586,7 +1586,7 @@
       "display_name": "Perf level 2 L2 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 2: L2 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },
@@ -1596,7 +1596,7 @@
       "display_name": "Perf level 2 L3 cache",
       "category": "context_cpu",
       "kind": "count",
-      "format": "Q",
+      "format": "I",
       "security_relevant": false,
       "description": "Core cluster 2: L3 cache. Context only; the kernel exposes no per-cluster ISA feature flags."
     },

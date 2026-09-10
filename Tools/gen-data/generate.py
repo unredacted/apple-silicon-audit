@@ -155,9 +155,10 @@ for k, (d, cat, kind, desc, fmt) in ctx.items():
 for n in range(3):
     for leaf, (d, kind, fmt) in {"physicalcpu": ("physical CPUs", "count", "I"), "physicalcpu_max": ("physical CPUs (max)", "count", "I"),
                                  "logicalcpu": ("logical CPUs", "count", "I"), "logicalcpu_max": ("logical CPUs (max)", "count", "I"),
-                                 "l1icachesize": ("L1 instruction cache", "count", "Q"), "l1dcachesize": ("L1 data cache", "count", "Q"),
-                                 "l2cachesize": ("L2 cache", "count", "Q"), "cpusperl2": ("CPUs per L2", "count", "I"),
-                                 "l3cachesize": ("L3 cache", "count", "Q"), "cpusperl3": ("CPUs per L3", "count", "I"),
+                                 # Cache sizes are SYSCTL_INT (4 bytes) despite the byte-count semantics; sysctl -t says "integer".
+                                 "l1icachesize": ("L1 instruction cache", "count", "I"), "l1dcachesize": ("L1 data cache", "count", "I"),
+                                 "l2cachesize": ("L2 cache", "count", "I"), "cpusperl2": ("CPUs per L2", "count", "I"),
+                                 "l3cachesize": ("L3 cache", "count", "I"), "cpusperl3": ("CPUs per L3", "count", "I"),
                                  "name": ("cluster name", "string", "A")}.items():
         add(f"hw.perflevel{n}.{leaf}", f"Perf level {n} {d}", "context_cpu", kind, False,
             f"Core cluster {n}: {d}. Context only; the kernel exposes no per-cluster ISA feature flags.", fmt=fmt)
