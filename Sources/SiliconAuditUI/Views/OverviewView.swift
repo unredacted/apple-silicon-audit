@@ -49,8 +49,8 @@ struct TopicRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline) {
                     Text(topic.title).font(.headline)
-                    Spacer()
-                    VerdictBadge(verdict)
+                    Spacer(minLength: 8)
+                    VerdictBadge(verdict).layoutPriority(1)   // the verdict never truncates; the title wraps
                 }
                 Text(verdict.sentence)
                     .font(.subheadline)

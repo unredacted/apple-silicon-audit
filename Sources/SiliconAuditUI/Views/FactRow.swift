@@ -14,7 +14,7 @@ public struct FactRow: View {
                 Text(fact.displayName ?? fact.id)
                     .font(.body)
                 HStack(spacing: 8) {
-                    Text(StateStyle.label(fact.state))
+                    Text(StateStyle.label(fact.state, provenance: fact.provenance))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     if let short = FactRow.shortValue(fact) {
@@ -31,7 +31,7 @@ public struct FactRow: View {
         .padding(.vertical, 2)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(fact.displayName ?? fact.id))
-        .accessibilityValue(Text("\(StateStyle.label(fact.state)), \(ProvenanceStyle.label(fact.provenance))"))
+        .accessibilityValue(Text("\(StateStyle.label(fact.state, provenance: fact.provenance)), \(ProvenanceStyle.label(fact.provenance))"))
         .accessibilityHint(Text(String(localized: "Opens the raw reading and its provenance.", bundle: .module)))
     }
 

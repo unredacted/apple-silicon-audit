@@ -43,6 +43,27 @@ public enum StateStyle {
         }
     }
 
+    /// Short state label given where the fact came from: a documented `present` is Apple's word,
+    /// not a kernel report.
+    public static func label(_ s: FactState, provenance: Provenance) -> String {
+        switch provenance {
+        case .measured, .unknown:
+            return label(s)
+        case .documented:
+            switch s {
+            case .present: return String(localized: "Apple documents it", bundle: .module)
+            case .notPresent: return String(localized: "Not in Apple's table", bundle: .module)
+            default: return String(localized: "Not documented", bundle: .module)
+            }
+        case .inferred:
+            switch s {
+            case .present: return String(localized: "Inference holds", bundle: .module)
+            case .notPresent: return String(localized: "Inference contradicted", bundle: .module)
+            default: return String(localized: "Could not infer", bundle: .module)
+            }
+        }
+    }
+
     /// The one-sentence meaning of a state given where the fact came from. A documented fact's
     /// `present` is Apple's table, not a kernel reading; an inferred fact's is the app's reasoning.
     public static func explanation(_ s: FactState, provenance: Provenance) -> String {

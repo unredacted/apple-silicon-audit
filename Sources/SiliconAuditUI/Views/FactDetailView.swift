@@ -13,7 +13,7 @@ public struct FactDetailView: View {
                 HStack(spacing: 12) {
                     StateGlyph(fact.state)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(StateStyle.label(fact.state)).font(.headline)
+                        Text(StateStyle.label(fact.state, provenance: fact.provenance)).font(.headline)
                         Text(StateStyle.explanation(fact.state, provenance: fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
                     }
                 }
