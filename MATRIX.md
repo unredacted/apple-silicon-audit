@@ -1,6 +1,6 @@
 # Silicon Audit results matrix
 
-Generated 2026-09-10 from 2 accepted result(s) in `results/` by `Tools/generate-matrix`. Do not edit by hand.
+Generated 2026-09-16 from 2 accepted result(s) in `results/` by `Tools/generate-matrix`. Do not edit by hand.
 
 Legend: ● reported present · ○ reported off · – key absent from that kernel · ⊘ restricted by the sandbox · × not applicable (other architecture) · ! read error · ? unknown · ᴬ read through the legacy `armv8_*` alias because the kernel does not register the `FEAT_*` key · ⚠ conflict between submissions for the same device and build.
 
