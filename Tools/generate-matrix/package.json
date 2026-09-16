@@ -4,7 +4,9 @@
   "private": true,
   "description": "Validates community results against the export schema and generates MATRIX.md and the static site.",
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "check": "node index.mjs --check",
     "generate": "node index.mjs --write"
