@@ -5,11 +5,11 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
-- App icons for every platform (a black chip), README, release scripts and docs.
+## 0.1.0 — 2026-09-16
 
-## 0.1.0 — 2026-09-10
-
-First complete build, squash-merged from nine reviewed phases.
+First complete build (pre-release), squash-merged from nine reviewed phases plus the icon, README, and
+release follow-ups. 0.x releases are pre-releases: the export schema is stable (1.1.0), the apps have
+run only on the maintainers' devices and simulators, and nothing has been through App Store review.
 
 - Engine: five-way `sysctl` probe, MIB walk with inventory fallback, environment flags, capability
   bitmask decode and cross-check, SoC identity chain, Apple's documented matrix, JSON export
@@ -20,3 +20,4 @@ First complete build, squash-merged from nine reviewed phases.
 - Community results database with validator, conflict detection, generated matrix and site.
 - Enforcement self-test: tagged-pointer observation and a child-process tag-mismatch fault test;
   hardened build configurations with Apple's Enhanced Security entitlements.
+- App icons for every platform (a black chip), README, release scripts and docs.

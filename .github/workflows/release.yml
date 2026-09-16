@@ -40,6 +40,8 @@ jobs:
           [ -s dist/notes.md ] || echo "Silicon Audit $VERSION" > dist/notes.md
       - uses: softprops/action-gh-release@v2
         with:
+          # 0.x versions are pre-releases (docs/release.md); 1.0.0 is the first release proper.
+          prerelease: ${{ startsWith(github.ref_name, 'v0.') }}
           body_path: dist/notes.md
           files: |
             dist/*.zip
