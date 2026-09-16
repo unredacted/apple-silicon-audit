@@ -307,6 +307,11 @@ From the Phase 9 pull-request review (Codex, 2026-09-10):
 113. **Release plumbing.** `Scripts/bump-version.sh` keeps `project.yml`, `SiliconAuditCore.version`, the generate-matrix package and `CHANGELOG.md` in step; `Scripts/archive.sh <platform> [--hardened] [--development] [--no-export]` archives and exports with `Configs/ExportOptions-*.plist`; `release.yml` attaches a universal, ad-hoc-signed CLI to a GitHub Release on a `v*` tag; `docs/release.md` is the checklist. Apps are never attached to GitHub Releases (they need Apple signing). Whether the hardened configuration becomes the shipping one is a per-release decision after TestFlight soak. (§10, §13)
 114. **Verified.** All five platform builds with icons and no asset warnings; a real `Release` macOS archive through the script (Personal Team, Hardened Runtime); the bump script on a scratch copy including rejection of a non-semantic version. Not verified: an App Store Connect upload (needs a paid team) and the release workflow on a real tag.
 
+## O. Apple Developer Program setup (2026-09-16)
+
+115. **Bundle identifier changed** to `org.unredacted.silicon-audit` (watch: `.watchkitapp`). The original `org.unredacted.siliconaudit` was auto-registered to the maintainer's free Personal Team by the Phase 2–5 device builds; identifiers are unique across all teams, free teams cannot delete App IDs, and waiting on Apple Support was not worth days for a string users never see. Nothing had shipped. The old identifier lingers on the Personal Team, harmlessly. Verified: the macOS build signs with the new identifier under the organization team, and the iOS device build now fails only for want of registered devices. (§6.1)
+116. **Organization team.** Certificates under "Unredacted Inc" (KPG9NVW7GN): Apple Development (carries the member's name; never distributed), Apple Distribution and Developer ID Application (carry the organization name). The App ID enables the Enhanced Security capability so hardened iOS/tvOS/visionOS builds can be provisioned; the gitignored `Configs/Signing.xcconfig` points at the team. (§10, §11)
+
 ---
 
 ## Open items not resolvable from a Mac
