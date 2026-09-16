@@ -35,7 +35,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     GENERATE_INFOPLIST_FILE: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
-    CURRENT_PROJECT_VERSION: 1
+    CURRENT_PROJECT_VERSION: 2
     MARKETING_VERSION: 0.1.0
     INFOPLIST_KEY_CFBundleDisplayName: Silicon Audit
     INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
@@ -60,6 +60,9 @@ targets:
       properties:
         SiliconAuditEnhancedSecurity: $(SILICON_AUDIT_ENHANCED_SECURITY)
         CFBundleDisplayName: Silicon Audit
+        # The app uses no encryption of its own (SPEC §10); this answers App Store Connect's export-compliance
+        # question at upload time instead of per build.
+        ITSAppUsesNonExemptEncryption: false
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         LSApplicationCategoryType: public.app-category.utilities
@@ -126,6 +129,7 @@ targets:
         PRODUCT_NAME: Silicon Audit
         SKIP_INSTALL: YES
         INFOPLIST_KEY_WKApplication: YES
+        INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-watchOS
         INFOPLIST_KEY_WKCompanionAppBundleIdentifier: org.unredacted.silicon-audit
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES

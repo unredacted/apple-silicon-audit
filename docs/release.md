@@ -38,7 +38,7 @@ configuration changes allocator behaviour, so soak it in TestFlight before it be
 `--development` exports an installable build for registered devices instead; `--no-export` stops at the
 `.xcarchive`.
 
-Paste `docs/app-store-notes.md` into App Store Connect's review notes and re-check its Required Reason
+`ITSAppUsesNonExemptEncryption` is `false` in both Info.plists, so App Store Connect asks no export-compliance question per build. Paste `docs/app-store-notes.md` into App Store Connect's review notes and re-check its Required Reason
 API list against Apple's current one (open item in `docs/spec-review.md`).
 
 ## 4. Direct download of the Mac app (optional)
