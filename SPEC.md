@@ -1,7 +1,7 @@
 # Silicon Audit — Implementation Spec
 
 **Working name:** Silicon Audit (the shipped app name must not contain "Apple"; the repo name is fine)
-**Bundle identifier root:** `org.unredacted.siliconaudit`
+**Bundle identifier root:** `org.unredacted.silicon-audit` (changed from `org.unredacted.siliconaudit` on 2026-09-16, before any release; see §6.1)
 **Purpose:** An open-source app that reports which CPU-level security features the kernel actually exposes on the exact Apple device it runs on, across every Apple platform.
 **Status:** Spec v0.2, reviewed against a live M5-class Mac, the public SDK headers, the macOS sandbox profiles, and XNU source. See [docs/spec-review.md](docs/spec-review.md) for every change from v0.1 and its evidence. Implementation in progress; see open PRs.
 **Audience:** The implementing engineer or agent. Assumes Swift, Xcode 26.6+, and basic Darwin/POSIX familiarity.
@@ -221,7 +221,7 @@ A Swift Package containing a `SiliconAuditCore` module with zero UI dependencies
 
 The core module being UI-free and platform-free in its probe path is what makes the results comparable across devices. Resist any temptation to branch probe behavior by platform.
 
-**One Xcode project**, not five: a multiplatform app target (iOS/iPadOS/macOS/visionOS/tvOS) plus a watchOS target embedded in the iOS app. Bundle identifiers: `org.unredacted.siliconaudit` (app), `org.unredacted.siliconaudit.watchkitapp` (watch), `org.unredacted.siliconaudit.cli`, `org.unredacted.siliconaudit.tests`. No App Group: the companion and the watch app run on different devices and share no local container, so watch → phone state moves only over `WCSession` (§7).
+**One Xcode project**, not five: a multiplatform app target (iOS/iPadOS/macOS/visionOS/tvOS) plus a watchOS target embedded in the iOS app. Bundle identifiers: `org.unredacted.silicon-audit` (app), `org.unredacted.silicon-audit.watchkitapp` (watch), `org.unredacted.silicon-audit.cli`, `org.unredacted.silicon-audit.tests`. The original root `org.unredacted.siliconaudit` had been auto-registered to the maintainer's free Personal Team by the Phase 2–5 device builds; bundle identifiers are unique across every Apple team and free teams cannot delete App IDs, so the organization team took a new string before anything shipped. No App Group: the companion and the watch app run on different devices and share no local container, so watch → phone state moves only over `WCSession` (§7).
 
 ### 6.2 Environment detection
 

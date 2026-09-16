@@ -78,7 +78,7 @@ targets:
         destinationFilters: [iOS]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit
+        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.silicon-audit
         PRODUCT_NAME: Silicon Audit
         TARGETED_DEVICE_FAMILY: "1,2"
         "TARGETED_DEVICE_FAMILY[sdk=appletv*]": "3"
@@ -122,12 +122,12 @@ targets:
         products: [SiliconAuditCore, SiliconAuditUI]
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.siliconaudit.watchkitapp
+        PRODUCT_BUNDLE_IDENTIFIER: org.unredacted.silicon-audit.watchkitapp
         PRODUCT_NAME: Silicon Audit
         SKIP_INSTALL: YES
         INFOPLIST_KEY_WKApplication: YES
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon-watchOS
-        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: org.unredacted.siliconaudit
+        INFOPLIST_KEY_WKCompanionAppBundleIdentifier: org.unredacted.silicon-audit
         INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown
 
