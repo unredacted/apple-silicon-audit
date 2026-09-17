@@ -107,12 +107,20 @@ struct ChainRow: View {
     let detail: String
 
     var body: some View {
+        #if os(watchOS)
+        // One column: the step and value on the first line, then the detail, then the badge.
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 8) {
+                stepCircle
+                Text(value).font(.headline)
+            }
+            Text(detail).font(.caption2).foregroundStyle(.secondary)
+            ProvenanceBadge(provenance).fixedSize()
+        }
+        .padding(.vertical, 2)
+        #else
         HStack(alignment: .center, spacing: 12) {
-            Text("\(step)")
-                .font(.caption.weight(.bold).monospacedDigit())
-                .frame(width: 24, height: 24)
-                .background(.quaternary, in: Circle())
-                .accessibilityHidden(true)
+            stepCircle
             VStack(alignment: .leading, spacing: 3) {
                 Text(value).font(.body.weight(.medium))
                 Text(detail).font(.caption).foregroundStyle(.secondary)
@@ -121,8 +129,17 @@ struct ChainRow: View {
             ProvenanceBadge(provenance)
         }
         .padding(.vertical, 2)
+        #endif
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("Step \(step), \(title): \(value). \(detail)"))
+    }
+
+    private var stepCircle: some View {
+        Text("\(step)")
+            .font(.caption.weight(.bold).monospacedDigit())
+            .frame(width: 24, height: 24)
+            .background(.quaternary, in: Circle())
+            .accessibilityHidden(true)
     }
 }
 
