@@ -124,12 +124,19 @@ struct TopicDetailView: View {
         List {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
+                    #if os(watchOS)
+                    // The badge alone: a tile beside it would squeeze "Apple says yes" into an ellipsis.
+                    VerdictBadge(verdict).fixedSize()
+                    Text(verdict.sentence)
+                        .font(.footnote)
+                    #else
                     HStack(alignment: .center, spacing: 12) {
                         IconTile(symbol: topic.symbol)
                         VerdictBadge(verdict)
                     }
                     Text(verdict.sentence)
                         .font(.body)
+                    #endif
                 }
                 .padding(.vertical, 4)
                 .accessibilityElement(children: .combine)
