@@ -5,6 +5,16 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+## 0.2.0 — 2026-09-17
+
+The first build intended for App Store review, after TestFlight testing on hardware. Two features
+and the Codex audit pass since 0.1.0; the export schema is unchanged (1.1.0).
+
+- Change monitoring: the first reading becomes a baseline; checks on launch, on return to the
+  foreground and in the background (`BGAppRefreshTask`, `WKApplication` refresh) record what moved,
+  show it on the Overview and in a Changes screen at two depths (plain sentence, what it could mean,
+  technical before/after), and can post an opt-in local notification. The monitoring screen states
+  what a kernel reading can and cannot catch. `ReportDiff` in core; `silicon-audit diff` in the CLI.
 - Redesign the app around one structure at two depths instead of an Overview/Details mode switch:
   a chip-first summary card with a verdict tally, plain-language checks with the verdict word and its
   source on one line, a "Look deeper" group (or the sidebar) that opens all readings on three shelves,
@@ -19,7 +29,6 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
   isolate Xcode's PATH to prevent Homebrew rsync export failures. Reject hardened archives when
   Xcode omits their Enhanced Security entitlements.
 - Add `--export-only` to retry uploads after account or network failures without rebuilding.
-
 - Replace the monochrome icon with a blue silicon-and-inspection logo across all platforms,
   the README, and the results site; add a reproducible icon installation script.
 - Bound child-process fault tests and compact imports; validate schema versions and fact identity.

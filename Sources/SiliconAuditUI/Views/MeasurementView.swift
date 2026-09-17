@@ -13,7 +13,7 @@ public struct MeasurementView: View {
             List {
                 Section {
                     LabeledContent(String(localized: "Device", bundle: .module), value: report.device.identity)
-                    LabeledContent(String(localized: "Chip", bundle: .module), value: chipText(report))
+                    wrapping(String(localized: "Chip", bundle: .module), chipText(report))
                     if let soc = report.device.socId {
                         LabeledContent(String(localized: "Kernel target", bundle: .module)) {
                             Text(soc).font(.callout.monospaced())
@@ -29,7 +29,7 @@ public struct MeasurementView: View {
                 }
 
                 Section {
-                    LabeledContent(String(localized: "Kernel walk", bundle: .module), value: walkText(report))
+                    wrapping(String(localized: "Kernel walk", bundle: .module), walkText(report))
                     LabeledContent(String(localized: "Value types", bundle: .module), value: report.collection.kernelFormatsAvailable
                                    ? String(localized: "Declared by the kernel", bundle: .module)
                                    : String(localized: "From the app's inventory", bundle: .module))
@@ -59,6 +59,15 @@ public struct MeasurementView: View {
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
+        }
+    }
+
+    /// A `LabeledContent` whose value wraps instead of truncating in a narrow Mac window.
+    private func wrapping(_ label: String, _ value: String) -> some View {
+        LabeledContent(label) {
+            Text(value)
+                .multilineTextAlignment(.trailing)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 

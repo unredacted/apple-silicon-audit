@@ -1,6 +1,6 @@
 {
   "name": "silicon-audit-generate-matrix",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Validates community results against the export schema and generates MATRIX.md and the static site.",
   "type": "module",

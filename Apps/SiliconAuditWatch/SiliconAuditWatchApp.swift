@@ -7,6 +7,7 @@ struct SiliconAuditWatchApp: App {
     private let bridge: ReportTransferBridge
 
     init() {
+        LocalNotifications.installPresenter()
         let state = TransferState()
         _transfer = State(initialValue: state)
         bridge = ReportTransferBridge(state: state, store: nil)
@@ -18,6 +19,10 @@ struct SiliconAuditWatchApp: App {
             WatchRootView(transfer: transfer) { report in
                 bridge.send(report)
             }
+        }
+        // Periodic change check (SPEC §6.5), scheduled by the monitor with WKApplication.
+        .backgroundTask(.appRefresh) { _ in
+            await ChangeMonitor.performBackgroundCheck()
         }
     }
 }

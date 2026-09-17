@@ -13,6 +13,9 @@ public enum Route: Hashable, Sendable {
     case documented
     case measurement
     case aboutData
+    /// Changes the monitor recorded, and its settings (SPEC §6.5).
+    case changes
+    case monitor
     /// Apple TV only: export lives in the sidebar because there are no sheets.
     case export
 
@@ -25,6 +28,8 @@ public enum Route: Hashable, Sendable {
         case "__about_data__": self = .aboutData
         case "__measurement__": self = .measurement
         case "__all__": self = .allReadings
+        case "__changes__": self = .changes
+        case "__monitor__": self = .monitor
         case "__export__": self = .export
         default: self = .category(s)
         }

@@ -37,6 +37,15 @@ One structure at two depths, so a non-specialist and an engineer read the same r
   three-step chain from measured kernel target to inferred chip family to Apple's table column; *How this
   was measured*, the device identity, collection method, and totals; and *About the data*.
 
+**Change monitoring.** The first reading on a device becomes a baseline. The app checks again when it
+opens and periodically in the background, and records anything that moved: a protection that was reported
+on and now reports off, a value that changed, a key that appeared or vanished, a system update. Changes
+show as a card on the Overview and in a *Changes* screen, in plain words first ("Memory tagging hardware
+was reported on and now reports off"), then what it could mean, then the technical before and after. A
+local notification is opt-in. The monitor sees only what the kernel exposes; an attack like Operation
+Triangulation, which bypassed kernel memory protection through undocumented chip registers, would not have
+moved any reading, and the app says so. `silicon-audit diff a.json b.json` runs the same comparison.
+
 Export is one primary action per platform: share sheet on iPhone, iPad and Vision Pro; Save panel on
 Mac; "Send to iPhone" on Apple Watch; a QR code on Apple TV. The export is JSON with a published schema
 (`Schema/export-v1.schema.json`) and contains no serial number, UDID, hostname, boot time, account, or

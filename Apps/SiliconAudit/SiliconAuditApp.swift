@@ -9,6 +9,7 @@ struct SiliconAuditApp: App {
     private let bridge: ReportTransferBridge
 
     init() {
+        LocalNotifications.installPresenter()
         let state = TransferState()
         let store = ReceivedReportStore()
         _transfer = State(initialValue: state)
@@ -16,6 +17,10 @@ struct SiliconAuditApp: App {
         bridge = ReportTransferBridge(state: state, store: store)
         // Activate at launch so files queued by the watch are received even in the background.
         bridge.activate()
+    }
+    #else
+    init() {
+        LocalNotifications.installPresenter()
     }
     #endif
 
@@ -29,7 +34,13 @@ struct SiliconAuditApp: App {
             AuditRootView()
             #endif
         }
-        #if os(macOS)
+        // Periodic change check (SPEC §6.5): the system wakes the app, the monitor compares a
+        // fresh audit with the stored baseline and notifies if anything moved.
+        #if !os(macOS)
+        .backgroundTask(.appRefresh(ChangeMonitor.refreshTaskID)) {
+            await ChangeMonitor.performBackgroundCheck()
+        }
+        #else
         .defaultSize(width: 960, height: 680)
         .commands {
             CommandGroup(replacing: .newItem) {}

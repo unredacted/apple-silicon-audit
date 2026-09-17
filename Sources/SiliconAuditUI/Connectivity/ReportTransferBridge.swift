@@ -117,6 +117,11 @@ public final class ReportTransferBridge: NSObject, WCSessionDelegate, @unchecked
                 do {
                     let entry = try store.ingest(fileAt: staged)
                     state.status = String(localized: "Received \(entry.report.device.identity) from Apple Watch.", bundle: .module)
+                    // The phone is usually asleep or on another app when the watch's transfer lands.
+                    await LocalNotifications.post(id: "received-\(entry.id)-\(Int(Date().timeIntervalSince1970))",
+                                                  title: String(localized: "Report from Apple Watch", bundle: .module),
+                                                  body: String(localized: "\(entry.title) is ready to browse and export on this iPhone.", bundle: .module),
+                                                  thread: LocalNotifications.receivedThread, sound: true, route: "__received__")
                 } catch {
                     state.status = String(localized: "Received a file that is not a valid report: \(error.localizedDescription)", bundle: .module)
                 }

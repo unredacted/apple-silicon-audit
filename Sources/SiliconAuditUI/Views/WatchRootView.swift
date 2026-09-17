@@ -7,6 +7,8 @@ import SwiftUI
 /// `ShareLink`. Viewing never depends on the phone.
 public struct WatchRootView: View {
     @State private var model: ReportModel
+    @State private var monitor = ChangeMonitor()
+    @Environment(\.scenePhase) private var scenePhase
     let transfer: TransferState
     let send: (Report) -> Void
 
@@ -19,14 +21,29 @@ public struct WatchRootView: View {
     public var body: some View {
         NavigationStack {
             List {
-                OverviewContent(model: model, watchLayout: true, showsReferenceLinks: true)
+                OverviewContent(model: model, watchLayout: true, showsReferenceLinks: true, showsMonitor: true)
                 if let report = model.report {
                     exportSection(report)
                 }
             }
             .navigationTitle("Silicon Audit")
         }
-        .task { if model.report == nil { await model.run() } }
+        .environment(monitor)
+        .task {
+            if model.report == nil { await model.run() }
+            if let report = model.report { await monitor.processInForeground(report) }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            // A background check may have advanced the shared files while this scene was
+            // suspended; its report is then newer than the one on screen, so read again.
+            let advanced = monitor.load()
+            guard advanced || monitor.isCheckDue(), model.report != nil else { return }
+            Task {
+                await model.run()
+                if let report = model.report { await monitor.processInForeground(report) }
+            }
+        }
     }
 
     @ViewBuilder
@@ -51,7 +68,7 @@ public struct WatchRootView: View {
         } header: {
             Text(String(localized: "Export", bundle: .module))
         } footer: {
-            Text(String(localized: "Send to iPhone delivers the full JSON export in the background, even if the phone is out of reach right now. The compact code holds the security-relevant facts and fits a message.", bundle: .module))
+            Text(String(localized: "Send to iPhone delivers the full report in the background, even while the phone is out of reach. The compact code fits a message.", bundle: .module))
         }
     }
 }

@@ -10,7 +10,7 @@ struct SiliconAuditCLI: ParsableCommand {
         abstract: "Report which CPU security features this device's kernel exposes.",
         discussion: "Every fact carries its provenance: measured (read from this kernel), documented (Apple's published claim for the chip family), or inferred (the app's reasoning). The app never conflates them.",
         version: SiliconAuditCore.version,
-        subcommands: [Audit.self, Documented.self, DataInfo.self, Export.self, Keys.self, Import.self, Raw.self, SelfTest.self],
+        subcommands: [Audit.self, Documented.self, DataInfo.self, Diff.self, Export.self, Keys.self, Import.self, Raw.self, SelfTest.self],
         defaultSubcommand: Audit.self
     )
 }
@@ -318,5 +318,49 @@ enum Table {
             case .bytes: return "0x\(v.hex)  [\(type), \(v.length)B]"
             }
         }
+    }
+}
+
+struct Diff: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "What changed between two JSON exports of the same device (measured facts only).")
+
+    @Argument(help: "The earlier export.")
+    var baseline: String
+
+    @Argument(help: "The later export. Omit to compare the baseline with a live audit of this Mac.")
+    var current: String?
+
+    @Flag(name: .long, help: "Emit the diff as JSON instead of text.")
+    var json = false
+
+    func run() throws {
+        let data = DataStore.shared
+        let before = try Report.decode(try Data(contentsOf: URL(fileURLWithPath: baseline)))
+        let after: Report
+        if let current {
+            after = try Report.decode(try Data(contentsOf: URL(fileURLWithPath: current)))
+        } else {
+            after = Auditor(data: data).audit()
+        }
+        // A compact export omits most measured facts on purpose; diffing it against a full one
+        // would report every omission as a change.
+        guard before.variant == after.variant else {
+            throw ValidationError("Cannot compare a \(before.variant) export with a \(after.variant) one; export both the same way.")
+        }
+        let diff = ReportDiff.compare(baseline: before, current: after, inventory: data.knownKeys)
+        if json {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+            print(String(decoding: try encoder.encode(diff), as: UTF8.self))
+        } else {
+            print("\(diff.identity): \(diff.summary)")
+        }
+        if diff.identityChanged { throw ExitCode(2) }
+        for change in diff.changes where !json {
+            let tag = change.securityRelevant ? "SECURITY " : "         "
+            let key = change.key.map { " (\($0))" } ?? ""
+            print("  \(tag)\(change.kind.rawValue.padding(toLength: 13, withPad: " ", startingAt: 0)) \(change.name)\(key): \(change.technicalTransition)")
+        }
+        if !diff.changes.isEmpty { throw ExitCode(1) }
     }
 }

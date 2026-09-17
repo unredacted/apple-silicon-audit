@@ -25,13 +25,16 @@ public struct SummaryCard: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(SummaryCard.chipTitle(for: report))
                         .font(.title2.weight(.semibold))
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(deviceLine)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if let note = chipNote {
                         Text(note)
                             .font(.caption)
                             .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }

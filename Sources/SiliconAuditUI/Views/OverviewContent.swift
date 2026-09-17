@@ -7,6 +7,9 @@ import SwiftUI
 public struct OverviewContent: View {
     let model: ReportModel
     let watchLayout: Bool
+    /// The device's own report shows the monitor's cards and rows; a received report does not.
+    let showsMonitor: Bool
+    @Environment(ChangeMonitor.self) private var monitor: ChangeMonitor?
     /// Compact widths and the watch show the reference screens here; the split view lists them
     /// in its sidebar instead.
     let showsReferenceLinks: Bool
@@ -14,9 +17,10 @@ public struct OverviewContent: View {
     /// "From Apple Watch" section). The device's own results always come first.
     let afterSummary: (() -> AnyView)?
 
-    public init(model: ReportModel, watchLayout: Bool = false, showsReferenceLinks: Bool = true, afterSummary: (() -> AnyView)? = nil) {
+    public init(model: ReportModel, watchLayout: Bool = false, showsReferenceLinks: Bool = true, showsMonitor: Bool = false, afterSummary: (() -> AnyView)? = nil) {
         self.model = model
         self.watchLayout = watchLayout
+        self.showsMonitor = showsMonitor
         self.showsReferenceLinks = showsReferenceLinks
         self.afterSummary = afterSummary
     }
@@ -38,13 +42,28 @@ public struct OverviewContent: View {
                     .listRowBackground(Color.clear)
                 }
             }
+            if showsMonitor, let monitor {
+                if !monitor.unseenRecords.isEmpty {
+                    Section {
+                        ChangesCard(records: monitor.unseenRecords)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
+                } else if showsInvitation(monitor) {
+                    Section {
+                        MonitorPromptCard(monitor: monitor)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
+                }
+            }
             if let afterSummary { afterSummary() }
             Section {
                 OverviewList(report: report, scope: .device)
             } header: {
                 Text(String(localized: "What this chip protects", bundle: .module))
             } footer: {
-                if !OverviewList.hasContent(.process, in: report) {
+                if !OverviewList.hasContent(.process, in: report), !watchLayout {
                     Text(OverviewContent.provenanceFooter)
                 }
             }
@@ -54,7 +73,11 @@ public struct OverviewContent: View {
                 } header: {
                     Text(String(localized: "What the OS does for this app", bundle: .module))
                 } footer: {
-                    Text(String(localized: "Measured inside this app. It depends on how this build was signed, not on the chip; another app on the same device can differ.", bundle: .module))
+                    if watchLayout {
+                        Text(String(localized: "About this app's build, not the chip.", bundle: .module))
+                    } else {
+                        Text(String(localized: "Measured inside this app. It depends on how this build was signed, not on the chip; another app on the same device can differ.", bundle: .module))
+                    }
                 }
             }
             if showsReferenceLinks {
@@ -63,7 +86,9 @@ public struct OverviewContent: View {
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(String(localized: "All readings", bundle: .module))
-                                Text(String(localized: "\(model.factCount) facts in \(model.sections.count) categories", bundle: .module))
+                                Text(watchLayout
+                                     ? String(localized: "\(model.factCount) facts", bundle: .module)
+                                     : String(localized: "\(model.factCount) facts in \(model.sections.count) categories", bundle: .module))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                         } icon: {
@@ -79,6 +104,14 @@ public struct OverviewContent: View {
                     NavigationLink { AboutDataView(report: report) } label: {
                         Label(String(localized: "About the data", bundle: .module), systemImage: "info.circle")
                     }
+                    if showsMonitor, let monitor {
+                        NavigationLink { ChangesView() } label: {
+                            ChangesRowLabel(count: monitor.unseenRecords.count)
+                        }
+                        NavigationLink { MonitorView(model: model) } label: {
+                            Label(String(localized: "Change monitoring", bundle: .module), systemImage: "bell.badge")
+                        }
+                    }
                 } header: {
                     Text(String(localized: "Look deeper", bundle: .module))
                 } footer: {
@@ -90,12 +123,43 @@ public struct OverviewContent: View {
         }
     }
 
+    /// The one-time notification invitation: once a baseline exists, until answered, never on
+    /// the watch's small screen, and never on Apple TV, which has no notifications.
+    private func showsInvitation(_ monitor: ChangeMonitor) -> Bool {
+        #if os(tvOS)
+        return false
+        #else
+        return monitor.hasBaseline && !monitor.promptDismissed && !watchLayout && monitor.authorization == .notDetermined
+        #endif
+    }
+
     static var provenanceFooter: String {
         String(localized: "Measured means reported by this device's kernel, not proven in the silicon. Documented means Apple published it, and the date is shown.", bundle: .module)
     }
 
     static func versionFooter(for report: Report) -> String {
         String(localized: "Inventory \(report.collection.knownKeysVersion ?? "unknown"), engine \(report.appVersion).", bundle: .module)
+    }
+}
+
+/// "Changes" with a count of the ones not yet opened, shared by the sidebar and Look deeper.
+struct ChangesRowLabel: View {
+    let count: Int
+
+    var body: some View {
+        HStack {
+            Label(String(localized: "Changes", bundle: .module), systemImage: "clock.arrow.2.circlepath")
+            if count > 0 {
+                Spacer(minLength: 8)
+                Text("\(count)")
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .foregroundStyle(.white)
+                    .background(.orange, in: Capsule())
+                    .accessibilityLabel(Text(String(localized: "\(count) new", bundle: .module)))
+            }
+        }
     }
 }
 
