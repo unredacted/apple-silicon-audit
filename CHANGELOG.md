@@ -5,6 +5,12 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+- Redesign the app around one structure at two depths instead of an Overview/Details mode switch:
+  a chip-first summary card with a verdict tally, plain-language checks with the verdict word and its
+  source on one line, a "Look deeper" group (or the sidebar) that opens all readings on three shelves,
+  Apple's documentation, the new "How this was measured" screen, and About the data. Rows share one
+  column layout on every platform; the export sheet gains a Done button; iPad and Mac gain a Refresh
+  button; the "From Apple Watch" section no longer appears on devices that cannot pair a watch.
 - Use a standard tvOS release with an accurate security marker; Enhanced Security is supported
   on iOS, macOS, and visionOS. Declare the apps' non-exempt encryption usage as false to prevent
   future TestFlight builds getting stuck at Missing Compliance.

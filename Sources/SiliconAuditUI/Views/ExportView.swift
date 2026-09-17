@@ -57,6 +57,13 @@ public struct ExportView: View {
     }
 }
 
+extension View {
+    /// Apple TV reaches export from the sidebar; a received report still needs a sheet.
+    func exportSheet(isPresented: Binding<Bool>, model: ReportModel) -> some View {
+        sheet(isPresented: isPresented) { ExportView(model: model) }
+    }
+}
+
 #elseif !os(watchOS)
 import SiliconAuditCore
 import SwiftUI
@@ -80,23 +87,25 @@ public struct ExportView: View {
             Section {
                 if let url = fileURL {
                     ShareLink(item: url) {
-                        Label(String(localized: "Share JSON export", bundle: .module), systemImage: "square.and.arrow.up")
+                        Label(String(localized: "Share the report", bundle: .module), systemImage: "square.and.arrow.up")
                     }
                     Button {
                         showingExporter = true
                     } label: {
-                        Label(String(localized: "Save JSON export…", bundle: .module), systemImage: "folder")
+                        Label(String(localized: "Save as a file…", bundle: .module), systemImage: "folder")
                     }
-                    Text(url.lastPathComponent).font(.caption.monospaced()).foregroundStyle(.secondary)
+                    LabeledContent(String(localized: "File", bundle: .module)) {
+                        Text(url.lastPathComponent).font(.caption.monospaced()).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    }
                 } else if let error {
                     Label(error, systemImage: "exclamationmark.triangle")
                 } else {
                     ProgressView()
                 }
             } header: {
-                Text(String(localized: "Full export", bundle: .module))
+                Text(String(localized: "Full report", bundle: .module))
             } footer: {
-                Text(String(localized: "Schema 1.x JSON with provenance on every fact. Contains no serial number, UDID, hostname, or account. Contribute it to the results database with a pull request.", bundle: .module))
+                Text(String(localized: "Every fact with its provenance, as schema 1.x JSON. Contains no serial number, UDID, hostname, or account. Contribute it to the results database with a pull request.", bundle: .module))
             }
 
             Section {
@@ -107,14 +116,12 @@ public struct ExportView: View {
                         Label(copied ? String(localized: "Copied", bundle: .module) : String(localized: "Copy compact code", bundle: .module),
                               systemImage: copied ? "checkmark" : "doc.on.doc")
                     }
-                    Text(String(localized: "\(compact.count) characters, Base45 over deflate. Decode with `silicon-audit import`.", bundle: .module))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    LabeledContent(String(localized: "Size", bundle: .module), value: String(localized: "\(compact.count) characters", bundle: .module))
                 }
             } header: {
                 Text(String(localized: "Compact code", bundle: .module))
             } footer: {
-                Text(String(localized: "Security-relevant measured facts and identity only; fits a QR code.", bundle: .module))
+                Text(String(localized: "The security-relevant facts and the device identity only, small enough for a message or a QR code. The silicon-audit import command turns it back into JSON.", bundle: .module))
             }
         }
         .navigationTitle(String(localized: "Export", bundle: .module))
@@ -158,6 +165,28 @@ public struct ReportDocument: FileDocument {
 
     public func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         FileWrapper(regularFileWithContents: data)
+    }
+}
+extension View {
+    /// The export sheet, the same on every screen that offers it: a Done button, a sensible
+    /// minimum size on the Mac, and half-height first on iPhone.
+    func exportSheet(isPresented: Binding<Bool>, model: ReportModel) -> some View {
+        sheet(isPresented: isPresented) {
+            NavigationStack {
+                ExportView(model: model)
+                    .toolbar {
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button(String(localized: "Done", bundle: .module)) { isPresented.wrappedValue = false }
+                        }
+                    }
+            }
+            #if os(macOS)
+            .frame(minWidth: 460, minHeight: 400)
+            #endif
+            #if os(iOS)
+            .presentationDetents([.medium, .large])
+            #endif
+        }
     }
 }
 #endif

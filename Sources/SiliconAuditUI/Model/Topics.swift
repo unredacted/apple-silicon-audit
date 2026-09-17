@@ -1,20 +1,6 @@
 import Foundation
 import SiliconAuditCore
 
-/// Presentation modes (SPEC §6.4). `overview` is the default: a handful of plain-language
-/// topics with a verdict word each. `details` is the full fact-level view.
-public enum PresentationMode: String, CaseIterable, Identifiable, Sendable {
-    case overview, details
-    public var id: String { rawValue }
-
-    public var title: String {
-        switch self {
-        case .overview: return String(localized: "Overview", bundle: .module)
-        case .details: return String(localized: "Details", bundle: .module)
-        }
-    }
-}
-
 /// A plain-language verdict derived from facts. The provenance is never dropped: a topic built
 /// from measurements says so, one built from Apple's documentation says so and carries the date.
 public struct TopicVerdict: Equatable, Sendable {

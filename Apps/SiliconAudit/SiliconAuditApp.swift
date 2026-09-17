@@ -45,16 +45,19 @@ struct WatchReportsSection: View {
     @Environment(TransferState.self) private var transfer
 
     var body: some View {
-        if !received.entries.isEmpty || transfer.status != nil {
+        // Nothing to show until a watch has delivered a report or a delivery is under way; an
+        // iPad or a Mac has no watch to wait for, so it never sees an empty section.
+        if !received.entries.isEmpty || (transfer.isSupported && transfer.status != nil) {
             Section {
                 ForEach(received.entries) { entry in
                     NavigationLink {
                         ReceivedReportView(report: entry.report, title: entry.report.device.identity)
                     } label: {
                         Label {
-                            VStack(alignment: .leading) {
+                            VStack(alignment: .leading, spacing: 2) {
                                 Text(entry.title)
-                                Text(entry.receivedAt, style: .relative).font(.caption2).foregroundStyle(.secondary)
+                                Text(entry.receivedAt, format: .relative(presentation: .named))
+                                    .font(.caption).foregroundStyle(.secondary)
                             }
                         } icon: {
                             Image(systemName: "applewatch")
@@ -65,7 +68,7 @@ struct WatchReportsSection: View {
                     received.delete(at: offsets)
                 }
                 if let status = transfer.status {
-                    Text(status).font(.caption2).foregroundStyle(.secondary)
+                    Text(status).font(.caption).foregroundStyle(.secondary)
                 }
             } header: {
                 Text("From Apple Watch")

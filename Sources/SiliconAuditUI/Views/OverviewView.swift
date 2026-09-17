@@ -1,8 +1,8 @@
 import SiliconAuditCore
 import SwiftUI
 
-/// The plain-language mode (SPEC §6.4): one card per topic with a verdict word, one sentence,
-/// and where the answer came from. Tapping a card lists the facts behind it.
+/// The plain-language layer (SPEC §6.4): one row per topic with a verdict word, one sentence,
+/// and where the answer came from. Tapping a row lists the facts behind it.
 public struct OverviewList: View {
     let report: Report
     let scope: Topic.Scope
@@ -29,100 +29,66 @@ public struct OverviewList: View {
     }
 }
 
+/// Title, then the verdict and its source, then the sentence. Everything hangs off one left
+/// column so titles never fight a trailing badge for width.
 struct TopicRow: View {
     let topic: Topic
     let verdict: TopicVerdict
 
     var body: some View {
-        #if os(watchOS)
-        // 42mm: stack everything; the badge under the title instead of beside it.
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                Image(systemName: topic.symbol).foregroundStyle(.tint).accessibilityHidden(true)
-                Text(topic.title).font(.headline).lineLimit(2)
-            }
-            VerdictBadge(verdict)
-            Text(verdict.sentence).font(.caption2).foregroundStyle(.secondary).lineLimit(4)
-            Text(sourceLine).font(.caption2).foregroundStyle(.tertiary)
-        }
-        .padding(.vertical, 2)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(topic.title))
-        .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(sourceLine)"))
-        #else
-        HStack(alignment: .top, spacing: 14) {
-            Image(systemName: topic.symbol)
-                .font(.title2)
-                .foregroundStyle(.tint)
-                .frame(width: 32)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(topic.title).font(.headline)
-                    Spacer(minLength: 8)
-                    VerdictBadge(verdict).layoutPriority(1)   // the verdict never truncates; the title wraps
+        HStack(alignment: .top, spacing: 12) {
+            IconTile(symbol: topic.symbol)
+                .padding(.top, 1)
+            VStack(alignment: .leading, spacing: 6) {
+                Text(topic.title)
+                    .font(.headline)
+                // Verdict and source side by side when they fit, stacked when they do not; the
+                // verdict itself never truncates. The watch is always too narrow for the pair.
+                #if os(watchOS)
+                stackedVerdict
+                #else
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .center, spacing: 8) {
+                        VerdictBadge(verdict).fixedSize()
+                        sourceText.lineLimit(1)
+                    }
+                    stackedVerdict
                 }
+                #endif
                 Text(verdict.sentence)
-                    .font(.subheadline)
+                    .font(sentenceFont)
                     .foregroundStyle(.secondary)
-                Text(sourceLine)
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
             }
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(topic.title))
-        .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(sourceLine)"))
+        .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(ProvenanceStyle.plainSource(verdict.provenance, source: verdict.source))"))
+    }
+
+    private var stackedVerdict: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            VerdictBadge(verdict).fixedSize()
+            sourceText.fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private var sourceText: some View {
+        Text(ProvenanceStyle.plainSource(verdict.provenance, source: verdict.source))
+            .font(.caption)
+            .foregroundStyle(.secondary)
+    }
+
+    private var sentenceFont: Font {
+        #if os(watchOS)
+        .caption2
+        #else
+        .subheadline
         #endif
     }
-
-    var sourceLine: String {
-        switch verdict.provenance {
-        case .measured: return String(localized: "Measured on this device", bundle: .module)
-        case .documented:
-            if let s = verdict.source { return String(localized: "Apple's documentation, published \(s.published)", bundle: .module) }
-            return String(localized: "Apple's documentation", bundle: .module)
-        case .inferred: return String(localized: "Inferred by this app", bundle: .module)
-        case .unknown: return String(localized: "Not determinable", bundle: .module)
-        }
-    }
 }
 
-/// Verdict word with a glyph; never color alone.
-struct VerdictBadge: View {
-    let verdict: TopicVerdict
-    init(_ v: TopicVerdict) { verdict = v }
-
-    var body: some View {
-        Label(verdict.word, systemImage: symbol)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(tint)
-            .labelStyle(.titleAndIcon)
-            .lineLimit(1)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    var symbol: String {
-        switch verdict.level {
-        case .yes: return "checkmark.circle.fill"
-        case .partial: return "circle.lefthalf.filled"
-        case .no: return "xmark.circle"
-        case .unknown: return "questionmark.circle"
-        }
-    }
-
-    var tint: Color {
-        switch verdict.level {
-        case .yes: return .green
-        case .partial: return .orange
-        case .no: return .secondary
-        case .unknown: return .secondary
-        }
-    }
-}
-
-/// What the topic means, then the facts that decided it.
+/// What was found, what the protection is, where the answer came from, then the facts.
 struct TopicDetailView: View {
     let topic: Topic
     let verdict: TopicVerdict
@@ -131,22 +97,31 @@ struct TopicDetailView: View {
     var body: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Image(systemName: topic.symbol).font(.title).foregroundStyle(.tint)
-                        Spacer()
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(alignment: .center, spacing: 12) {
+                        IconTile(symbol: topic.symbol)
                         VerdictBadge(verdict)
                     }
-                    Text(verdict.sentence).font(.body)
-                    Text(topic.plain).font(.callout).foregroundStyle(.secondary)
+                    Text(verdict.sentence)
+                        .font(.body)
                 }
                 .padding(.vertical, 4)
                 .accessibilityElement(children: .combine)
             }
+
             Section {
-                HStack {
+                Text(topic.plain)
+                    .font(.callout)
+            } header: {
+                Text(String(localized: "What it is", bundle: .module))
+            }
+
+            Section {
+                HStack(alignment: .center, spacing: 12) {
                     ProvenanceBadge(verdict.provenance)
-                    Text(ProvenanceStyle.explanation(verdict.provenance)).font(.subheadline).foregroundStyle(.secondary)
+                    Text(ProvenanceStyle.explanation(verdict.provenance))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
                 if let s = verdict.source {
                     if let url = URL(string: s.url) {
@@ -158,12 +133,17 @@ struct TopicDetailView: View {
             } header: {
                 Text(String(localized: "Where this comes from", bundle: .module))
             }
-            Section(String(localized: "The facts behind it", bundle: .module)) {
+
+            Section {
                 ForEach(topic.factIDs, id: \.self) { id in
                     if let fact = report.facts.first(where: { $0.id == id }) {
                         NavigationLink { FactDetailView(fact) } label: { FactRow(fact) }
                     }
                 }
+            } header: {
+                Text(String(localized: "The facts behind it", bundle: .module))
+            } footer: {
+                Text(String(localized: "Each fact opens to its raw reading.", bundle: .module))
             }
         }
         .navigationTitle(topic.title)

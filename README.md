@@ -24,15 +24,18 @@ a crash report to confirm the reason for termination.
 
 ## The app
 
-Two presentation modes, switched from the toolbar (or the sidebar on Apple TV, the bottom ornament on
-Vision Pro):
+One structure at two depths, so a non-specialist and an engineer read the same report:
 
-- **Overview** answers plain questions with one word and one sentence each: memory tagging hardware,
-  Memory Integrity Enforcement, pointer authentication, branch target protection, speculation hardening,
-  constant-time computing, the kernel protections Apple documents, and what the OS does for this app.
-- **Details** lists every fact by category with its state glyph, provenance badge, raw key, type,
-  length, value, and the plain-English meaning. Apple's documentation screen shows the three-step
-  chain from measured kernel target to inferred chip family to Apple's table column.
+- **Overview** is the home screen. A card names the chip, the device, and the OS build, and tallies how
+  the checks came out; then each check answers a plain question with one word, one sentence, and where the
+  answer came from: memory tagging hardware, Memory Integrity Enforcement, pointer authentication, branch
+  target protection, speculation hardening, constant-time computing, the kernel protections Apple
+  documents, and what the OS does for this app. Tapping a check lists the facts behind it.
+- **Look deeper** (the end of the Overview on iPhone and Apple Watch; the sidebar on iPad, Mac, Apple TV
+  and Vision Pro) opens *All readings*, every fact by category on three shelves with its state glyph,
+  provenance, raw key, type, length, value, and plain-English meaning; *Apple's documentation*, the
+  three-step chain from measured kernel target to inferred chip family to Apple's table column; *How this
+  was measured*, the device identity, collection method, and totals; and *About the data*.
 
 Export is one primary action per platform: share sheet on iPhone, iPad and Vision Pro; Save panel on
 Mac; "Send to iPhone" on Apple Watch; a QR code on Apple TV. The export is JSON with a published schema

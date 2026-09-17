@@ -1,97 +1,127 @@
 import SiliconAuditCore
 import SwiftUI
 
-/// The headline card (SPEC §6.4): device, SoC with its inference chain, the security-flag
-/// count, OS build, and how the data was collected.
+/// The headline card (SPEC §6.4). Leads with what a person recognizes: the chip, the device, the
+/// OS, and how the plain-language checks below came out. The inference chain, core family, and
+/// collection method live one tap away in `MeasurementView`, so the card never opens with jargon.
 public struct SummaryCard: View {
     let report: Report
-    let summary: (present: Int, total: Int)
+    let tally: [TopicVerdict.Level: Int]
 
-    public init(report: Report, summary: (present: Int, total: Int)) {
+    public init(report: Report, tally: [TopicVerdict.Level: Int]) {
         self.report = report
-        self.summary = summary
+        self.tally = tally
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(report.device.identity)
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .center, spacing: 14) {
+                Image(systemName: deviceSymbol)
+                    .font(.title2.weight(.medium))
+                    .foregroundStyle(.tint)
+                    .frame(width: 48, height: 48)
+                    .background(.tint.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(SummaryCard.chipTitle(for: report))
                         .font(.title2.weight(.semibold))
-                    Text("\(report.environment.platform) \(report.environment.osVersion) (\(report.environment.osBuild))")
+                    Text(deviceLine)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text("\(summary.present)/\(summary.total)")
-                        .font(.title.weight(.bold).monospacedDigit())
-                    Text(String(localized: "security flags reported present", bundle: .module))
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
+                    if let note = chipNote {
+                        Text(note)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .accessibilityElement(children: .combine)
 
-            Divider()
-
-            LabeledContent {
-                VStack(alignment: .trailing, spacing: 2) {
-                    Text(report.device.socNameInferred)
-                    Text(socChain)
-                        .font(.caption2)
+            if !tally.isEmpty {
+                Divider()
+                VStack(alignment: .leading, spacing: 6) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 16) { tallyLabels }
+                        VStack(alignment: .leading, spacing: 6) { tallyLabels }
+                    }
+                    Text(tallyCaption)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.trailing)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            } label: {
-                Label(String(localized: "System on chip", bundle: .module), systemImage: "cpu")
+                .accessibilityElement(children: .combine)
             }
-            LabeledContent {
-                Text(report.device.cpufamilyName == "unrecognized"
-                     ? String(localized: "unrecognized \(report.device.cpufamily ?? "")", bundle: .module)
-                     : report.device.cpufamilyName.replacingOccurrences(of: "CPUFAMILY_ARM_", with: "").replacingOccurrences(of: "CPUFAMILY_", with: ""))
-            } label: {
-                Label(String(localized: "Core family", bundle: .module), systemImage: "memorychip")
-            }
-            VStack(alignment: .leading, spacing: 4) {
-                Label(String(localized: "Collection", bundle: .module), systemImage: "list.bullet.rectangle")
-                Text(collectionText)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, 28)
-            }
-            .accessibilityElement(children: .combine)
         }
-        .font(.callout)
         .padding(16)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .modifier(CardBackground())
     }
 
-    var socChain: String {
-        guard let soc = report.device.socId else { return String(localized: "no kernel target in kern.version", bundle: .module) }
-        switch report.device.socInferenceConfidence {
-        case "verified": return String(localized: "inferred from kernel target \(soc), verified map entry", bundle: .module)
-        case "reported": return String(localized: "inferred from kernel target \(soc), unverified map entry", bundle: .module)
-        default: return String(localized: "kernel target \(soc) is not in the app's map", bundle: .module)
+    private var tallyLabels: some View {
+        ForEach(VerdictStyle.order.filter { (tally[$0] ?? 0) > 0 }, id: \.self) { level in
+            Label {
+                Text("\(tally[level] ?? 0) \(VerdictStyle.word(level))")
+                    .monospacedDigit()
+            } icon: {
+                Image(systemName: VerdictStyle.symbol(level))
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(VerdictStyle.tint(level))
         }
     }
 
-    var collectionText: String {
-        var parts: [String] = []
-        if report.collection.walkSucceeded {
-            parts.append(String(localized: "MIB walk and inventory", bundle: .module))
-        } else if let failure = report.collection.walkFailure, failure.contains("errno 1 ") || failure.contains("errno 13 ") {
-            parts.append(String(localized: "inventory only; walk refused by the sandbox", bundle: .module))
-        } else if let failure = report.collection.walkFailure {
-            parts.append(String(localized: "inventory plus a failed walk: \(failure)", bundle: .module))
-        } else {
-            parts.append(String(localized: "inventory only; walk failed", bundle: .module))
+    private var tallyCaption: String {
+        let total = tally.values.reduce(0, +)
+        return String(localized: "How the \(total) checks below came out. Tap any of them for the facts behind it.", bundle: .module)
+    }
+
+    /// The chip when the app could name it, otherwise the device: never a made-up name.
+    static func chipTitle(for report: Report) -> String {
+        let device = report.device
+        if device.socId != nil, device.socInferenceConfidence != "none" {
+            return stripParenthetical(device.socNameInferred)
         }
-        parts.append(report.collection.kernelFormatsAvailable
-                     ? String(localized: "kernel-declared types", bundle: .module)
-                     : String(localized: "types from the inventory", bundle: .module))
+        return device.identity
+    }
+
+    private var deviceLine: String {
+        var parts: [String] = []
+        if SummaryCard.chipTitle(for: report) != report.device.identity { parts.append(report.device.identity) }
+        parts.append("\(report.environment.platform) \(report.environment.osVersion) (\(report.environment.osBuild))")
         return parts.joined(separator: " · ")
+    }
+
+    /// A note under the device line when the chip could not be named.
+    private var chipNote: String? {
+        let device = report.device
+        if device.socId == nil {
+            return report.environment.arch == "x86_64"
+                ? String(localized: "Intel processor: Apple's chip documentation does not apply.", bundle: .module)
+                : String(localized: "The kernel names no Apple silicon target for this device.", bundle: .module)
+        }
+        if device.socInferenceConfidence == "none" {
+            return String(localized: "Chip \(device.socId ?? "") is not in this app's map yet.", bundle: .module)
+        }
+        return nil
+    }
+
+    private var deviceSymbol: String {
+        switch report.environment.platform {
+        case "iOS": return "iphone"
+        case "iPadOS": return "ipad"
+        case "macOS": return "desktopcomputer"
+        case "watchOS": return "applewatch"
+        case "tvOS": return "appletv"
+        case "visionOS": return "visionpro"
+        default: return "cpu"
+        }
+    }
+
+    /// "Apple M5 (Pro/Max die; marketing tier unverified)" → "Apple M5". The qualifier is shown in
+    /// full on the measurement screen.
+    static func stripParenthetical(_ s: String) -> String {
+        guard let open = s.firstIndex(of: "(") else { return s }
+        return s[..<open].trimmingCharacters(in: .whitespaces)
     }
 }
 
