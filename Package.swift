@@ -17,7 +17,7 @@ let package = Package(
         .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.8.2"),
     ],
     targets: [
-        // Probe engine. No UI. Platform conditionals only in Environment.swift.
+        // Probe engine. No UI. Environment detection and the macOS self-test isolate platform differences.
         .target(
             name: "SiliconAuditCore",
             resources: [.process("Resources")]
@@ -38,7 +38,8 @@ let package = Package(
         ),
         .testTarget(
             name: "SiliconAuditCoreTests",
-            dependencies: ["SiliconAuditCore"]
+            dependencies: ["SiliconAuditCore"],
+            exclude: ["Fixtures"]
         ),
         .testTarget(
             name: "SiliconAuditUITests",

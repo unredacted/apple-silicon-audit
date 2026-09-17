@@ -5,6 +5,23 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+- Use a standard tvOS release with an accurate security marker; Enhanced Security is supported
+  on iOS, macOS, and visionOS. Declare the apps' non-exempt encryption usage as false to prevent
+  future TestFlight builds getting stuck at Missing Compliance.
+- Default release archives to Enhanced Security (`ReleaseHardened`); keep `--standard` for comparison builds.
+- Use manual distribution profiles for mobile App Store archives, add `--local-export`, and
+  isolate Xcode's PATH to prevent Homebrew rsync export failures. Reject hardened archives when
+  Xcode omits their Enhanced Security entitlements.
+- Add `--export-only` to retry uploads after account or network failures without rebuilding.
+
+- Replace the monochrome icon with a blue silicon-and-inspection logo across all platforms,
+  the README, and the results site; add a reproducible icon installation script.
+- Bound child-process fault tests and compact imports; validate schema versions and fact identity.
+- Correct partial kernel-walk reporting, uncertain self-test claims, overview verdicts, and legacy PAC fallback.
+- Fix raw-byte result conflicts, rejected-submission isolation, and regeneration after concurrent pushes.
+- Add regression coverage and adapt live capability-mask checks to newer kernels.
+- See [the codebase audit](docs/audit-2026-09-16.md) for findings, verification, and remaining device checks.
+
 ## 0.1.0 — 2026-09-16
 
 First complete build (pre-release), squash-merged from nine reviewed phases plus the icon, README, and

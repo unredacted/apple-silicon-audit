@@ -48,7 +48,7 @@ public final class ReportTransferBridge: NSObject, WCSessionDelegate, @unchecked
     public func send(_ report: Report) {
         do {
             let tmp = FileManager.default.temporaryDirectory
-                .appendingPathComponent("\(ReceivedReportStore.fileName(for: report).dropLast(5))-\(Int(Date().timeIntervalSince1970)).json")
+                .appendingPathComponent("\(ReceivedReportStore.fileName(for: report).dropLast(5))-\(UUID().uuidString).json")
             try report.jsonData().write(to: tmp, options: .atomic)
             let metadata: [String: Any] = [
                 "kind": "silicon-audit-report",
@@ -92,6 +92,7 @@ public final class ReportTransferBridge: NSObject, WCSessionDelegate, @unchecked
     }
 
     public func session(_ session: WCSession, didFinish fileTransfer: WCSessionFileTransfer, error: (any Error)?) {
+        try? FileManager.default.removeItem(at: fileTransfer.file.fileURL)
         let pending = session.outstandingFileTransfers.count
         let message = error?.localizedDescription
         Task { @MainActor in

@@ -38,7 +38,7 @@ jobs:
           Scripts/validate-export.sh /tmp/live-hardened.json
 
   simulators:
-    name: Build UI for tvOS, visionOS, watchOS simulators
+    name: Build UI for iOS, tvOS, visionOS, watchOS simulators
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
         # The package's own schemes, no XcodeGen needed: this catches SwiftUI availability differences
         # (no glassEffect on tvOS/visionOS, no textSelection or size classes on tvOS, and so on).
         run: |
-          for dest in "tvOS Simulator" "visionOS Simulator" "watchOS Simulator"; do
+          for dest in "iOS Simulator" "tvOS Simulator" "visionOS Simulator" "watchOS Simulator"; do
             echo "::group::$dest"
             xcodebuild build -scheme SiliconAuditUI -destination "generic/platform=$dest" CODE_SIGNING_ALLOWED=NO -quiet
             echo "::endgroup::"

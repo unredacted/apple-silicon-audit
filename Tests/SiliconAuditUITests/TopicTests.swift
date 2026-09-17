@@ -61,6 +61,38 @@ struct TopicTests {
         #expect(g.word == "Not readable")
     }
 
+    @Test("undecodable tagging counters are unknown rather than zero")
+    func gaugeUndecodable() throws {
+        var report = try Self.report()
+        let i = try #require(report.facts.firstIndex { $0.id == "vm.mte.tagged" })
+        report.facts[i].raw?.value = nil
+        report.facts[i].raw?.valueHex = "0000"
+        #expect(verdict("os_memory_tagging", in: report).level == .unknown)
+    }
+
+    @Test("legacy PAC keys fill an absent canonical key, but cannot override an explicit off flag")
+    func legacyPAC() throws {
+        var report = try Self.report()
+        let canonical = try #require(report.facts.firstIndex { $0.id == "arm.FEAT_PAuth" })
+        let alias = try #require(report.facts.firstIndex { $0.id == "armv8_gpi" })
+        report.facts[canonical].state = .keyAbsent
+        report.facts[alias].state = .present
+        #expect(verdict("pointer_authentication", in: report).level == .yes)
+        report.facts[canonical].state = .notPresent
+        #expect(verdict("pointer_authentication", in: report).level == .no)
+    }
+
+    @Test("one readable mitigation cannot make a partially unreadable group a confident yes")
+    func partialGroup() throws {
+        var report = try Self.report()
+        for i in report.facts.indices where report.facts[i].category == "speculation" {
+            report.facts[i].state = report.facts[i].id == "arm.FEAT_CSV2" ? .present : .restricted
+        }
+        let result = verdict("speculation", in: report)
+        #expect(result.level == .partial)
+        #expect(result.sentence.contains("1 of 6"))
+    }
+
     @Test("unmapped SoC: documented topics say Not documented, measured topics unaffected")
     func unknownSoC() throws {
         let r = try Self.report { $0.replacingOccurrences(of: "RELEASE_ARM64_T6050", with: "RELEASE_ARM64_T8320") }

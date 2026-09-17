@@ -4,6 +4,15 @@ import Foundation
 /// so the JSON is exactly what the schema expects.
 public struct Report: Codable, Equatable, Sendable {
     public static let schemaVersion = "1.1.0"
+    /// Same upper bound as a contributed result, also enforced before/while decompressing imports.
+    public static let maximumJSONBytes = 512 * 1024
+
+    public enum ImportError: Error, Equatable {
+        case sizeLimitExceeded
+        case unsupportedSchema(String)
+        case invalidVariant(String)
+        case duplicateFactID(String)
+    }
 
     public struct Collection: Codable, Equatable, Sendable {
         public var walkSucceeded: Bool
@@ -227,6 +236,21 @@ public struct Report: Codable, Equatable, Sendable {
         self.unrecognizedKeys = unrecognizedKeys
     }
 
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try c.decode(String.self, forKey: .schemaVersion)
+        appVersion = try c.decode(String.self, forKey: .appVersion)
+        // Schema 1.x permits omission of variant and defines it as a full report.
+        variant = try c.decodeIfPresent(String.self, forKey: .variant) ?? "full"
+        collectedAt = try c.decode(String.self, forKey: .collectedAt)
+        collection = try c.decode(Collection.self, forKey: .collection)
+        environment = try c.decode(Environment.self, forKey: .environment)
+        device = try c.decode(Device.self, forKey: .device)
+        capabilities = try c.decodeIfPresent(Capabilities.self, forKey: .capabilities)
+        facts = try c.decode([Fact].self, forKey: .facts)
+        unrecognizedKeys = try c.decode([Fact].self, forKey: .unrecognizedKeys)
+    }
+
     // MARK: - Views
 
     public var measuredFacts: [Fact] { facts.filter { $0.provenance == .measured } }
@@ -261,7 +285,33 @@ public struct Report: Codable, Equatable, Sendable {
     }
 
     public static func decode(_ data: Data) throws -> Report {
-        try JSONDecoder().decode(Report.self, from: data)
+        guard data.count <= maximumJSONBytes else { throw ImportError.sizeLimitExceeded }
+        let report = try JSONDecoder().decode(Report.self, from: data)
+        guard Report.accepts(schemaVersion: report.schemaVersion) else {
+            throw ImportError.unsupportedSchema(report.schemaVersion)
+        }
+        guard ["full", "compact"].contains(report.variant) else { throw ImportError.invalidVariant(report.variant) }
+        var ids = Set<String>()
+        for fact in report.facts + report.unrecognizedKeys {
+            guard ids.insert(fact.id).inserted else { throw ImportError.duplicateFactID(fact.id) }
+        }
+        return report
+    }
+
+    /// SPEC §8 versioning policy: a reader accepts files whose `schema_version` is at most its own
+    /// within the same major. A newer minor may add fields or enum values this model cannot
+    /// interpret, and optional additions would decode silently, so `1.2.0` is refused by a `1.1.x`
+    /// reader; the patch component never changes meaning and is ignored.
+    public static func accepts(schemaVersion: String) -> Bool {
+        guard let file = components(of: schemaVersion), let own = components(of: Report.schemaVersion) else { return false }
+        return file.major == own.major && file.minor <= own.minor
+    }
+
+    static func components(of version: String) -> (major: Int, minor: Int, patch: Int)? {
+        let parts = version.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3, let major = Int(parts[0]), let minor = Int(parts[1]), let patch = Int(parts[2]),
+              parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }) else { return nil }
+        return (major, minor, patch)
     }
 
     /// Categories the compact variant keeps: the security-relevant groups plus device identity.

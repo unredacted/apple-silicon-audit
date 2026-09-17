@@ -110,6 +110,14 @@ public struct Topic: Identifiable, Equatable, Sendable {
         func fact(_ id: String) -> Fact? { report.facts.first { $0.id == id } }
         switch rule {
         case .flag(let primary, _):
+            if fact(primary) == nil || fact(primary)?.state == .keyAbsent {
+                let canonicalKey = DataStore.shared.knownKeys.entries.first { $0.id == primary }?.key
+                if let canonicalKey {
+                    for alias in DataStore.shared.knownKeys.entries where alias.aliasOf == canonicalKey {
+                        if let legacy = fact(alias.id), legacy.state != .keyAbsent { return measured(legacy) }
+                    }
+                }
+            }
             guard let f = fact(primary) else { return unreadable() }
             return measured(f)
         case .group(let ids):
@@ -117,6 +125,11 @@ public struct Topic: Identifiable, Equatable, Sendable {
             let readable = facts.filter { $0.state == .present || $0.state == .notPresent }
             guard !readable.isEmpty else { return unreadable() }
             let present = readable.filter { $0.state == .present }.count
+            if readable.count < ids.count {
+                return TopicVerdict(level: .partial, word: String(localized: "Partial", bundle: .module),
+                                    sentence: String(localized: "The kernel reports \(present) of \(ids.count) requested mitigations as on; \(ids.count - readable.count) could not be read as on or off.", bundle: .module),
+                                    provenance: .measured, source: nil)
+            }
             let level: TopicVerdict.Level = present == readable.count ? .yes : (present == 0 ? .no : .partial)
             let word = present == readable.count ? String(localized: "Yes", bundle: .module)
                 : present == 0 ? String(localized: "No", bundle: .module)
@@ -148,13 +161,13 @@ public struct Topic: Identifiable, Equatable, Sendable {
             switch f.state {
             case .value:
                 // Gauges may be declared signed (`I`) or unsigned (`IU`); both count.
-                let n: UInt64 = f.raw?.value.flatMap { (v: RawValue) -> UInt64? in
+                guard let n: UInt64 = f.raw?.value.flatMap({ (v: RawValue) -> UInt64? in
                     switch v {
-                    case .int(let i): return i > 0 ? UInt64(i) : 0
+                    case .int(let i): return i >= 0 ? UInt64(i) : nil
                     case .uint(let u): return u
                     case .string: return nil
                     }
-                } ?? 0
+                }) else { return unreadable() }
                 return TopicVerdict(level: n > 0 ? .yes : .no, word: n > 0 ? String(localized: "Yes", bundle: .module) : String(localized: "No", bundle: .module),
                                     sentence: n > 0 ? String(localized: "The kernel reports \(n) tagged pages right now.", bundle: .module)
                                                     : String(localized: "The kernel reports no tagged pages right now.", bundle: .module),
@@ -232,8 +245,8 @@ public struct Topic: Identifiable, Equatable, Sendable {
             }
             return TopicVerdict(level: .no, word: String(localized: "No", bundle: .module), sentence: sentence, provenance: .measured, source: nil)
         case .notApplicable:
-            return TopicVerdict(level: .unknown, word: String(localized: "No hardware", bundle: .module),
-                                sentence: String(localized: "This chip's kernel reports no memory-tagging hardware, so no app on this device can be tagged.", bundle: .module),
+            return TopicVerdict(level: .unknown, word: String(localized: "Not applicable", bundle: .module),
+                                sentence: String(localized: "The kernel reports memory tagging as off or not applicable, and this app observed no tagged allocations. Kernel flags do not establish the silicon's capabilities.", bundle: .module),
                                 provenance: .measured, source: nil)
         default:
             return unreadable()

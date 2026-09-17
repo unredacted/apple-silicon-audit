@@ -31,7 +31,8 @@ struct LiveKernelTests {
         #expect(result.keys.filter { $0.outcome == .notApplicable }.count >= 20)
         let caps = try #require(result.key(named: "hw.optional.arm.caps"))
         #expect(caps.format?.type == .quad, "declared int64_t")
-        #expect(caps.outcome.value?.length == 12, "actually 12 bytes on macOS 26")
+        #expect((caps.outcome.value?.length ?? 0) >= (DataStore.shared.capsBits.capBitNB + 7) / 8,
+                "must cover the bundled bits; newer kernels may append capability bytes")
         #expect(caps.outcome.value?.payload.bytesValue != nil)
     }
 

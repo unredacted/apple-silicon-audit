@@ -98,4 +98,24 @@ struct MIBWalkerTests {
         #expect(result.keys.count == 50)
         #expect(result.failure?.contains("exceeded") == true)
     }
+
+    @Test("a repeated or backwards OID preserves partial results and reports failure", arguments: [false, true])
+    func nonAdvancing(backwards: Bool) {
+        struct Stalled: SysctlReading {
+            let backwards: Bool
+            let inner = Trees.device()
+            func read(_ name: String) -> ProbeOutcome { inner.read(name) }
+            func oid(forName name: String) -> [Int32]? { inner.oid(forName: name) }
+            func nextOID(after oid: [Int32]) -> NextOID {
+                oid == [6, 110, 1, 2] ? .next(backwards ? [6, 110, 1, 1] : oid) : inner.nextOID(after: oid)
+            }
+            func name(forOID oid: [Int32]) -> String? { inner.name(forOID: oid) }
+            func format(forOID oid: [Int32]) -> OIDFormat? { inner.format(forOID: oid) }
+            func readOID(_ oid: [Int32]) -> ProbeOutcome { inner.readOID(oid) }
+        }
+        let result = MIBWalker(sysctl: Stalled(backwards: backwards)).walk()
+        #expect(!result.succeeded)
+        #expect(result.keys.count == 2)
+        #expect(result.failure?.contains("did not advance") == true)
+    }
 }

@@ -7,6 +7,7 @@ VERSION="${1:?version X.Y.Z}"
 [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "not a semantic version: $VERSION" >&2; exit 2; }
 CURRENT=$(awk -F': ' '/^ *CURRENT_PROJECT_VERSION:/{print $2; exit}' project.yml)
 BUILD="${2:-$((CURRENT + 1))}"
+[[ "$BUILD" =~ ^[1-9][0-9]*$ ]] || { echo "build number must be a positive integer: $BUILD" >&2; exit 2; }
 perl -0pi -e "s/(MARKETING_VERSION: )[0-9.]+/\${1}$VERSION/; s/(CURRENT_PROJECT_VERSION: )[0-9]+/\${1}$BUILD/" project.yml
 perl -pi -e "s/(public static let version = \")[0-9.]+(\")/\${1}$VERSION\${2}/" Sources/SiliconAuditCore/SiliconAuditCore.swift
 # npm updates package.json and package-lock.json together (a perl edit would leave the lockfile stale).

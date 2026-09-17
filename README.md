@@ -1,5 +1,7 @@
 # Silicon Audit
 
+<img src="docs/brand/silicon-audit.svg" width="128" alt="Silicon Audit logo: a blue silicon die with an inspection lens">
+
 **Which CPU security features does the kernel on *this* device actually expose?**
 
 Silicon Audit is an open-source app and command-line tool for every Apple platform: iPhone, iPad, Mac,
@@ -17,7 +19,8 @@ Every fact carries its provenance:
 | **inferred** | the app's own reasoning (kernel build target → chip family), with the reasoning spelled out |
 
 "Measured" means *reported by this kernel*, not silicon truth: a kernel can mask a feature it has not
-enabled. Nothing here proves a mitigation is enforced except the [self-test](#enforcement-self-test).
+enabled. The [self-test](#enforcement-self-test) adds observations about this process; its fault test needs
+a crash report to confirm the reason for termination.
 
 ## The app
 
@@ -70,11 +73,15 @@ the chip):
 
 1. **Tagged pointers**: allocate heap blocks and read the tag bits. Present when the OS tags this
    process's memory.
-2. **Tag-check fault** (macOS and the CLI only): a child process of the same binary deliberately stores
-   past a heap block; the OS either kills it or does not.
+2. **Tag-check fault** (CLI only): a child process of the same binary deliberately stores past a heap
+   block. SIGKILL after its announcement is consistent with a tag-check fault; confirm
+   `EXC_ARM_MTE_TAGCHECK_FAIL` in the crash report. Survival does not prove checks are disabled:
+   adjacent allocations can share a tag. The graphical app runs only the safe pointer observation.
 
 Both need Apple's Enhanced Security entitlements. The app has `DebugHardened`/`ReleaseHardened`
-configurations (scheme "SiliconAudit Hardened"); `Scripts/sign-hardened.sh` re-signs the CLI. Measured on
+configurations; iOS, macOS, and visionOS release archives default to `ReleaseHardened` (pass
+`--standard` after the platform to opt out). tvOS uses `Release` because Enhanced Security is not
+supported there. `Scripts/sign-hardened.sh` re-signs the CLI. Measured on
 an M5 Mac: hardened, 55 of 65 allocations tagged and the child killed with `EXC_ARM_MTE_TAGCHECK_FAIL`;
 unsigned, nothing tagged and the store survives. Details in
 [docs/evidence/self-test-Mac17,7-25G83.md](docs/evidence/self-test-Mac17,7-25G83.md).
@@ -87,6 +94,7 @@ Node 20+.
 ```bash
 Scripts/gen-project.sh              # writes SiliconAudit.xcodeproj from project.yml (gitignored)
 Scripts/test.sh                     # swift build + swift test (Swift Testing)
+Scripts/gen-icons.sh                # regenerate app icons and the project logo
 Scripts/run-simulator.sh tvOS       # build, install and launch on a simulator (iOS, tvOS, visionOS, watchOS)
 Scripts/run-device.sh               # build, install and launch on the attached iPhone
 Scripts/validate-export.sh out.json # validate an export against the schema (ajv)
@@ -101,6 +109,8 @@ Personal Team is enough for every platform, including the Enhanced Security enti
 |---|---|
 | `SPEC.md` | the implementation spec (v0.2), the source of truth for behaviour and copy |
 | `docs/spec-review.md` | every finding from the spec review and the nine implementation phases, with evidence |
+| `docs/audit-2026-09-16.md` | codebase audit, fixes, regression checks, and remaining release qualification |
+| `docs/brand/` | the new logo, light/dark artwork, and regeneration notes |
 | `docs/evidence/` | recorded `sysctl` dumps and hardware measurements (M5 Mac, iPhone 17 Pro Max, Apple Watch Series 9) |
 | `Sources/SiliconAuditCore` | the engine: probe, walk, inventory, identity, documented matrix, export, self-test |
 | `Sources/SiliconAuditUI` | the shared SwiftUI views and models |

@@ -21,7 +21,10 @@ struct SelfTestTests {
         #expect(Auditor.taggedPointerFact(tagged, mteStates: [.present, .present]).state == .present)
         #expect(Auditor.taggedPointerFact(untagged, mteStates: [.present, .present]).state == .notPresent)
         #expect(Auditor.taggedPointerFact(untagged, mteStates: [.notPresent, .notPresent]).state == .notApplicable)
-        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.keyAbsent, .keyAbsent]).state == .notApplicable)
+        #expect(Auditor.taggedPointerFact(untagged, mteStates: [.keyAbsent, .keyAbsent]).state == .notPresent)
+        #expect(Auditor.taggedPointerFact(tagged, mteStates: [.notPresent, .notPresent]).state == .present)
+        let empty = SelfTestResult(probe: .init(samples: 0, tagged: 0, distinctTags: 0), entitlement: .unknown)
+        #expect(Auditor.taggedPointerFact(empty, mteStates: [.present]).state == .error)
         // MTE4 absent but base MTE present: hardware exists, so the answer is a real no, not "not applicable".
         #expect(Auditor.taggedPointerFact(untagged, mteStates: [.keyAbsent, .present]).state == .notPresent)
         // Nothing readable about the hardware: report what was measured.
@@ -58,6 +61,24 @@ struct SelfTestTests {
     }
 
     #if os(macOS)
+    @Test("the deadline interrupts a child that keeps stdout open and ignores SIGTERM")
+    func faultTimeout() {
+        let start = ProcessInfo.processInfo.systemUptime
+        let outcome = FaultTest.runChild(executable: URL(fileURLWithPath: "/bin/sh"),
+                                         arguments: ["-c", "trap '' TERM; while :; do :; done"], timeout: 0.1)
+        if case .failed(let reason) = outcome {
+            #expect(reason.contains("did not finish"))
+        } else { Issue.record("hung child did not time out") }
+        #expect(ProcessInfo.processInfo.systemUptime - start < 3)
+    }
+
+    @Test("the child output is drained without losing its survival marker")
+    func childOutput() {
+        let outcome = FaultTest.runChild(executable: URL(fileURLWithPath: "/bin/sh"),
+                                         arguments: ["-c", "printf 'SILICON_AUDIT_FAULT_CHILD storing\\nSILICON_AUDIT_FAULT_CHILD survived\\n'"])
+        #expect(outcome == .survived(exitStatus: 0))
+    }
+
     @Test("the fault-test fact maps outcomes to states")
     func faultFact() {
         #expect(FaultTest.fact(for: .tagCheckKill, entitlement: .declared).state == .present)

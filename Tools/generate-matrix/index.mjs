@@ -98,6 +98,12 @@ for (const file of walk(resultsDir)) {
   if (dirName !== doc.device.identity) problems.push(`${rel}: directory '${dirName}' does not match device.identity '${doc.device.identity}'`);
   if (!new RegExp(`^${build.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}-\\d+$`).test(fileName)) problems.push(`${rel}: file name must be '${build}-<n>.json' (os_build followed by a sequence number)`);
   if (doc.variant === "compact") problems.push(`${rel}: compact exports are for QR/sharing; submit the full export`);
+  // IDs drive lookups and SwiftUI identity. Duplicates must not hide a contradictory reading.
+  const ids = new Set();
+  for (const f of [...doc.facts, ...doc.unrecognized_keys]) {
+    if (ids.has(f.id)) problems.push(`${rel}: duplicate fact id '${f.id}'`);
+    ids.add(f.id);
+  }
   // Invariants JSON Schema cannot express: a probe never reports more tagged blocks than it sampled.
   for (const f of doc.facts) if (f.probe && f.probe.tagged !== undefined && f.probe.tagged > f.probe.samples) problems.push(`${rel}: fact ${f.id} reports ${f.probe.tagged} tagged of ${f.probe.samples} sampled`);
   results.push({ rel, doc });
@@ -116,7 +122,9 @@ function factState(doc, id) { return findFact(doc, id)?.state; }
 // between configurations of the same identity.
 function comparable(fact) {
   if (!fact) return "(missing)";
-  return fact.kind === "unknown" && fact.state === "value" ? `value=${JSON.stringify(fact.raw?.value)}` : fact.state;
+  return fact.kind === "unknown" && fact.state === "value"
+    ? JSON.stringify({ value: fact.raw?.value, value_hex: fact.raw?.value_hex, length: fact.raw?.length })
+    : fact.state;
 }
 // State for a matrix column: the canonical key, or a legacy alias when the canonical key is not
 // registered on that kernel. Returns { state, viaAlias }.
@@ -130,7 +138,7 @@ function columnState(doc, id) {
   return { state: s, viaAlias: null };
 }
 const groups = new Map();
-for (const r of results) {
+for (const r of results.filter(accepted)) {
   const key = `${r.doc.device.identity}|${r.doc.environment.os_build}`;
   if (!groups.has(key)) groups.set(key, []);
   groups.get(key).push(r);
@@ -226,10 +234,10 @@ function selfTestNote(doc) {
   const tags = doc.facts.find((f) => f.id === "self_test.tagged_pointers");
   const fault = doc.facts.find((f) => f.id === "self_test.tag_check_fault");
   if (!tags && !fault) return "";
-  const word = (f) => ({ present: "yes", not_present: "no", not_applicable: "no hardware" }[f.state] ?? f.state);
+  const word = (f) => ({ present: "yes", not_present: "no", not_applicable: "not applicable" }[f.state] ?? f.state);
   let s = `; self-test of the exporting app: tagging ${tags ? word(tags) : "not run"}`;
   if (tags?.probe?.samples !== undefined) s += ` (${tags.probe.tagged}/${tags.probe.samples} tagged, entitlement ${tags.probe.entitlement})`;
-  if (fault) s += `, tag-mismatch fault ${fault.state === "present" ? `stopped it (signal ${fault.probe?.child_signal})` : fault.state === "error" ? "inconclusive" : word(fault)}`;
+  if (fault) s += `, tag-mismatch fault ${fault.state === "present" ? `child stopped after store announcement (signal ${fault.probe?.child_signal}; cause needs crash report)` : fault.state === "error" ? "inconclusive" : word(fault)}`;
   return s;
 }
 
@@ -284,17 +292,18 @@ function htmlTable(md) {
 }
 const site = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Silicon Audit results</title>
+<link rel="icon" href="logo.svg" type="image/svg+xml">
 <style>
 :root{color-scheme:light dark;font-family:-apple-system,system-ui,sans-serif;line-height:1.45}
 body{margin:0 auto;max-width:1200px;padding:24px}
-h1{font-size:1.6rem}h2{font-size:1.2rem;margin-top:2rem}
+h1{font-size:1.6rem;display:flex;align-items:center;gap:12px}h1 img{width:64px;height:64px}h2{font-size:1.2rem;margin-top:2rem}
 .scroll{overflow-x:auto}table{border-collapse:collapse;font-size:.9rem;white-space:nowrap}
 th,td{border-bottom:1px solid color-mix(in srgb,currentColor 20%,transparent);padding:6px 10px;text-align:left}
 th{position:sticky;top:0;background:Canvas}
 td:nth-child(n+5){text-align:center;font-size:1.05rem}
 .legend{font-size:.9rem;opacity:.85}code{font-size:.9em}
 </style></head><body>
-<h1>Silicon Audit results</h1>
+<h1><img src="logo.svg" alt="">Silicon Audit results</h1>
 <p class="legend">Generated ${now} from ${rows.length} accepted result(s). ● reported present · ○ reported off · – key absent · ⊘ restricted · × not applicable · ! error · ? unknown · ᴬ via legacy armv8_* alias · ⚠ conflict. <strong>Measured</strong> = the kernel on that device reported it. <strong>Documented</strong> = Apple's published table applied through the inferred chip family, per the newest documentation data among that device's results. Source and contribution guide: <a href="https://github.com/unredacted/apple-silicon-audit">github.com/unredacted/apple-silicon-audit</a>.</p>
 <h2>Measured security flags</h2><div class="scroll">${htmlTable(measuredTable(rows))}</div>
 <h2>Apple's documented protections, by chip family</h2><div class="scroll">${htmlTable(documentedTable(rows))}</div>
@@ -303,7 +312,7 @@ td:nth-child(n+5){text-align:center;font-size:1.05rem}
 </body></html>
 `;
 
-if (write) {
+if (write && !problems.length) {
   writeFileSync(outMatrix, matrix);
   writeFileSync(outSite, site);
   console.log(`wrote ${outMatrix} and ${outSite}`);

@@ -9,16 +9,19 @@ public enum CompactExport {
         case compressionFailed
         case decompressionFailed
         case invalidBase45
+        case sizeLimitExceeded
     }
 
     public static func encode(_ report: Report) throws -> String {
         let json = try report.compact().jsonData(pretty: false)
+        guard json.count <= Report.maximumJSONBytes else { throw Error.sizeLimitExceeded }
         let compressed = try compress(json)
         return Base45.encode(compressed)
     }
 
     public static func decode(_ text: String) throws -> Report {
         guard !text.isEmpty else { throw Error.invalidBase45 }
+        guard text.utf8.count <= Report.maximumJSONBytes * 2 else { throw Error.sizeLimitExceeded }
         let compressed = try Base45.decode(text)
         guard !compressed.isEmpty else { throw Error.decompressionFailed }
         let json = try decompress(compressed)
@@ -30,7 +33,7 @@ public enum CompactExport {
     }
 
     static func decompress(_ data: Data) throws -> Data {
-        try transcode(data, operation: COMPRESSION_STREAM_DECODE, capacity: max(1024, data.count * 8), error: .decompressionFailed)
+        try transcode(data, operation: COMPRESSION_STREAM_DECODE, capacity: 16 * 1024, error: .decompressionFailed)
     }
 
     private static func transcode(_ input: Data, operation: compression_stream_operation, capacity: Int, error: Error) throws -> Data {
@@ -51,9 +54,14 @@ public enum CompactExport {
                     return compression_stream_process(&stream, Int32(COMPRESSION_STREAM_FINALIZE.rawValue))
                 }
                 let produced = capacity - stream.dst_size
+                if operation == COMPRESSION_STREAM_DECODE && output.count + produced > Report.maximumJSONBytes {
+                    throw Error.sizeLimitExceeded
+                }
                 output.append(contentsOf: dst[0..<produced])
                 switch status {
-                case COMPRESSION_STATUS_END: return
+                case COMPRESSION_STATUS_END:
+                    guard stream.src_size == 0 else { throw error }
+                    return
                 case COMPRESSION_STATUS_OK: continue
                 default: throw error
                 }

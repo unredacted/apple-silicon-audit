@@ -17,11 +17,11 @@ enum SelfTestCopy {
         case ("tagged_pointer_observation", .notPresent):
             return String(localized: "None of \(probe.samples ?? 0) heap allocations carried a tag. \(entitlement)", bundle: .module)
         case ("tagged_pointer_observation", .notApplicable):
-            return String(localized: "This kernel reports no memory-tagging hardware, so no process on this device can be tagged.", bundle: .module)
+            return String(localized: "The kernel reports memory tagging as off or not applicable, and no tagged allocations were observed. Kernel flags do not establish the silicon’s capabilities.", bundle: .module)
         case ("child_process_tag_mismatch_store", .present):
-            return String(localized: "A child process that stored past a heap block was killed by signal \(probe.childSignal ?? 0) at the store: the OS stopped the mismatched access.", bundle: .module)
+            return String(localized: "A child process received signal \(probe.childSignal ?? 0) after announcing an out-of-bounds store. This is consistent with a tag-check failure; confirm the cause in its crash report.", bundle: .module)
         case ("child_process_tag_mismatch_store", .notPresent):
-            return String(localized: "A child process stored past a heap block and exited normally: no tag check applied to it. \(entitlement)", bundle: .module)
+            return String(localized: "A child process stored past a heap block and exited normally. This access was not stopped; adjacent allocations can share a tag, so one store cannot establish that enforcement is disabled. \(entitlement)", bundle: .module)
         case (_, .error):
             return String(localized: "The self-test was inconclusive.", bundle: .module)
         default:
