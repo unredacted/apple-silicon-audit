@@ -5,6 +5,11 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+- Change monitoring: the first reading becomes a baseline; checks on launch, on return to the
+  foreground and in the background (`BGAppRefreshTask`, `WKApplication` refresh) record what moved,
+  show it on the Overview and in a Changes screen at two depths (plain sentence, what it could mean,
+  technical before/after), and can post an opt-in local notification. The monitoring screen states
+  what a kernel reading can and cannot catch. `ReportDiff` in core; `silicon-audit diff` in the CLI.
 - Redesign the app around one structure at two depths instead of an Overview/Details mode switch:
   a chip-first summary card with a verdict tally, plain-language checks with the verdict word and its
   source on one line, a "Look deeper" group (or the sidebar) that opens all readings on three shelves,

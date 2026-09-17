@@ -19,5 +19,9 @@ struct SiliconAuditWatchApp: App {
                 bridge.send(report)
             }
         }
+        // Periodic change check (SPEC §6.5), scheduled by the monitor with WKApplication.
+        .backgroundTask(.appRefresh) { _ in
+            await ChangeMonitor.performBackgroundCheck()
+        }
     }
 }

@@ -7,6 +7,8 @@ import SwiftUI
 /// `ShareLink`. Viewing never depends on the phone.
 public struct WatchRootView: View {
     @State private var model: ReportModel
+    @State private var monitor = ChangeMonitor()
+    @Environment(\.scenePhase) private var scenePhase
     let transfer: TransferState
     let send: (Report) -> Void
 
@@ -19,14 +21,27 @@ public struct WatchRootView: View {
     public var body: some View {
         NavigationStack {
             List {
-                OverviewContent(model: model, watchLayout: true, showsReferenceLinks: true)
+                OverviewContent(model: model, watchLayout: true, showsReferenceLinks: true, showsMonitor: true)
                 if let report = model.report {
                     exportSection(report)
                 }
             }
             .navigationTitle("Silicon Audit")
         }
-        .task { if model.report == nil { await model.run() } }
+        .environment(monitor)
+        .task {
+            if model.report == nil { await model.run() }
+            if let report = model.report { await monitor.processInForeground(report) }
+        }
+        .onChange(of: scenePhase) { _, phase in
+            guard phase == .active else { return }
+            monitor.load()
+            guard monitor.isCheckDue(), model.report != nil else { return }
+            Task {
+                await model.run()
+                if let report = model.report { await monitor.processInForeground(report) }
+            }
+        }
     }
 
     @ViewBuilder

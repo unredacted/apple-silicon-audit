@@ -69,6 +69,9 @@ targets:
         NSHumanReadableCopyright: Apache-2.0
         ITSAppUsesNonExemptEncryption: false
         UILaunchScreen: {}
+        # Change monitoring (SPEC §6.5): the system may wake the app for a background refresh.
+        UIBackgroundModes: [fetch]
+        BGTaskSchedulerPermittedIdentifiers: [org.unredacted.silicon-audit.refresh]
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: true
         UIApplicationSupportsIndirectInputEvents: true

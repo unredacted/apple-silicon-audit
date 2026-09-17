@@ -11,8 +11,10 @@ import SwiftUI
 /// (export included, as a QR code); there are no toolbars, sheets, or size classes.
 public struct AuditRootView: View {
     @State private var model: ReportModel
+    @State private var monitor = ChangeMonitor()
     @State private var selection: Route? = .overview
     @State private var showingExport = false
+    @Environment(\.scenePhase) private var scenePhase
     #if !os(tvOS)
     @Environment(\.horizontalSizeClass) private var sizeClass
     #endif
@@ -48,8 +50,24 @@ public struct AuditRootView: View {
             }
             #endif
         }
+        .environment(monitor)
         .task {
             if model.report == nil { await model.run() }
+            if let report = model.report { await monitor.processInForeground(report) }
+        }
+        #if os(macOS)
+        .task { await monitor.periodicChecks(model: model) }
+        #endif
+        .onChange(of: scenePhase) { _, phase in
+            // Coming back to the foreground is a check, at most every 15 minutes; the background
+            // refresh may have advanced the shared files meanwhile, so reload first.
+            guard phase == .active else { return }
+            monitor.load()
+            guard monitor.isCheckDue(), model.report != nil else { return }
+            Task {
+                await model.run()
+                if let report = model.report { await monitor.processInForeground(report) }
+            }
         }
     }
 
@@ -59,7 +77,7 @@ public struct AuditRootView: View {
     private var compactLayout: some View {
         NavigationStack {
             List {
-                OverviewContent(model: model, showsReferenceLinks: true, afterSummary: companion)
+                OverviewContent(model: model, showsReferenceLinks: true, showsMonitor: true, afterSummary: companion)
             }
             .navigationTitle("Silicon Audit")
             .toolbar {
@@ -118,6 +136,10 @@ public struct AuditRootView: View {
                         .tag(Route.measurement)
                     Label(String(localized: "About the data", bundle: .module), systemImage: "info.circle")
                         .tag(Route.aboutData)
+                    ChangesRowLabel(count: monitor.unseenRecords.count)
+                        .tag(Route.changes)
+                    Label(String(localized: "Change monitoring", bundle: .module), systemImage: "bell.badge")
+                        .tag(Route.monitor)
                     #if os(tvOS)
                     Label(String(localized: "Export", bundle: .module), systemImage: "qrcode")
                         .tag(Route.export)
@@ -148,6 +170,10 @@ public struct AuditRootView: View {
                     MeasurementView(model: model)
                 case .aboutData:
                     AboutDataView(report: report)
+                case .changes:
+                    ChangesView()
+                case .monitor:
+                    MonitorView(model: model)
                 case .export:
                     #if os(tvOS)
                     ExportView(model: model)
@@ -176,7 +202,7 @@ public struct AuditRootView: View {
 
     private var overviewList: some View {
         List {
-            OverviewContent(model: model, showsReferenceLinks: false, afterSummary: companion)
+            OverviewContent(model: model, showsReferenceLinks: false, showsMonitor: true, afterSummary: companion)
         }
         .frame(maxWidth: 820)
         .navigationTitle(String(localized: "Overview", bundle: .module))

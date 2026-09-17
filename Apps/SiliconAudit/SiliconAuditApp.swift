@@ -29,7 +29,13 @@ struct SiliconAuditApp: App {
             AuditRootView()
             #endif
         }
-        #if os(macOS)
+        // Periodic change check (SPEC §6.5): the system wakes the app, the monitor compares a
+        // fresh audit with the stored baseline and notifies if anything moved.
+        #if !os(macOS)
+        .backgroundTask(.appRefresh(ChangeMonitor.refreshTaskID)) {
+            await ChangeMonitor.performBackgroundCheck()
+        }
+        #else
         .defaultSize(width: 960, height: 680)
         .commands {
             CommandGroup(replacing: .newItem) {}

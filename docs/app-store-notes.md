@@ -14,7 +14,7 @@ and publication date, clearly labeled as documentation rather than measurement.
 
 - No network access of any kind. No analytics, no crash reporting SDKs.
 - Nothing about the device is stored between launches; the only persisted value is the user's
-  launch arguments read through UserDefaults, plus watch reports the user chose to transfer.
+  launch arguments and the monitor's notification preference read through UserDefaults; the change monitor's baseline and history in Application Support, plus watch reports the user chose to transfer.
 - Export happens only on an explicit user action (share sheet, Save panel, copy).
 - The export contains no serial number, UDID, identifierForVendor, hostname, boot time, account,
   or location. The set of keys that may appear is a fixed allowlist; `kern.hostname`,

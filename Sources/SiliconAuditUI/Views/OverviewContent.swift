@@ -7,6 +7,9 @@ import SwiftUI
 public struct OverviewContent: View {
     let model: ReportModel
     let watchLayout: Bool
+    /// The device's own report shows the monitor's cards and rows; a received report does not.
+    let showsMonitor: Bool
+    @Environment(ChangeMonitor.self) private var monitor: ChangeMonitor?
     /// Compact widths and the watch show the reference screens here; the split view lists them
     /// in its sidebar instead.
     let showsReferenceLinks: Bool
@@ -14,9 +17,10 @@ public struct OverviewContent: View {
     /// "From Apple Watch" section). The device's own results always come first.
     let afterSummary: (() -> AnyView)?
 
-    public init(model: ReportModel, watchLayout: Bool = false, showsReferenceLinks: Bool = true, afterSummary: (() -> AnyView)? = nil) {
+    public init(model: ReportModel, watchLayout: Bool = false, showsReferenceLinks: Bool = true, showsMonitor: Bool = false, afterSummary: (() -> AnyView)? = nil) {
         self.model = model
         self.watchLayout = watchLayout
+        self.showsMonitor = showsMonitor
         self.showsReferenceLinks = showsReferenceLinks
         self.afterSummary = afterSummary
     }
@@ -36,6 +40,21 @@ public struct OverviewContent: View {
                     }
                     .listRowInsets(EdgeInsets())
                     .listRowBackground(Color.clear)
+                }
+            }
+            if showsMonitor, let monitor {
+                if !monitor.unseenRecords.isEmpty {
+                    Section {
+                        ChangesCard(records: monitor.unseenRecords)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
+                } else if monitor.hasBaseline, !monitor.promptDismissed, !watchLayout, monitor.authorization == .notDetermined {
+                    Section {
+                        MonitorPromptCard(monitor: monitor)
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                    }
                 }
             }
             if let afterSummary { afterSummary() }
@@ -79,6 +98,14 @@ public struct OverviewContent: View {
                     NavigationLink { AboutDataView(report: report) } label: {
                         Label(String(localized: "About the data", bundle: .module), systemImage: "info.circle")
                     }
+                    if showsMonitor, let monitor {
+                        NavigationLink { ChangesView() } label: {
+                            ChangesRowLabel(count: monitor.unseenRecords.count)
+                        }
+                        NavigationLink { MonitorView(model: model) } label: {
+                            Label(String(localized: "Change monitoring", bundle: .module), systemImage: "bell.badge")
+                        }
+                    }
                 } header: {
                     Text(String(localized: "Look deeper", bundle: .module))
                 } footer: {
@@ -96,6 +123,27 @@ public struct OverviewContent: View {
 
     static func versionFooter(for report: Report) -> String {
         String(localized: "Inventory \(report.collection.knownKeysVersion ?? "unknown"), engine \(report.appVersion).", bundle: .module)
+    }
+}
+
+/// "Changes" with a count of the ones not yet opened, shared by the sidebar and Look deeper.
+struct ChangesRowLabel: View {
+    let count: Int
+
+    var body: some View {
+        HStack {
+            Label(String(localized: "Changes", bundle: .module), systemImage: "clock.arrow.2.circlepath")
+            if count > 0 {
+                Spacer(minLength: 8)
+                Text("\(count)")
+                    .font(.caption.weight(.semibold).monospacedDigit())
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .foregroundStyle(.white)
+                    .background(.orange, in: Capsule())
+                    .accessibilityLabel(Text(String(localized: "\(count) new", bundle: .module)))
+            }
+        }
     }
 }
 
