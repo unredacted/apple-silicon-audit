@@ -198,6 +198,17 @@ struct ExportTests {
     @Test("imports reject incompatible schemas and duplicate fact IDs")
     func invalidImports() throws {
         var report = try ReportTests.auditor().audit()
+        // A newer minor of the same major may carry fields or values this model cannot interpret (SPEC §8).
+        report.schemaVersion = "1.2.0"
+        #expect(throws: Report.ImportError.self) { try Report.decode(try report.jsonData()) }
+        // Older files of the same major decode; the patch component is ignored.
+        for accepted in ["1.0.0", "1.1.0", "1.1.9"] {
+            report.schemaVersion = accepted
+            #expect(throws: Never.self, "\(accepted) should decode") { try Report.decode(try report.jsonData()) }
+        }
+        for rejected in ["0.9.0", "1.1", "1.a.0", "", "1.1.0.0"] {
+            #expect(!Report.accepts(schemaVersion: rejected), "\(rejected) should be refused")
+        }
         report.schemaVersion = "2.0.0"
         #expect(throws: Report.ImportError.unsupportedSchema("2.0.0")) { try Report.decode(report.jsonData()) }
         report.schemaVersion = Report.schemaVersion

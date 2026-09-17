@@ -287,7 +287,7 @@ public struct Report: Codable, Equatable, Sendable {
     public static func decode(_ data: Data) throws -> Report {
         guard data.count <= maximumJSONBytes else { throw ImportError.sizeLimitExceeded }
         let report = try JSONDecoder().decode(Report.self, from: data)
-        guard report.schemaVersion.range(of: #"^1\.[0-9]+\.[0-9]+$"#, options: .regularExpression) != nil else {
+        guard Report.accepts(schemaVersion: report.schemaVersion) else {
             throw ImportError.unsupportedSchema(report.schemaVersion)
         }
         guard ["full", "compact"].contains(report.variant) else { throw ImportError.invalidVariant(report.variant) }
@@ -296,6 +296,22 @@ public struct Report: Codable, Equatable, Sendable {
             guard ids.insert(fact.id).inserted else { throw ImportError.duplicateFactID(fact.id) }
         }
         return report
+    }
+
+    /// SPEC §8 versioning policy: a reader accepts files whose `schema_version` is at most its own
+    /// within the same major. A newer minor may add fields or enum values this model cannot
+    /// interpret, and optional additions would decode silently, so `1.2.0` is refused by a `1.1.x`
+    /// reader; the patch component never changes meaning and is ignored.
+    public static func accepts(schemaVersion: String) -> Bool {
+        guard let file = components(of: schemaVersion), let own = components(of: Report.schemaVersion) else { return false }
+        return file.major == own.major && file.minor <= own.minor
+    }
+
+    static func components(of version: String) -> (major: Int, minor: Int, patch: Int)? {
+        let parts = version.split(separator: ".", omittingEmptySubsequences: false)
+        guard parts.count == 3, let major = Int(parts[0]), let minor = Int(parts[1]), let patch = Int(parts[2]),
+              parts.allSatisfy({ !$0.isEmpty && $0.allSatisfy(\.isNumber) }) else { return nil }
+        return (major, minor, patch)
     }
 
     /// Categories the compact variant keeps: the security-relevant groups plus device identity.
