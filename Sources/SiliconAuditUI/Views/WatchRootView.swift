@@ -35,8 +35,10 @@ public struct WatchRootView: View {
         }
         .onChange(of: scenePhase) { _, phase in
             guard phase == .active else { return }
-            monitor.load()
-            guard monitor.isCheckDue(), model.report != nil else { return }
+            // A background check may have advanced the shared files while this scene was
+            // suspended; its report is then newer than the one on screen, so read again.
+            let advanced = monitor.load()
+            guard advanced || monitor.isCheckDue(), model.report != nil else { return }
             Task {
                 await model.run()
                 if let report = model.report { await monitor.processInForeground(report) }

@@ -49,7 +49,7 @@ public struct OverviewContent: View {
                             .listRowInsets(EdgeInsets())
                             .listRowBackground(Color.clear)
                     }
-                } else if monitor.hasBaseline, !monitor.promptDismissed, !watchLayout, monitor.authorization == .notDetermined {
+                } else if showsInvitation(monitor) {
                     Section {
                         MonitorPromptCard(monitor: monitor)
                             .listRowInsets(EdgeInsets())
@@ -115,6 +115,16 @@ public struct OverviewContent: View {
         } else {
             LoadingRow()
         }
+    }
+
+    /// The one-time notification invitation: once a baseline exists, until answered, never on
+    /// the watch's small screen, and never on Apple TV, which has no notifications.
+    private func showsInvitation(_ monitor: ChangeMonitor) -> Bool {
+        #if os(tvOS)
+        return false
+        #else
+        return monitor.hasBaseline && !monitor.promptDismissed && !watchLayout && monitor.authorization == .notDetermined
+        #endif
     }
 
     static var provenanceFooter: String {

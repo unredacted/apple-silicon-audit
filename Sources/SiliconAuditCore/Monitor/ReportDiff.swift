@@ -38,7 +38,10 @@ public struct ReportDiff: Codable, Equatable, Sendable {
         public var name: String { displayName ?? id }
     }
 
+    /// The current report's device identity.
     public var identity: String
+    /// The baseline report's device identity; differs from `identity` only when `identityChanged`.
+    public var baselineIdentity: String
     /// True when the two reports describe different devices; the fact list is then empty and
     /// the caller should start a new baseline instead of reading the diff.
     public var identityChanged: Bool
@@ -55,6 +58,7 @@ public struct ReportDiff: Codable, Equatable, Sendable {
     enum CodingKeys: String, CodingKey {
         case identity, changes
         case identityChanged = "identity_changed"
+        case baselineIdentity = "baseline_identity"
         case baselineCollectedAt = "baseline_collected_at"
         case currentCollectedAt = "current_collected_at"
         case osBuildBefore = "os_build_before"
@@ -85,6 +89,7 @@ public struct ReportDiff: Codable, Equatable, Sendable {
     public static func compare(baseline: Report, current: Report, inventory: KnownKeyInventory? = DataStore.shared.knownKeys,
                                ignoring volatile: Set<String> = ReportDiff.volatileKeys) -> ReportDiff {
         var diff = ReportDiff(identity: current.device.identity,
+                              baselineIdentity: baseline.device.identity,
                               identityChanged: baseline.device.identity != current.device.identity,
                               baselineCollectedAt: baseline.collectedAt, currentCollectedAt: current.collectedAt,
                               osBuildBefore: baseline.environment.osBuild, osBuildAfter: current.environment.osBuild,
@@ -142,7 +147,7 @@ public struct ReportDiff: Codable, Equatable, Sendable {
 
     /// One technical line, for the CLI and logs.
     public var summary: String {
-        if identityChanged { return "Different device: baseline is \(identity), comparison skipped." }
+        if identityChanged { return "Different device: baseline is \(baselineIdentity), this reading is \(identity); comparison skipped." }
         var parts: [String] = []
         if osChanged { parts.append("OS build \(osBuildBefore) → \(osBuildAfter)") }
         if changes.isEmpty {

@@ -27,7 +27,7 @@ public struct MonitorView: View {
         @Bindable var monitor = monitor
         List {
             Section {
-                LabeledContent(String(localized: "Baseline recorded", bundle: .module), value: monitor.baselineRecordedAt.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "Not yet", bundle: .module))
+                LabeledContent(String(localized: "Baseline reading", bundle: .module), value: monitor.baselineRecordedAt.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "Not yet", bundle: .module))
                 LabeledContent(String(localized: "Last check", bundle: .module), value: monitor.lastCheckAt.map { $0.formatted(date: .abbreviated, time: .shortened) } ?? String(localized: "Not yet", bundle: .module))
                 if let baseline = monitor.baseline {
                     LabeledContent(String(localized: "Baseline system", bundle: .module), value: "\(baseline.environment.osVersion) (\(baseline.environment.osBuild))")

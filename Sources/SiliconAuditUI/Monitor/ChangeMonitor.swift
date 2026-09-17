@@ -96,12 +96,17 @@ public final class ChangeMonitor {
 
     // MARK: - Persistence
 
-    public func load() {
+    /// Reads the shared files. Returns true when another instance (a background check) has
+    /// advanced them since this one last loaded or saved, so the caller knows its report is stale.
+    @discardableResult
+    public func load() -> Bool {
+        let previous = lastCheckAt
         baseline = (try? Data(contentsOf: baselineURL)).flatMap { try? Report.decode($0) }
         let state = (try? Data(contentsOf: stateURL)).flatMap { try? ChangeMonitor.decoder.decode(State.self, from: $0) } ?? State()
         baselineRecordedAt = state.baselineRecordedAt
         lastCheckAt = state.lastCheckAt
         records = state.records.sorted { $0.detectedAt > $1.detectedAt }
+        return previous != nil && lastCheckAt != previous
     }
 
     private func save() {
@@ -131,20 +136,19 @@ public final class ChangeMonitor {
 
     /// Compares `report` with the baseline. The first report becomes the baseline; a report from
     /// another device replaces it. Returns the diff when something changed, nil otherwise, and in
-    /// every case the report becomes the new baseline so the next check sees only new changes.
+    /// every case the report becomes the new baseline, so the next check compares with the most
+    /// recent reading and a change's "earlier reading" is the one it really differs from.
     @discardableResult
     public func process(_ report: Report, now: Date = Date()) -> ReportDiff? {
         lastCheckAt = now
-        defer { save() }
-        guard let baseline else {
-            self.baseline = report
+        defer {
+            baseline = report
             baselineRecordedAt = now
-            return nil
+            save()
         }
+        guard let baseline else { return nil }
         let diff = ReportDiff.compare(baseline: baseline, current: report)
         if diff.identityChanged {
-            self.baseline = report
-            baselineRecordedAt = now
             records = []
             return nil
         }
@@ -152,8 +156,6 @@ public final class ChangeMonitor {
         let record = Record(id: ChangeMonitor.recordID(now), detectedAt: now, diff: diff, seen: false)
         records.insert(record, at: 0)
         if records.count > ChangeMonitor.maxRecords { records.removeLast(records.count - ChangeMonitor.maxRecords) }
-        self.baseline = report
-        baselineRecordedAt = now
         return diff
     }
 
@@ -262,9 +264,15 @@ public final class ChangeMonitor {
         }
     }
 
+    /// One check at a time across every monitor instance in the process: a background wake and
+    /// a foreground activation can overlap, and both read and write the same files.
+    static let lock = AsyncLock()
+
     /// The whole background check: a fresh monitor over the shared files, a fresh audit, compare,
     /// notify, reschedule. Runs from the scene's `backgroundTask` handler.
     public static func performBackgroundCheck() async {
+        await lock.acquire()
+        defer { Task { await lock.release() } }
         let monitor = ChangeMonitor()
         let report = await Task.detached(priority: .utility) { Auditor().audit() }.value
         if let diff = monitor.process(report) {
@@ -273,12 +281,38 @@ public final class ChangeMonitor {
         scheduleBackgroundRefresh()
     }
 
-    /// The foreground check after a report loads: compare, notify (the in-app card shows too),
-    /// and ask for the next background refresh.
+    /// The foreground check after a report loads: reload the shared files in case a background
+    /// check advanced them, compare, notify (the in-app card shows too), and ask for the next
+    /// background refresh.
     public func processInForeground(_ report: Report) async {
+        await ChangeMonitor.lock.acquire()
+        defer { Task { await ChangeMonitor.lock.release() } }
+        load()
         if let diff = process(report) {
             await notify(diff)
         }
         ChangeMonitor.scheduleBackgroundRefresh()
+    }
+}
+
+/// A non-reentrant async mutex: `acquire` suspends until the previous holder calls `release`.
+actor AsyncLock {
+    private var busy = false
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    func acquire() async {
+        if !busy {
+            busy = true
+            return
+        }
+        await withCheckedContinuation { waiters.append($0) }
+    }
+
+    func release() {
+        if waiters.isEmpty {
+            busy = false
+        } else {
+            waiters.removeFirst().resume()
+        }
     }
 }

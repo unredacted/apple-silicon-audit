@@ -32,6 +32,7 @@ struct ChangeMonitorTests {
         #expect(monitor.isCheckDue(now: t0.addingTimeInterval(ChangeMonitor.foregroundInterval)))
         #expect(monitor.process(try makeReport(), now: t0.addingTimeInterval(100)) == nil)
         #expect(monitor.records.isEmpty)
+        #expect(monitor.baselineRecordedAt == t0.addingTimeInterval(100), "a quiet check still advances the baseline to the latest reading")
     }
 
     @Test("a changed reading is recorded, advances the baseline, and survives a reload")

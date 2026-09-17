@@ -65,6 +65,8 @@ struct ReportDiffTests {
         let b = try Self.report { $0.replacingOccurrences(of: "hw.product: Mac17,7", with: "hw.product: Mac16,1") }
         let diff = ReportDiff.compare(baseline: a, current: b, inventory: Self.data.knownKeys)
         #expect(diff.identityChanged)
+        #expect(diff.baselineIdentity == "Mac17,7" && diff.identity == "Mac16,1")
+        #expect(diff.summary.contains("baseline is Mac17,7"))
         #expect(diff.changes.isEmpty)
         #expect(!diff.isEmpty)
     }

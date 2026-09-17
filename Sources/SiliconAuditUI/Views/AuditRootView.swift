@@ -62,8 +62,10 @@ public struct AuditRootView: View {
             // Coming back to the foreground is a check, at most every 15 minutes; the background
             // refresh may have advanced the shared files meanwhile, so reload first.
             guard phase == .active else { return }
-            monitor.load()
-            guard monitor.isCheckDue(), model.report != nil else { return }
+            // A background check may have advanced the shared files while this scene was
+            // suspended; its report is then newer than the one on screen, so read again.
+            let advanced = monitor.load()
+            guard advanced || monitor.isCheckDue(), model.report != nil else { return }
             Task {
                 await model.run()
                 if let report = model.report { await monitor.processInForeground(report) }

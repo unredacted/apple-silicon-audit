@@ -342,16 +342,21 @@ struct Diff: ParsableCommand {
         } else {
             after = Auditor(data: data).audit()
         }
+        // A compact export omits most measured facts on purpose; diffing it against a full one
+        // would report every omission as a change.
+        guard before.variant == after.variant else {
+            throw ValidationError("Cannot compare a \(before.variant) export with a \(after.variant) one; export both the same way.")
+        }
         let diff = ReportDiff.compare(baseline: before, current: after, inventory: data.knownKeys)
         if json {
             let encoder = JSONEncoder()
             encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
             print(String(decoding: try encoder.encode(diff), as: UTF8.self))
-            return
+        } else {
+            print("\(diff.identity): \(diff.summary)")
         }
-        print("\(diff.identity): \(diff.summary)")
         if diff.identityChanged { throw ExitCode(2) }
-        for change in diff.changes {
+        for change in diff.changes where !json {
             let tag = change.securityRelevant ? "SECURITY " : "         "
             let key = change.key.map { " (\($0))" } ?? ""
             print("  \(tag)\(change.kind.rawValue.padding(toLength: 13, withPad: " ", startingAt: 0)) \(change.name)\(key): \(change.technicalTransition)")
