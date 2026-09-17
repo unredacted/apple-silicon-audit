@@ -107,11 +107,14 @@ public final class ReportModel {
         return (flags.filter { $0.state == .present }.count, flags.count)
     }
 
-    /// How the device-scope Overview topics came out, for the hero card's at-a-glance line.
+    /// How the Overview's checks came out, for the hero card's at-a-glance line. Counts exactly
+    /// what the Overview renders: every device topic, plus the process topics when the report
+    /// carries a self-test for them (imported and fixture reports may not).
     public var overviewTally: [TopicVerdict.Level: Int] {
         guard let report else { return [:] }
         var tally: [TopicVerdict.Level: Int] = [:]
-        for topic in Topic.deviceTopics {
+        let topics = Topic.deviceTopics + (OverviewList.hasContent(.process, in: report) ? Topic.processTopics : [])
+        for topic in topics {
             tally[topic.verdict(in: report).level, default: 0] += 1
         }
         return tally

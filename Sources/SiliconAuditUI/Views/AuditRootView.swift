@@ -154,7 +154,9 @@ public struct AuditRootView: View {
                     #else
                     overviewList
                     #endif
-                case .overview, .allReadings:
+                case .allReadings:
+                    AllReadingsView(model: model)
+                case .overview:
                     overviewList
                 }
             } else {

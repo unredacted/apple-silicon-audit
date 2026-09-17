@@ -42,7 +42,8 @@ public struct MeasurementView: View {
 
                 Section {
                     LabeledContent(String(localized: "Facts", bundle: .module), value: "\(model.factCount)")
-                    LabeledContent(String(localized: "Measured", bundle: .module), value: "\(report.measuredFacts.count)")
+                    // Keys the inventory does not know are measured too; they live in `unrecognizedKeys`.
+                    LabeledContent(String(localized: "Measured", bundle: .module), value: "\(report.measuredFacts.count + report.unrecognizedKeys.filter { $0.provenance == .measured }.count)")
                     LabeledContent(String(localized: "Documented by Apple", bundle: .module), value: "\(report.documentedFacts.count)")
                     LabeledContent(String(localized: "Inferred", bundle: .module), value: "\(report.inferredFacts.count)")
                     LabeledContent(String(localized: "New keys not in the inventory", bundle: .module), value: "\(report.unrecognizedKeys.count)")
