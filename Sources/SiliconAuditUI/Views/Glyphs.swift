@@ -127,21 +127,91 @@ public enum ProvenanceStyle {
         case .unknown: return String(localized: "Neither measured, documented, nor inferable.", bundle: .module)
         }
     }
+
+    /// Where an answer came from, in a sentence a non-specialist can use.
+    public static func plainSource(_ p: Provenance, source: FactSource?) -> String {
+        switch p {
+        case .measured: return String(localized: "Measured on this device", bundle: .module)
+        case .documented:
+            if let source { return String(localized: "Apple's documentation, \(source.published)", bundle: .module) }
+            return String(localized: "Apple's documentation", bundle: .module)
+        case .inferred: return String(localized: "Inferred by this app", bundle: .module)
+        case .unknown: return String(localized: "Not determinable", bundle: .module)
+        }
+    }
 }
 
-/// Compact capsule badge with icon and text.
+/// Verdict words share one look everywhere (SPEC §6.4): a glyph, the word, and a tint that is
+/// never the only signal. "No" and "Unknown" stay neutral: an older chip that lacks a protection
+/// is a fact, not an alarm.
+public enum VerdictStyle {
+    public static func symbol(_ level: TopicVerdict.Level) -> String {
+        switch level {
+        case .yes: return "checkmark.circle.fill"
+        case .partial: return "circle.lefthalf.filled"
+        case .no: return "xmark.circle"
+        case .unknown: return "questionmark.circle"
+        }
+    }
+
+    public static func tint(_ level: TopicVerdict.Level) -> Color {
+        switch level {
+        case .yes: return .green
+        case .partial: return .orange
+        case .no: return .secondary
+        case .unknown: return .secondary
+        }
+    }
+
+    /// Lower-case word for tallies ("5 yes, 1 partial").
+    public static func word(_ level: TopicVerdict.Level) -> String {
+        switch level {
+        case .yes: return String(localized: "yes", bundle: .module)
+        case .partial: return String(localized: "partial", bundle: .module)
+        case .no: return String(localized: "no", bundle: .module)
+        case .unknown: return String(localized: "unknown", bundle: .module)
+        }
+    }
+
+    public static let order: [TopicVerdict.Level] = [.yes, .partial, .no, .unknown]
+}
+
+/// Capsule badge: glyph plus text on a soft tint. Used for provenance and for verdicts so the two
+/// kinds of badge read as one family.
+struct CapsuleBadge: View {
+    let text: String
+    let symbol: String
+    let tint: Color
+
+    var body: some View {
+        Label(text, systemImage: symbol)
+            .font(.caption.weight(.semibold))
+            .labelStyle(.titleAndIcon)
+            .lineLimit(1)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .foregroundStyle(tint)
+            .background(tint.opacity(0.14), in: Capsule())
+    }
+}
+
 public struct ProvenanceBadge: View {
     let provenance: Provenance
     public init(_ provenance: Provenance) { self.provenance = provenance }
 
     public var body: some View {
-        Label(ProvenanceStyle.label(provenance), systemImage: ProvenanceStyle.symbol(provenance))
-            .font(.caption2.weight(.medium))
-            .labelStyle(.titleAndIcon)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(.quaternary, in: Capsule())
+        CapsuleBadge(text: ProvenanceStyle.label(provenance), symbol: ProvenanceStyle.symbol(provenance), tint: .secondary)
             .accessibilityLabel(Text("\(ProvenanceStyle.label(provenance)). \(ProvenanceStyle.explanation(provenance))"))
+    }
+}
+
+/// Verdict word with a glyph; never color alone.
+public struct VerdictBadge: View {
+    let verdict: TopicVerdict
+    public init(_ verdict: TopicVerdict) { self.verdict = verdict }
+
+    public var body: some View {
+        CapsuleBadge(text: verdict.word, symbol: VerdictStyle.symbol(verdict.level), tint: VerdictStyle.tint(verdict.level))
     }
 }
 
@@ -154,5 +224,32 @@ public struct StateGlyph: View {
             .foregroundStyle(StateStyle.tint(state))
             .imageScale(.large)
             .accessibilityHidden(true)   // the row carries the text label
+    }
+}
+
+/// A symbol on a soft rounded tile, the way Settings marks its rows. One fixed size per platform
+/// so every row's text starts on the same column.
+struct IconTile: View {
+    let symbol: String
+    var tint: Color = .accentColor
+
+    private var side: CGFloat {
+        #if os(watchOS)
+        28
+        #elseif os(tvOS)
+        56
+        #else
+        36
+        #endif
+    }
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.body.weight(.medium))
+            .imageScale(.medium)
+            .foregroundStyle(tint)
+            .frame(width: side, height: side)
+            .background(tint.opacity(0.14), in: RoundedRectangle(cornerRadius: side * 0.28, style: .continuous))
+            .accessibilityHidden(true)
     }
 }

@@ -1,37 +1,37 @@
 import SiliconAuditCore
 import SwiftUI
 
-/// One fact in a list: glyph, name, state label, provenance badge. Tapping opens the detail.
+/// One fact in a list: state glyph, name, then "state · provenance" on one quiet line, with a
+/// short value at the trailing edge for non-flag readings. Every row shares the same columns.
 public struct FactRow: View {
     let fact: Fact
     public init(_ fact: Fact) { self.fact = fact }
 
     public var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             StateGlyph(fact.state)
-                .frame(width: 24)
-            VStack(alignment: .leading, spacing: 3) {
+                .frame(width: 28)
+            VStack(alignment: .leading, spacing: 2) {
                 Text(fact.displayName ?? fact.id)
                     .font(.body)
-                HStack(spacing: 8) {
-                    Text(StateStyle.label(fact.state, provenance: fact.provenance))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let short = FactRow.shortValue(fact) {
-                        Text(short)
-                            .font(.caption.monospaced())
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
+                Text("\(StateStyle.label(fact.state, provenance: fact.provenance)) · \(Image(systemName: ProvenanceStyle.symbol(fact.provenance))) \(ProvenanceStyle.label(fact.provenance))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
-            Spacer(minLength: 8)
-            ProvenanceBadge(fact.provenance)
+            if let short = FactRow.shortValue(fact) {
+                Spacer(minLength: 12)
+                Text(short)
+                    .font(.callout.monospaced())
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 180, alignment: .trailing)
+            }
         }
         .padding(.vertical, 2)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(fact.displayName ?? fact.id))
-        .accessibilityValue(Text("\(StateStyle.label(fact.state, provenance: fact.provenance)), \(ProvenanceStyle.label(fact.provenance))"))
+        .accessibilityValue(Text("\(StateStyle.label(fact.state, provenance: fact.provenance)), \(ProvenanceStyle.label(fact.provenance))\(FactRow.shortValue(fact).map { ", \($0)" } ?? "")"))
         .accessibilityHint(Text(String(localized: "Opens the raw reading and its provenance.", bundle: .module)))
     }
 

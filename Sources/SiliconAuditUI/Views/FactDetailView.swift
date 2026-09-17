@@ -10,9 +10,11 @@ public struct FactDetailView: View {
     public var body: some View {
         List {
             Section {
-                HStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
                     StateGlyph(fact.state)
-                    VStack(alignment: .leading, spacing: 4) {
+                        .font(.title2)
+                        .frame(width: 32)
+                    VStack(alignment: .leading, spacing: 3) {
                         Text(StateStyle.label(fact.state, provenance: fact.provenance)).font(.headline)
                         if let probe = fact.probe {
                             // Self-test facts explain themselves from the probe: the generic sysctl
@@ -23,16 +25,20 @@ public struct FactDetailView: View {
                         }
                     }
                 }
+                .padding(.vertical, 2)
                 .accessibilityElement(children: .combine)
-                if let description = fact.description {
-                    Text(description)
-                }
-            } header: {
-                Text(fact.displayName ?? fact.id)
             }
 
-            Section(String(localized: "Provenance", bundle: .module)) {
-                HStack {
+            if let description = fact.description {
+                Section {
+                    Text(description)
+                } header: {
+                    Text(String(localized: "What it means", bundle: .module))
+                }
+            }
+
+            Section(String(localized: "Where this comes from", bundle: .module)) {
+                HStack(alignment: .center, spacing: 12) {
                     ProvenanceBadge(fact.provenance)
                     Text(ProvenanceStyle.explanation(fact.provenance)).font(.subheadline).foregroundStyle(.secondary)
                 }
@@ -54,7 +60,7 @@ public struct FactDetailView: View {
                     }
                 }
                 if let discovered = fact.discoveredBy {
-                    LabeledContent(String(localized: "Found by", bundle: .module), value: discoveredLabel(discovered))
+                    LabeledContent(String(localized: "Found", bundle: .module), value: discoveredLabel(discovered))
                 }
             }
 
@@ -134,9 +140,9 @@ public struct FactDetailView: View {
 
     func discoveredLabel(_ d: DiscoveredBy) -> String {
         switch d {
-        case .walk: return String(localized: "MIB walk only", bundle: .module)
-        case .knownList: return String(localized: "By name from the inventory", bundle: .module)
-        case .both: return String(localized: "MIB walk and by name", bundle: .module)
+        case .walk: return String(localized: "Walking the kernel's tree only", bundle: .module)
+        case .knownList: return String(localized: "By name, from the inventory", bundle: .module)
+        case .both: return String(localized: "Walking the kernel's tree and by name", bundle: .module)
         case .selfTest: return String(localized: "Measured inside this process", bundle: .module)
         }
     }

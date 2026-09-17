@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Build the app for a simulator platform, install it on a booted (or the first available) simulator
 # of that platform, and launch it. Extra arguments are passed to the app as launch arguments;
-# `-key value` pairs land in UserDefaults, e.g. `-presentationMode details -initialSelection __export__`.
+# `-key value` pairs land in UserDefaults, e.g. `-initialSelection __export__` or `-initialSelection memory_tagging`.
 # Usage: Scripts/run-simulator.sh <iOS|tvOS|visionOS|watchOS> [launch args...]
 set -euo pipefail
 cd "$(dirname "$0")/.."

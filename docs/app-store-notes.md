@@ -14,7 +14,7 @@ and publication date, clearly labeled as documentation rather than measurement.
 
 - No network access of any kind. No analytics, no crash reporting SDKs.
 - Nothing about the device is stored between launches; the only persisted value is the user's
-  Overview/Details preference (UserDefaults), plus watch reports the user chose to transfer.
+  launch arguments read through UserDefaults, plus watch reports the user chose to transfer.
 - Export happens only on an explicit user action (share sheet, Save panel, copy).
 - The export contains no serial number, UDID, identifierForVendor, hostname, boot time, account,
   or location. The set of keys that may appear is a fixed allowlist; `kern.hostname`,

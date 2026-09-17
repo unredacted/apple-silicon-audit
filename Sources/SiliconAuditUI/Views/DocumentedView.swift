@@ -107,21 +107,20 @@ struct ChainRow: View {
     let detail: String
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             Text("\(step)")
                 .font(.caption.weight(.bold).monospacedDigit())
-                .frame(width: 22, height: 22)
+                .frame(width: 24, height: 24)
                 .background(.quaternary, in: Circle())
                 .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                HStack {
-                    Text(value).font(.body.weight(.medium))
-                    Spacer()
-                    ProvenanceBadge(provenance)
-                }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(value).font(.body.weight(.medium))
                 Text(detail).font(.caption).foregroundStyle(.secondary)
             }
+            Spacer(minLength: 8)
+            ProvenanceBadge(provenance)
         }
+        .padding(.vertical, 2)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(Text("Step \(step), \(title): \(value). \(detail)"))
     }
@@ -138,9 +137,9 @@ public struct AboutDataView: View {
 
     public var body: some View {
         List {
-            Section(String(localized: "Provenance", bundle: .module)) {
+            Section(String(localized: "Three kinds of answer", bundle: .module)) {
                 ForEach([Provenance.measured, .documented, .inferred], id: \.rawValue) { p in
-                    HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .center, spacing: 12) {
                         ProvenanceBadge(p)
                         Text(ProvenanceStyle.explanation(p)).font(.subheadline).foregroundStyle(.secondary)
                     }
@@ -149,10 +148,8 @@ public struct AboutDataView: View {
             if let recorded = report.collection.dataVersions, !recordedMatchesBundle(recorded) {
                 Section {
                     ForEach(recorded.rows, id: \.label) { row in
-                        HStack {
-                            Text(row.label.replacingOccurrences(of: "_", with: " "))
-                            Spacer()
-                            Text(row.date ?? String(localized: "unknown", bundle: .module)).font(.callout.monospacedDigit()).foregroundStyle(.secondary)
+                        LabeledContent(row.label.replacingOccurrences(of: "_", with: " ")) {
+                            Text(row.date ?? String(localized: "unknown", bundle: .module)).font(.callout.monospacedDigit())
                         }
                     }
                 } header: {
@@ -212,12 +209,10 @@ public struct AboutDataView: View {
     }
 
     private func versionRow(_ title: String, _ verified: String, _ detail: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(verified.isEmpty ? "—" : verified).font(.callout.monospacedDigit()).foregroundStyle(.secondary)
-            }
+        LabeledContent {
+            Text(verified.isEmpty ? "—" : verified).font(.callout.monospacedDigit())
+        } label: {
+            Text(title)
             Text(detail).font(.caption).foregroundStyle(.secondary)
         }
         .accessibilityElement(children: .combine)
