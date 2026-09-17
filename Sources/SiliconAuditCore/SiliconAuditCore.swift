@@ -3,7 +3,7 @@ import Foundation
 /// Package-level constants for the probe engine.
 public enum SiliconAuditCore {
     /// App/engine version reported in exports (`app_version`).
-    public static let version = "0.1.0"
+    public static let version = "0.2.0"
 }
 
 /// Header shared by every bundled data file (known keys, caps bits, cpufamily names,
