@@ -68,7 +68,7 @@ public struct WatchRootView: View {
         } header: {
             Text(String(localized: "Export", bundle: .module))
         } footer: {
-            Text(String(localized: "Send to iPhone delivers the full JSON export in the background, even if the phone is out of reach right now. The compact code holds the security-relevant facts and fits a message.", bundle: .module))
+            Text(String(localized: "Send to iPhone delivers the full report in the background, even while the phone is out of reach. The compact code fits a message.", bundle: .module))
         }
     }
 }
