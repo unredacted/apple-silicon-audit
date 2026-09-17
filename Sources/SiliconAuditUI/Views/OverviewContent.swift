@@ -170,7 +170,8 @@ struct WatchSummaryRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text(SummaryCard.chipTitle(for: report)).font(.headline)
-            Text("\(report.device.identity) · \(report.environment.platform) \(report.environment.osVersion)")
+            // The build is the results-database conflict key; two audits of one marketing version can differ.
+            Text("\(report.device.identity) · \(report.environment.platform) \(report.environment.osVersion) (\(report.environment.osBuild))")
                 .font(.caption2).foregroundStyle(.secondary)
             Text(String(localized: "\(summary.present) of \(summary.total) security flags reported present", bundle: .module))
                 .font(.caption)
