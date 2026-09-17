@@ -63,7 +63,7 @@ public struct OverviewContent: View {
             } header: {
                 Text(String(localized: "What this chip protects", bundle: .module))
             } footer: {
-                if !OverviewList.hasContent(.process, in: report) {
+                if !OverviewList.hasContent(.process, in: report), !watchLayout {
                     Text(OverviewContent.provenanceFooter)
                 }
             }
@@ -73,7 +73,11 @@ public struct OverviewContent: View {
                 } header: {
                     Text(String(localized: "What the OS does for this app", bundle: .module))
                 } footer: {
-                    Text(String(localized: "Measured inside this app. It depends on how this build was signed, not on the chip; another app on the same device can differ.", bundle: .module))
+                    if watchLayout {
+                        Text(String(localized: "About this app's build, not the chip.", bundle: .module))
+                    } else {
+                        Text(String(localized: "Measured inside this app. It depends on how this build was signed, not on the chip; another app on the same device can differ.", bundle: .module))
+                    }
                 }
             }
             if showsReferenceLinks {
@@ -82,7 +86,9 @@ public struct OverviewContent: View {
                         Label {
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(String(localized: "All readings", bundle: .module))
-                                Text(String(localized: "\(model.factCount) facts in \(model.sections.count) categories", bundle: .module))
+                                Text(watchLayout
+                                     ? String(localized: "\(model.factCount) facts", bundle: .module)
+                                     : String(localized: "\(model.factCount) facts in \(model.sections.count) categories", bundle: .module))
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                         } icon: {

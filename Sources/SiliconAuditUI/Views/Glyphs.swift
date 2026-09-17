@@ -128,6 +128,18 @@ public enum ProvenanceStyle {
         }
     }
 
+    /// The same, in a few characters for the watch: "Measured", "Apple, 2026-01-28".
+    public static func shortSource(_ p: Provenance, source: FactSource?) -> String {
+        switch p {
+        case .measured: return String(localized: "Measured", bundle: .module)
+        case .documented:
+            if let source { return String(localized: "Apple, \(source.published)", bundle: .module) }
+            return String(localized: "Apple", bundle: .module)
+        case .inferred: return String(localized: "Inferred", bundle: .module)
+        case .unknown: return String(localized: "Unknown", bundle: .module)
+        }
+    }
+
     /// Where an answer came from, in a sentence a non-specialist can use.
     public static func plainSource(_ p: Provenance, source: FactSource?) -> String {
         switch p {

@@ -36,6 +36,36 @@ struct TopicRow: View {
     let verdict: TopicVerdict
 
     var body: some View {
+        content
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(topic.title))
+            .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(ProvenanceStyle.plainSource(verdict.provenance, source: verdict.source))"))
+    }
+
+    @ViewBuilder
+    private var content: some View {
+        #if os(watchOS)
+        // 40–46mm: no tile, the symbol sits in the title line, the verdict and a short source
+        // share one line, and the sentence gets three lines at most.
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .firstTextBaseline, spacing: 5) {
+                Image(systemName: topic.symbol).font(.caption).foregroundStyle(.tint).accessibilityHidden(true)
+                Text(topic.title).font(.headline).lineLimit(2)
+            }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 6) {
+                    VerdictBadge(verdict).fixedSize()
+                    shortSource.lineLimit(1)
+                }
+                VStack(alignment: .leading, spacing: 3) {
+                    VerdictBadge(verdict).fixedSize()
+                    shortSource
+                }
+            }
+            Text(verdict.sentence).font(.caption2).foregroundStyle(.secondary).lineLimit(3)
+        }
+        .padding(.vertical, 2)
+        #else
         HStack(alignment: .top, spacing: 12) {
             IconTile(symbol: topic.symbol)
                 .padding(.top, 1)
@@ -44,10 +74,7 @@ struct TopicRow: View {
                     .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 // Verdict and source side by side when they fit, stacked when they do not; the
-                // verdict itself never truncates. The watch is always too narrow for the pair.
-                #if os(watchOS)
-                stackedVerdict
-                #else
+                // verdict itself never truncates.
                 ViewThatFits(in: .horizontal) {
                     HStack(alignment: .center, spacing: 8) {
                         VerdictBadge(verdict).fixedSize()
@@ -55,18 +82,22 @@ struct TopicRow: View {
                     }
                     stackedVerdict
                 }
-                #endif
                 Text(verdict.sentence)
-                    .font(sentenceFont)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 4)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(topic.title))
-        .accessibilityValue(Text("\(verdict.word). \(verdict.sentence) \(ProvenanceStyle.plainSource(verdict.provenance, source: verdict.source))"))
+        #endif
     }
+
+    #if os(watchOS)
+    private var shortSource: some View {
+        Text(ProvenanceStyle.shortSource(verdict.provenance, source: verdict.source))
+            .font(.caption2).foregroundStyle(.secondary)
+    }
+    #endif
 
     private var stackedVerdict: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -81,13 +112,6 @@ struct TopicRow: View {
             .foregroundStyle(.secondary)
     }
 
-    private var sentenceFont: Font {
-        #if os(watchOS)
-        .caption2
-        #else
-        .subheadline
-        #endif
-    }
 }
 
 /// What was found, what the protection is, where the answer came from, then the facts.
