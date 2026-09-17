@@ -59,6 +59,43 @@ struct ReportDiffTests {
         #expect(diff.summary.contains("25G83 → 25G90"))
     }
 
+    @Test("a failed walk is not evidence that walk-only keys vanished")
+    func failedWalk() throws {
+        // A key the inventory does not know is found by the walk alone.
+        let text = try String(contentsOf: ReportTests.fixtureURL, encoding: .utf8) + "\nhw.optional.arm.FEAT_FUTURE: 1\n"
+        let a = Auditor(sysctl: TextDumpSysctl(text: text, inventory: Self.data.knownKeys), data: Self.data).audit()
+        let b = Auditor(sysctl: TextDumpSysctl(text: text, inventory: Self.data.knownKeys, options: .init(walkRefused: true)), data: Self.data).audit()
+        #expect(a.collection.walkSucceeded && !b.collection.walkSucceeded)
+        #expect(a.unrecognizedKeys.contains { $0.discoveredBy == .walk }, "the synthetic key is walk-only")
+        #expect(!b.unrecognizedKeys.contains { $0.raw?.key == "hw.optional.arm.FEAT_FUTURE" }, "a refused walk cannot see it")
+        let diff = ReportDiff.compare(baseline: a, current: b, inventory: Self.data.knownKeys)
+        #expect(!diff.changes.contains { $0.kind == .disappeared }, "\(diff.changes.map(\.id))")
+        // And the other way round: a walk that starts working does not make keys appear.
+        let back = ReportDiff.compare(baseline: b, current: a, inventory: Self.data.knownKeys)
+        #expect(!back.changes.contains { $0.kind == .appeared })
+    }
+
+    @Test("an inventory update that names a key is not a change; a different reading under the new name is")
+    func inventoryRename() throws {
+        let live = try Self.report()
+        var json = try JSONSerialization.jsonObject(with: try live.jsonData()) as! [String: Any]
+        var facts = json["facts"] as! [[String: Any]]
+        let i = try #require(facts.firstIndex { ($0["id"] as? String) == "arm.FEAT_DIT" })
+        facts[i]["id"] = "unrecognized.hw.optional.arm.FEAT_DIT"
+        facts[i]["category"] = "unrecognized"
+        facts[i]["state"] = "value"
+        facts[i]["display_name"] = nil
+        json["facts"] = facts
+        let old = try Report.decode(try JSONSerialization.data(withJSONObject: json))
+        #expect(ReportDiff.compare(baseline: old, current: live, inventory: Self.data.knownKeys).changes.isEmpty)
+
+        let flipped = try Self.report { $0.replacingOccurrences(of: "hw.optional.arm.FEAT_DIT: 1", with: "hw.optional.arm.FEAT_DIT: 0") }
+        let diff = ReportDiff.compare(baseline: old, current: flipped, inventory: Self.data.knownKeys)
+        #expect(diff.changes.count == 1)
+        #expect(diff.changes[0].id == "arm.FEAT_DIT" && diff.changes[0].kind == .valueChanged)
+        #expect(diff.changes[0].beforeValue == "1" && diff.changes[0].afterValue == "0")
+    }
+
     @Test("a different device is flagged and not compared")
     func differentDevice() throws {
         let a = try Self.report()

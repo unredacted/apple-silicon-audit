@@ -98,23 +98,40 @@ public struct ReportDiff: Codable, Equatable, Sendable {
                               changes: [])
         guard !diff.identityChanged else { return diff }
 
+        // A sysctl fact's identity is its raw key, not its id: an inventory update can turn
+        // `unrecognized.hw.optional.x` into a named fact without the kernel reading changing.
+        // Self-test facts have no key and keep their id.
+        func identity(_ fact: Fact) -> String { fact.raw?.key ?? fact.id }
         func measured(_ report: Report) -> [String: Fact] {
-            var byID: [String: Fact] = [:]
+            var byKey: [String: Fact] = [:]
             for fact in report.facts + report.unrecognizedKeys where fact.provenance == .measured {
                 if let key = fact.raw?.key, volatile.contains(key) { continue }
-                byID[fact.id] = fact
+                byKey[identity(fact)] = fact
             }
-            return byID
+            return byKey
         }
         let before = measured(baseline)
         let after = measured(current)
+        // A fact the walk alone found is only evidence when the walk completed; a failed or
+        // refused walk omits such keys without the kernel having dropped them.
+        func walkOnlyOmission(_ fact: Fact, walkSucceeded: Bool) -> Bool {
+            fact.discoveredBy == .walk && !walkSucceeded
+        }
         let flags = Dictionary(uniqueKeysWithValues: (inventory?.entries ?? []).map { ($0.id, $0.securityRelevant) })
         func relevant(_ fact: Fact) -> Bool {
             fact.securityRelevant || Report.securityCategories.contains(fact.category) || flags[fact.id] == true
         }
 
-        for id in Set(before.keys).union(after.keys).sorted() {
-            switch (before[id], after[id]) {
+        for key in Set(before.keys).union(after.keys).sorted() {
+            let id = after[key]?.id ?? before[key]?.id ?? key
+            switch (before[key], after[key]) {
+            case (let b?, let a?) where b.id != a.id:
+                // Same key, new inventory name: only the reading itself can count as a change.
+                if b.raw?.displayValue != a.raw?.displayValue {
+                    diff.changes.append(FactChange(id: a.id, displayName: a.displayName ?? b.displayName, category: a.category, key: a.raw?.key,
+                                                   kind: .valueChanged, before: b.state, after: a.state,
+                                                   beforeValue: b.raw?.displayValue, afterValue: a.raw?.displayValue, securityRelevant: relevant(a) || relevant(b)))
+                }
             case (let b?, let a?):
                 if b.state != a.state {
                     diff.changes.append(FactChange(id: id, displayName: a.displayName ?? b.displayName, category: a.category, key: a.raw?.key ?? b.raw?.key,
@@ -126,9 +143,11 @@ public struct ReportDiff: Codable, Equatable, Sendable {
                                                    beforeValue: b.raw?.displayValue, afterValue: a.raw?.displayValue, securityRelevant: relevant(a) || relevant(b)))
                 }
             case (let b?, nil):
+                if walkOnlyOmission(b, walkSucceeded: current.collection.walkSucceeded) { continue }
                 diff.changes.append(FactChange(id: id, displayName: b.displayName, category: b.category, key: b.raw?.key, kind: .disappeared,
                                                before: b.state, after: nil, beforeValue: b.raw?.displayValue, afterValue: nil, securityRelevant: relevant(b)))
             case (nil, let a?):
+                if walkOnlyOmission(a, walkSucceeded: baseline.collection.walkSucceeded) { continue }
                 diff.changes.append(FactChange(id: id, displayName: a.displayName, category: a.category, key: a.raw?.key, kind: .appeared,
                                                before: nil, after: a.state, beforeValue: nil, afterValue: a.raw?.displayValue, securityRelevant: relevant(a)))
             case (nil, nil):

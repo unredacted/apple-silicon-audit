@@ -140,6 +140,7 @@ public final class ChangeMonitor {
     /// recent reading and a change's "earlier reading" is the one it really differs from.
     @discardableResult
     public func process(_ report: Report, now: Date = Date()) -> ReportDiff? {
+        let now = ChangeMonitor.stored(now)
         lastCheckAt = now
         defer {
             baseline = report
@@ -159,12 +160,22 @@ public final class ChangeMonitor {
         return diff
     }
 
+    /// Dates round-trip through ISO 8601 at whole seconds; keep them that way in memory too, or
+    /// `load()` would read every reload as an advance.
+    static func stored(_ date: Date) -> Date {
+        Date(timeIntervalSince1970: date.timeIntervalSince1970.rounded(.down))
+    }
+
     static func recordID(_ date: Date) -> String {
         ISO8601DateFormatter().string(from: date) + "-" + UUID().uuidString.prefix(8)
     }
 
-    /// Forgets the history and starts over from `report`.
-    public func resetBaseline(_ report: Report, now: Date = Date()) {
+    /// Forgets the history and starts over from `report`. Takes the check lock so a background
+    /// check in flight cannot overwrite the reset with its stale snapshot.
+    public func resetBaseline(_ report: Report, now: Date = Date()) async {
+        await ChangeMonitor.lock.acquire()
+        defer { Task { await ChangeMonitor.lock.release() } }
+        let now = ChangeMonitor.stored(now)
         baseline = report
         baselineRecordedAt = now
         lastCheckAt = now
@@ -172,13 +183,19 @@ public final class ChangeMonitor {
         save()
     }
 
-    public func markAllSeen() {
+    public func markAllSeen() async {
+        await ChangeMonitor.lock.acquire()
+        defer { Task { await ChangeMonitor.lock.release() } }
+        load()
         guard records.contains(where: { !$0.seen }) else { return }
         records = records.map { var r = $0; r.seen = true; return r }
         save()
     }
 
-    public func delete(_ record: Record) {
+    public func delete(_ record: Record) async {
+        await ChangeMonitor.lock.acquire()
+        defer { Task { await ChangeMonitor.lock.release() } }
+        load()
         records.removeAll { $0.id == record.id }
         save()
     }

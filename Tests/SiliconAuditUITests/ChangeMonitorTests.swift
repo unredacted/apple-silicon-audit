@@ -36,7 +36,7 @@ struct ChangeMonitorTests {
     }
 
     @Test("a changed reading is recorded, advances the baseline, and survives a reload")
-    func change() throws {
+    func change() async throws {
         let (monitor, dir) = tempMonitor()
         let t0 = Date(timeIntervalSince1970: 1_800_000_000)
         monitor.process(try makeReport(), now: t0)
@@ -54,10 +54,21 @@ struct ChangeMonitorTests {
         #expect(reloaded.records.count == 1)
         #expect(reloaded.records[0].diff == diff)
         #expect(reloaded.baseline?.facts.first { $0.id == "arm.FEAT_MTE4" }?.state == .notPresent)
-        reloaded.markAllSeen()
+        await reloaded.markAllSeen()
         #expect(reloaded.unseenRecords.isEmpty)
         let (again, _) = tempMonitor(directory: dir)
         #expect(again.unseenRecords.isEmpty)
+    }
+
+    @Test("a fractional check time survives the whole-second files without reading as an external advance")
+    func timestamps() throws {
+        let (monitor, dir) = tempMonitor()
+        monitor.process(try makeReport(), now: Date(timeIntervalSince1970: 1_800_000_000.734))
+        #expect(monitor.lastCheckAt == Date(timeIntervalSince1970: 1_800_000_000))
+        #expect(monitor.load() == false, "nothing else touched the files")
+        let (other, _) = tempMonitor(directory: dir)
+        other.process(try makeReport(), now: Date(timeIntervalSince1970: 1_800_000_100.2))
+        #expect(monitor.load() == true, "another instance advanced the files")
     }
 
     @Test("a different device starts a new baseline without a record")

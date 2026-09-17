@@ -81,7 +81,7 @@ public struct MonitorView: View {
                 }
                 .disabled(checking || model.phase == .running)
                 Button {
-                    if let report = model.report { monitor.resetBaseline(report) }
+                    if let report = model.report { Task { await monitor.resetBaseline(report) } }
                 } label: {
                     Label(String(localized: "Use the current readings as the baseline", bundle: .module), systemImage: "flag.checkered")
                 }

@@ -97,7 +97,7 @@ public struct AuditRootView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) { exportButton }
             }
-            .refreshable { await model.run() }
+            .refreshable { await refresh() }
             .exportSheet(isPresented: $showingExport, model: model)
         }
     }
@@ -224,12 +224,19 @@ public struct AuditRootView: View {
         .navigationTitle(String(localized: "Overview", bundle: .module))
     }
 
+    /// Every audit the user asks for is also a check: a change seen by a manual refresh is
+    /// recorded and becomes the next baseline like any other.
+    private func refresh() async {
+        await model.run()
+        if let report = model.report { await monitor.processInForeground(report) }
+    }
+
     // MARK: Pieces
 
     #if !os(tvOS)
     private var refreshButton: some View {
         Button {
-            Task { await model.run() }
+            Task { await refresh() }
         } label: {
             Label(String(localized: "Refresh", bundle: .module), systemImage: "arrow.clockwise")
         }

@@ -48,7 +48,7 @@ public struct ChangesView: View {
                     }
                 }
             }
-            .onAppear { monitor.markAllSeen() }
+            .task { await monitor.markAllSeen() }
         }
     }
 }
