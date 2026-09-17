@@ -84,7 +84,10 @@ public struct MIBWalker: Sendable {
                 return WalkResult(root: root, keys: keys, succeeded: false, failure: "walk exceeded \(limit) steps", unnamedOIDCount: unnamed)
             }
             // The walk must always advance; a repeated OID would loop forever.
-            guard next != current, next.count >= rootOID.count else { break }
+            guard current.lexicographicallyPrecedes(next) else {
+                return WalkResult(root: root, keys: keys, succeeded: false,
+                                  failure: "CTL_SYSCTL_NEXT did not advance after \(keys.count) keys", unnamedOIDCount: unnamed)
+            }
             current = next
             // Leaving the subtree ends the walk. Compare OIDs first (cheap, exact), then names.
             guard Array(next.prefix(rootOID.count)) == rootOID else { break }
@@ -92,7 +95,10 @@ public struct MIBWalker: Sendable {
                 unnamed += 1
                 continue
             }
-            guard name.hasPrefix(prefix) else { break }
+            guard name.hasPrefix(prefix) else {
+                return WalkResult(root: root, keys: keys, succeeded: false,
+                                  failure: "OID within '\(root)' resolved outside the subtree", unnamedOIDCount: unnamed)
+            }
             let format = sysctl.format(forOID: next)
             let outcome = sysctl.readOID(next).withInventoryFormat(for: name, inventory: inventory)
             keys.append(DiscoveredKey(name: name, oid: next, format: format ?? outcome.value?.format, outcome: outcome))

@@ -1,7 +1,8 @@
 import Foundation
 
-/// How and where the audit ran. This is the only file in the core allowed to use
-/// `#if os(...)`, `#if arch(...)`, or `#if targetEnvironment(...)` (spec §6.1). Named `AuditEnvironment` to stay clear of SwiftUI's `Environment`.
+/// How and where the audit ran. Compile-time platform detection is centralized here;
+/// SelfTest.swift separately gates APIs available only on macOS. Named `AuditEnvironment`
+/// to stay clear of SwiftUI's `Environment`.
 ///
 /// Every field here exists because it changes how a result must be read:
 /// a simulator, a translated process, or an iOS app on a Mac reports the host's

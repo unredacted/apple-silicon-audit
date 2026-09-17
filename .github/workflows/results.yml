@@ -1,10 +1,10 @@
 name: Results database
 on:
   pull_request:
-    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**", ".github/workflows/results.yml"]
+    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**", ".github/workflows/results.yml", "Sources/SiliconAuditCore/Resources/known-keys.json"]
   push:
     branches: [main]
-    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**"]
+    paths: ["results/**", "Schema/**", "Tools/generate-matrix/**", ".github/workflows/results.yml", "Sources/SiliconAuditCore/Resources/known-keys.json"]
 
 permissions:
   contents: write
@@ -31,6 +31,8 @@ jobs:
           cache-dependency-path: Tools/generate-matrix/package-lock.json
       - run: npm ci
         working-directory: Tools/generate-matrix
+      - run: npm test
+        working-directory: Tools/generate-matrix
       - name: Validate every result (schema, environment flags, path, conflicts)
         run: npm run check
         working-directory: Tools/generate-matrix
@@ -55,15 +57,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add MATRIX.md site/index.html
-          if git diff --cached --quiet; then echo "matrix unchanged"; exit 0; fi
-          git commit -m "Regenerate results matrix"
-          # If main moved while this job ran, replay the generated commit on top and retry a few times.
+          # A rejected push means main changed. Regenerate from its current results;
+          # rebasing an old generated file could publish a matrix that omits new submissions.
           for attempt in 1 2 3; do
-            git push && exit 0
-            echo "push rejected (attempt $attempt); rebasing onto origin/main"
-            git fetch origin main
-            git rebase origin/main || { git rebase --abort; git reset --hard origin/main; cd Tools/generate-matrix && npm run generate && cd ../.. && git add MATRIX.md site/index.html && git commit -m "Regenerate results matrix"; }
+            if [ "$attempt" != 1 ]; then
+              git fetch origin main
+              git reset --hard origin/main
+              (cd Tools/generate-matrix && npm ci && npm run generate)
+            fi
+            git add MATRIX.md site/index.html
+            if git diff --cached --quiet; then echo "matrix unchanged"; exit 0; fi
+            git commit -m "Regenerate results matrix"
+            git push origin HEAD:main && exit 0
+            echo "push rejected (attempt $attempt); regenerating from origin/main"
           done
           exit 1
       - uses: actions/upload-pages-artifact@v3

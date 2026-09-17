@@ -1,6 +1,8 @@
 # Releasing Silicon Audit
 
-Everything here runs from the Mac; nothing needs a device in Developer Mode.
+Everything here runs from the Mac. TestFlight distribution does not require tester device IDs.
+The script uses manual Apple Distribution signing for mobile App Store archives, with the
+one-time profile setup below. Development builds keep automatic development signing.
 
 ## 1. Version
 
@@ -10,6 +12,9 @@ Scripts/bump-version.sh 0.2.0        # project.yml, SiliconAuditCore.version, ge
 
 Write the release notes under the new heading in `CHANGELOG.md`. The export `schema_version` is
 separate and changes only when `Schema/export-v1.schema.json` does (SPEC §8 has the policy).
+For another beta of the same version, pass an explicit unused build number, for example
+`Scripts/bump-version.sh 0.1.0 3`. Choose a number higher than the latest uploaded build;
+the local project does not query App Store Connect, and export does not auto-increment it.
 
 ## 2. Verify
 
@@ -23,6 +28,30 @@ CI does the same on every push (`ci.yml`), plus the results validation (`results
 
 ## 3. Archive and upload (TestFlight / App Store)
 
+### One-time signing setup
+
+Set `DEVELOPMENT_TEAM` in `Configs/Signing.xcconfig`, sign in to your team in Xcode, and install
+an Apple Distribution certificate with its private key. In Apple Developer's
+[Profiles](https://developer.apple.com/account/resources/profiles/list), create and download
+these **manually managed** profiles using that certificate. Enable **Enhanced Security** on the
+main app's identifier before generating its profiles:
+
+| Profile name | Distribution type | App ID |
+| --- | --- | --- |
+| Silicon Audit App Store | App Store Connect (iOS/iPadOS/watchOS/visionOS) | `org.unredacted.silicon-audit` |
+| Silicon Audit Watch App Store | App Store Connect (iOS/iPadOS/watchOS/visionOS) | `org.unredacted.silicon-audit.watchkitapp` |
+| Silicon Audit tvOS App Store | tvOS App Store Connect | `org.unredacted.silicon-audit` |
+
+The script's `-allowProvisioningUpdates` downloads the profiles when your team is signed in to
+Xcode; alternatively, open the downloaded profiles to install them. iOS embeds the Watch app and needs both
+profiles. visionOS uses the same main-app profile. macOS retains automatic signing and does not
+need these mobile profiles. Xcode-generated "Team Store Provisioning Profile" profiles cannot
+be selected for manual archive signing; create the profiles above in the developer portal.
+To use existing manually managed profiles with other names, set `SILICON_AUDIT_APP_PROFILE`
+and (for iOS) `SILICON_AUDIT_WATCH_PROFILE` in the shell environment when running the script.
+
+### Build
+
 ```bash
 Scripts/archive.sh iOS         # also embeds the watch app
 Scripts/archive.sh macOS
@@ -30,15 +59,79 @@ Scripts/archive.sh tvOS
 Scripts/archive.sh visionOS
 ```
 
-Each command archives with the `Release` configuration and exports with
-`Configs/ExportOptions-appstore.plist` (automatic signing, upload to App Store Connect). Add
-`--hardened` to ship the `ReleaseHardened` configuration with Apple's Enhanced Security entitlements:
-that is what makes the self-test meaningful for users (SPEC §11). Decide per release; the hardened
-configuration changes allocator behaviour, so soak it in TestFlight before it becomes the default.
-`--development` exports an installable build for registered devices instead; `--no-export` stops at the
-`.xcarchive`.
+The iOS, macOS, and visionOS commands default to `ReleaseHardened`; tvOS defaults to `Release`
+because Apple's Enhanced Security capability does not support tvOS. Each exports with
+`Configs/ExportOptions-appstore.plist` (automatic re-signing at export, upload to App Store Connect).
+Archive signing uses the profiles above for iOS, tvOS, and visionOS; it never requests development
+profiles for those App Store builds. The script checks the actual archive signature for all three
+Enhanced Security entitlements and stops before export if Xcode omitted any of them.
+The supported platforms' Enhanced Security entitlements are enabled without an extra flag. The ordinary
+`SiliconAudit` scheme's Archive action also defaults to `ReleaseHardened` in Xcode.
+`--hardened` remains accepted on supported platforms and is rejected explicitly for tvOS;
+`--standard` selects an ordinary `Release`
+archive for comparison. Hardened output paths end in `-hardened`, for example
+`build/archives/iOS-hardened.xcarchive`. This selects the existing hardened configuration;
+the Watch target's separate entitlement settings are unchanged. tvOS output uses
+`build/archives/tvOS.xcarchive` and reports Enhanced Security as disabled, including when a
+Hardened scheme is selected directly in Xcode.
+`--development` uses automatic development signing and exports an installable build for registered
+devices instead; `--no-export` stops at the `.xcarchive`. Use `--local-export` to create the signed
+App Store package locally without uploading, for example `Scripts/archive.sh iOS --local-export`.
+It cannot be combined with `--no-export`.
 
-`ITSAppUsesNonExemptEncryption` is `false` in both Info.plists, so App Store Connect asks no export-compliance question per build. Paste `docs/app-store-notes.md` into App Store Connect's review notes and re-check its Required Reason
+After a failed upload, retry the existing archive without rebuilding:
+
+```bash
+Scripts/archive.sh iOS --export-only
+Scripts/archive.sh macOS --export-only
+Scripts/archive.sh visionOS --export-only
+```
+
+`--export-only` retains the archived version and build number, checks hardened entitlements again,
+and can be combined with `--local-export` to package locally. Use `--standard` as well when
+retrying a standard archive. To change the build number or code, create a new archive instead.
+
+### Signing and upload failures
+
+- **"Failed to Use Accounts" / "App Store Connect access ... is required":** archive signing
+  succeeded, but Xcode cannot find a usable App Store Connect account for the team. Browser login
+  is separate from Xcode's account session. In **Xcode → Settings → Accounts**, sign in again to
+  the account belonging to the intended team; if necessary, remove and re-add that account.
+  Confirm that the same account can access the app under the correct organization in
+  [App Store Connect](https://appstoreconnect.apple.com/). Uploads require Account Holder, Admin,
+  App Manager, or Developer access. Then retry with `--export-only`; this error alone does not
+  require a new build number or provisioning profiles.
+- **"Bundle version must be higher than ... 2":** build 2 has already been uploaded. Bump to
+  3 or a higher unused number, then create a new archive; re-exporting the old archive retains
+  its old build number. Keep the same chosen build number across this release's platform builds.
+- **"Your team has no devices" / "App Development provisioning profiles":** this is an
+  archive-signing failure in the old automatic-development path (or with `--development`).
+  Use the current script without `--development` after completing the profile setup above.
+  Enabling hardening alone does not resolve this error.
+- **Missing "Silicon Audit ... App Store" profile / Apple Distribution identity:** complete
+  the one-time signing setup. The profile's team, bundle ID, platform, and certificate must match.
+- **"is Xcode managed, but signing settings require a manually managed profile":** create a
+  manual App Store profile in Apple Developer instead of selecting an Xcode-managed profile.
+- **`exportArchive Copy failed` with an rsync extended-attributes error:** Xcode's bundled
+  packaging flow conflicts with Homebrew rsync on PATH. The script now gives Xcode a system-only
+  PATH after running XcodeGen.
+- **"Refusing export ... missing hardened entitlement":** inspect the provisioning profile's
+  Enhanced Security support. Do not bypass the check or upload a rejected archive whose Info.plist
+  marker incorrectly claims Enhanced Security is enabled. tvOS is deliberately excluded from
+  Enhanced Security: Apple's [platform guidance](https://developer.apple.com/documentation/xcode/enabling-enhanced-security-for-your-app)
+  lists iOS, iPadOS, macOS, and visionOS. Its missing entitlements are not a profile-generation bug.
+- **TestFlight on iPhone says the app requires macOS:** check the **iOS** build's status and tester
+  group, not just whether a Mac build is available. A processed iOS build marked **Missing Compliance**
+  is not ready for testers. Complete its encryption questionnaire and verify the existing beta group
+  has access. The apps implement no non-exempt encryption; the project declares
+  `ITSAppUsesNonExemptEncryption = NO` for future builds, following
+  [Apple's guidance](https://developer.apple.com/documentation/security/complying-with-encryption-export-regulations).
+  Revisit that declaration if encryption functionality or dependencies change.
+
+Apple references: [App Store provisioning profiles](https://developer.apple.com/help/account/provisioning-profiles/create-an-app-store-provisioning-profile),
+[distribution signing](https://developer.apple.com/documentation/xcode/distributing-your-app-for-beta-testing-and-releases).
+
+Paste `docs/app-store-notes.md` into App Store Connect's review notes and re-check its Required Reason
 API list against Apple's current one (open item in `docs/spec-review.md`).
 
 ## 4. Direct download of the Mac app (optional)

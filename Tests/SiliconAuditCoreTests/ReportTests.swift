@@ -195,6 +195,36 @@ struct ReportTests {
 
 @Suite("Export round trips")
 struct ExportTests {
+    @Test("imports reject incompatible schemas and duplicate fact IDs")
+    func invalidImports() throws {
+        var report = try ReportTests.auditor().audit()
+        report.schemaVersion = "2.0.0"
+        #expect(throws: Report.ImportError.unsupportedSchema("2.0.0")) { try Report.decode(report.jsonData()) }
+        report.schemaVersion = Report.schemaVersion
+        let fact = try #require(report.facts.first)
+        report.unrecognizedKeys.append(fact)
+        #expect(throws: Report.ImportError.duplicateFactID(fact.id)) { try Report.decode(report.jsonData()) }
+    }
+
+    @Test("schema 1.x reports without a variant decode as full exports")
+    func defaultVariant() throws {
+        let report = try ReportTests.auditor().audit()
+        var json = try #require(JSONSerialization.jsonObject(with: report.jsonData()) as? [String: Any])
+        json.removeValue(forKey: "variant")
+        #expect(try Report.decode(JSONSerialization.data(withJSONObject: json)).variant == "full")
+    }
+
+    @Test("compact imports bound decompression and reject truncated bytes")
+    func boundedDecompression() throws {
+        let bomb = try CompactExport.compress(Data(repeating: 65, count: Report.maximumJSONBytes + 1))
+        #expect(throws: CompactExport.Error.sizeLimitExceeded) { try CompactExport.decode(Base45.encode(bomb)) }
+        var report = try ReportTests.auditor().audit()
+        report.device.identity = String(repeating: "x", count: Report.maximumJSONBytes)
+        #expect(throws: CompactExport.Error.sizeLimitExceeded) { try CompactExport.encode(report) }
+        let compressed = try CompactExport.compress(Data("test".utf8))
+        #expect(throws: CompactExport.Error.decompressionFailed) { try CompactExport.decompress(compressed.dropLast()) }
+    }
+
     @Test("full JSON encodes with the schema's field names and decodes back equal")
     func jsonRoundTrip() throws {
         let report = try ReportTests.auditor().audit(now: Date(timeIntervalSince1970: 1_800_000_000))

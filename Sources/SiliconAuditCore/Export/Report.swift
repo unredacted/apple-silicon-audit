@@ -4,6 +4,15 @@ import Foundation
 /// so the JSON is exactly what the schema expects.
 public struct Report: Codable, Equatable, Sendable {
     public static let schemaVersion = "1.1.0"
+    /// Same upper bound as a contributed result, also enforced before/while decompressing imports.
+    public static let maximumJSONBytes = 512 * 1024
+
+    public enum ImportError: Error, Equatable {
+        case sizeLimitExceeded
+        case unsupportedSchema(String)
+        case invalidVariant(String)
+        case duplicateFactID(String)
+    }
 
     public struct Collection: Codable, Equatable, Sendable {
         public var walkSucceeded: Bool
@@ -227,6 +236,21 @@ public struct Report: Codable, Equatable, Sendable {
         self.unrecognizedKeys = unrecognizedKeys
     }
 
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try c.decode(String.self, forKey: .schemaVersion)
+        appVersion = try c.decode(String.self, forKey: .appVersion)
+        // Schema 1.x permits omission of variant and defines it as a full report.
+        variant = try c.decodeIfPresent(String.self, forKey: .variant) ?? "full"
+        collectedAt = try c.decode(String.self, forKey: .collectedAt)
+        collection = try c.decode(Collection.self, forKey: .collection)
+        environment = try c.decode(Environment.self, forKey: .environment)
+        device = try c.decode(Device.self, forKey: .device)
+        capabilities = try c.decodeIfPresent(Capabilities.self, forKey: .capabilities)
+        facts = try c.decode([Fact].self, forKey: .facts)
+        unrecognizedKeys = try c.decode([Fact].self, forKey: .unrecognizedKeys)
+    }
+
     // MARK: - Views
 
     public var measuredFacts: [Fact] { facts.filter { $0.provenance == .measured } }
@@ -261,7 +285,17 @@ public struct Report: Codable, Equatable, Sendable {
     }
 
     public static func decode(_ data: Data) throws -> Report {
-        try JSONDecoder().decode(Report.self, from: data)
+        guard data.count <= maximumJSONBytes else { throw ImportError.sizeLimitExceeded }
+        let report = try JSONDecoder().decode(Report.self, from: data)
+        guard report.schemaVersion.range(of: #"^1\.[0-9]+\.[0-9]+$"#, options: .regularExpression) != nil else {
+            throw ImportError.unsupportedSchema(report.schemaVersion)
+        }
+        guard ["full", "compact"].contains(report.variant) else { throw ImportError.invalidVariant(report.variant) }
+        var ids = Set<String>()
+        for fact in report.facts + report.unrecognizedKeys {
+            guard ids.insert(fact.id).inserted else { throw ImportError.duplicateFactID(fact.id) }
+        }
+        return report
     }
 
     /// Categories the compact variant keeps: the security-relevant groups plus device identity.

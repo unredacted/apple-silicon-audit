@@ -23,6 +23,10 @@ struct SourceOptions: ParsableArguments {
     @Flag(name: .long, help: "With --fixture: emulate a sandbox that refuses the MIB walk (iOS, watchOS).")
     var walkRefused = false
 
+    func validate() throws {
+        if walkRefused && fixture == nil { throw ValidationError("--walk-refused requires --fixture") }
+    }
+
     func makeAuditor() throws -> Auditor {
         guard let fixture else { return Auditor() }
         let url = URL(fileURLWithPath: fixture)
@@ -237,7 +241,7 @@ enum Table {
         if let caps = report.capabilities {
             Swift.print("caps: \(caps.byteCount) bytes, \(caps.popcount) bits set (\(caps.namedBits.count) named, unnamed \(caps.unnamedBits)), mismatches \(caps.mismatches.count)")
         }
-        let measuredPresent = report.securityFacts.filter { $0.provenance == .measured && $0.state == .present }.count
+        let measuredPresent = report.securityFacts.filter { $0.provenance == .measured && $0.kind == .flag && $0.state == .present }.count
         let measuredFlags = report.securityFacts.filter { $0.provenance == .measured && $0.kind == .flag }.count
         Swift.print("Security flags reported present: \(measuredPresent) of \(measuredFlags)")
         Swift.print("")

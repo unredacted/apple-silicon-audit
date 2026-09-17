@@ -133,14 +133,14 @@ public struct SelfTestResult: Equatable, Sendable {
 ///
 /// The parent cannot read the kernel's exit reason with public API, so the child announces the
 /// store on its stdout immediately before making it and reports back if it survives. Only "killed
-/// by SIGKILL after the announcement and before the survival report" counts as a tag-check kill;
-/// any other signal (a sanitizer's SIGABRT, Guard Malloc's SIGSEGV, an outside signal) or a
+/// by SIGKILL after the announcement and before the survival report" is consistent with a
+/// tag-check kill; an external SIGKILL remains indistinguishable. Any other signal or a
 /// missing announcement is inconclusive. macOS and the CLI only: nothing on iOS may spawn.
 public enum FaultTest {
     public enum Outcome: Equatable, Sendable {
-        /// SIGKILL after the child announced the store: the OS stopped the mismatched access.
+        /// SIGKILL after the child announced the store; confirm the cause in its crash report.
         case tagCheckKill
-        /// The child made the store and exited normally: no check applied to it.
+        /// The child made the store and exited normally; this access was not stopped.
         case survived(exitStatus: Int32)
         /// The child ended some other way; says nothing about tag checks.
         case inconclusive(String)
@@ -161,7 +161,7 @@ public enum FaultTest {
         let past = block.advanced(by: 48)
         past.storeBytes(of: 7, as: UInt8.self)
         let readBack = past.load(as: UInt8.self)
-        print("\(survivedMarker) (read back \(readBack)); tag checks are not enforced for this binary")
+        print("\(survivedMarker) (read back \(readBack)); this access was not stopped")
         fflush(stdout)
     }
 
@@ -173,11 +173,39 @@ public enum FaultTest {
         process.standardOutput = pipe
         process.standardError = FileHandle.nullDevice
         do { try process.run() } catch { return .failed(error.localizedDescription) }
-        let output = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
-        let deadline = Date().addingTimeInterval(timeout)
-        while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.02) }
-        if process.isRunning { process.terminate(); return .failed("child did not finish within \(Int(timeout)) s") }
-        return classify(reason: process.terminationReason, status: process.terminationStatus, output: output)
+        // Never wait for EOF before enforcing the deadline: a hung child (or a descendant
+        // retaining stdout) may never close the pipe. Drain without blocking, with a size cap.
+        pipe.fileHandleForWriting.closeFile()
+        defer { pipe.fileHandleForReading.closeFile() }
+        let fd = pipe.fileHandleForReading.fileDescriptor
+        guard fcntl(fd, F_SETFL, O_NONBLOCK) != -1 else {
+            kill(process.processIdentifier, SIGKILL)
+            process.waitUntilExit()
+            return .failed("could not configure child output")
+        }
+        let deadline = ProcessInfo.processInfo.systemUptime + max(0, timeout)
+        var output = Data()
+        var buffer = [UInt8](repeating: 0, count: 4096)
+        while true {
+            let count = read(fd, &buffer, buffer.count)
+            if count > 0 { output.append(contentsOf: buffer.prefix(count)) }
+            let readError = count < 0 ? errno : 0
+            let running = process.isRunning
+            if output.count > 64 * 1024 || (running && ProcessInfo.processInfo.systemUptime >= deadline) {
+                if running { kill(process.processIdentifier, SIGKILL) }
+                process.waitUntilExit()
+                return .failed(output.count > 64 * 1024 ? "child output exceeded 64 KiB" : "child did not finish within \(timeout) s")
+            }
+            if count < 0 && readError != EAGAIN && readError != EINTR {
+                if running { kill(process.processIdentifier, SIGKILL) }
+                process.waitUntilExit()
+                return .failed("could not read child output")
+            }
+            if !running && count <= 0 { break }
+            if count <= 0 { Thread.sleep(forTimeInterval: 0.01) }
+        }
+        return classify(reason: process.terminationReason, status: process.terminationStatus,
+                        output: String(decoding: output, as: UTF8.self))
     }
 
     /// Pure, so it can be tested without spawning anything.
@@ -198,8 +226,9 @@ public enum FaultTest {
         }
     }
 
-    /// The measured fact for an outcome (SPEC §11): `present` means the OS stopped the mismatched
-    /// store, `not_present` means the store went through, `error` means the test was inconclusive.
+    /// The measured fact for an outcome (SPEC §11): `present` records SIGKILL at the announced
+    /// store, `not_present` records survival, and `error` means the test was inconclusive.
+    /// Neither signal nor survival alone establishes whether tag-check enforcement is enabled.
     public static func fact(for outcome: Outcome, entitlement: EnhancedSecurity.Declaration) -> Fact {
         let state: FactState
         let description: String
@@ -208,13 +237,11 @@ public enum FaultTest {
         case .tagCheckKill:
             state = .present
             probe.childSignal = SIGKILL
-            description = "A child process of this binary announced a store one granule past a 32-byte heap block and was killed by SIGKILL before it could report back, which is how macOS reports a tag-check failure (the child's crash report names EXC_ARM_MTE_TAGCHECK_FAIL). The OS stopped the mismatched access. This is a per-process fact about this build, not about the device."
+            description = "A child process of this binary announced an out-of-bounds store and received SIGKILL before reporting survival. This is consistent with a macOS tag-check failure, but this test cannot read the kernel's exit reason or rule out an external kill. Confirm EXC_ARM_MTE_TAGCHECK_FAIL in the child's crash report. This is a per-process observation about this build, not about the device."
         case .survived(let status):
             state = .notPresent
             probe.childExitStatus = status
-            description = entitlement == .declared
-                ? "The child's out-of-bounds store succeeded and it exited normally although this binary declares the checked-allocations entitlement: tag checks are not enforced for it here."
-                : "The child's out-of-bounds store succeeded and it exited normally. This binary does not declare the Enhanced Security checked-allocations entitlement, so no tag check applies to it."
+            description = "The child's out-of-bounds store succeeded and it exited normally\(entitlement == .declared ? " although this binary declares the checked-allocations entitlement" : ""). This access was not stopped; one successful store does not prove tag checks are disabled, because adjacent allocations can share a tag. Entitlement declaration: \(entitlement.rawValue)."
         case .inconclusive(let why):
             state = .error
             description = "Inconclusive: \(why)."

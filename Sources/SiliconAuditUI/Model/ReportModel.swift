@@ -33,6 +33,7 @@ public final class ReportModel {
     }
 
     public func run() async {
+        guard phase != .running else { return }
         phase = .running
         let make = makeAuditor
         let report = await Task.detached(priority: .userInitiated) { make().audit() }.value
@@ -109,7 +110,7 @@ public final class ReportModel {
     /// Writes the full JSON export to a temporary file named after the device and build.
     public func exportFileURL() throws -> URL {
         guard let report else { throw ExportError.noReport }
-        let name = "silicon-audit-\(report.device.identity)-\(report.environment.osBuild.isEmpty ? "nobuild" : report.environment.osBuild).json"
+        let name = ReceivedReportStore.fileName(for: report)
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(name)
         try report.jsonData().write(to: url, options: .atomic)
         return url

@@ -112,18 +112,21 @@ public struct Auditor: Sendable {
     /// `not_present`: it is not (the description says whether the entitlement was declared).
     /// `not_applicable`: the kernel reports no memory-tagging hardware, so no process can be.
     /// `mteStates` are the states of the kernel's own MTE flags (FEAT_MTE4, FEAT_MTE); hardware is
-    /// absent only when every one of them reads off, absent, or not-applicable and none reads on.
+    /// reported unavailable only when every one reads off or not-applicable. Missing keys
+    /// are not evidence of absent hardware; direct tag observations take precedence.
     public static func taggedPointerFact(_ selfTest: SelfTestResult, mteStates: [FactState]) -> Fact {
         let p = selfTest.probe
-        let offStates: Set<FactState> = [.notPresent, .keyAbsent, .notApplicable]
+        let offStates: Set<FactState> = [.notPresent, .notApplicable]
         let hardwareAbsent = !mteStates.isEmpty && !mteStates.contains(.present) && mteStates.allSatisfy { offStates.contains($0) }
-        let state: FactState = hardwareAbsent ? .notApplicable : (p.tagged > 0 ? .present : .notPresent)
+        let state: FactState = p.samples == 0 ? .error : (p.tagged > 0 ? .present : (hardwareAbsent ? .notApplicable : .notPresent))
         let description: String
         switch state {
         case .present:
             description = "\(p.tagged) of \(p.samples) heap allocations came back with a nonzero tag (\(p.distinctTags) distinct tag values): the OS tags this process's memory. This is a per-process fact about this build of the app, not about the device."
         case .notApplicable:
-            description = "This kernel reports no memory-tagging hardware, so no process on this device can be tagged (\(p.tagged) of \(p.samples) allocations tagged)."
+            description = "This kernel reports memory tagging as off or not applicable, and none of \(p.samples) sampled allocations carried a tag. Kernel flags do not establish the silicon's capabilities."
+        case .error:
+            description = "No heap allocations could be sampled, so memory tagging could not be measured."
         default:
             switch selfTest.entitlement {
             case .declared:
