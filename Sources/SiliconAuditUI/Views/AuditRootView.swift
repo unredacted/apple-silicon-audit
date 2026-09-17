@@ -54,7 +54,19 @@ public struct AuditRootView: View {
         .task {
             if model.report == nil { await model.run() }
             if let report = model.report { await monitor.processInForeground(report) }
+            #if os(iOS)
+            // The phone also receives Apple Watch deliveries, which arrive while it is asleep, so it
+            // asks for notifications at first launch instead of waiting for the in-app invitation.
+            await monitor.refreshAuthorization()
+            if monitor.authorization == .notDetermined, !monitor.promptDismissed {
+                await monitor.requestNotifications()
+            }
+            #endif
         }
+        #if os(macOS)
+        // Below this the split view's detail column is too narrow for the cards to wrap well.
+        .frame(minWidth: 780, minHeight: 520)
+        #endif
         #if os(macOS)
         .task { await monitor.periodicChecks(model: model) }
         #endif

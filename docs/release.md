@@ -149,7 +149,9 @@ xcrun stapler staple "Silicon Audit.app"
 git tag -a v0.2.0 -m "Silicon Audit 0.2.0" && git push origin v0.2.0
 ```
 
-Versions below 1.0.0 are published as GitHub **pre-releases** automatically. Pushing a `v*` tag runs `release.yml`, which builds the release CLI as a universal binary, signs it ad hoc,
+Tags with a pre-release suffix (`v0.3.0-beta.1`) are published as GitHub **pre-releases**; plain tags
+are releases. 0.2.0 is the first version submitted to the App Store, so the major version no longer
+decides. Pushing a `v*` tag runs `release.yml`, which builds the release CLI as a universal binary, signs it ad hoc,
 checks that the binary reports the tag's version, and attaches `silicon-audit-<version>-macos.zip` (the binary plus its `SiliconAudit_SiliconAuditCore.bundle` of data files, which must stay beside it) with its SHA-256 to a GitHub Release. The CLI needs no
 entitlements to audit; users who want the self-test to say yes re-sign it with `Scripts/sign-hardened.sh`.
 Apps are not attached to GitHub Releases: they need Apple signing, which is App Store Connect's job.

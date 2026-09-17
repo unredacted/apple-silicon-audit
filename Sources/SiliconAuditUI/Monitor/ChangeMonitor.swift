@@ -227,14 +227,9 @@ public final class ChangeMonitor {
         guard notificationsEnabled else { return }
         await refreshAuthorization()
         guard authorization == .authorized else { return }
-        let content = UNMutableNotificationContent()
-        content.title = ChangeCopy.notificationTitle(diff)
-        content.body = ChangeCopy.notificationBody(diff)
-        content.sound = diff.securityChanges.isEmpty ? nil : .default
-        content.userInfo = ["route": "__changes__"]
-        content.threadIdentifier = "silicon-audit-changes"
-        let request = UNNotificationRequest(identifier: "change-\(diff.currentCollectedAt)", content: content, trigger: nil)
-        try? await UNUserNotificationCenter.current().add(request)
+        await LocalNotifications.post(id: "change-\(diff.currentCollectedAt)", title: ChangeCopy.notificationTitle(diff),
+                                      body: ChangeCopy.notificationBody(diff), thread: LocalNotifications.changesThread,
+                                      sound: !diff.securityChanges.isEmpty, route: "__changes__")
         #endif
     }
 

@@ -42,6 +42,7 @@ struct TopicRow: View {
             VStack(alignment: .leading, spacing: 6) {
                 Text(topic.title)
                     .font(.headline)
+                    .fixedSize(horizontal: false, vertical: true)
                 // Verdict and source side by side when they fit, stacked when they do not; the
                 // verdict itself never truncates. The watch is always too narrow for the pair.
                 #if os(watchOS)
@@ -58,6 +59,7 @@ struct TopicRow: View {
                 Text(verdict.sentence)
                     .font(sentenceFont)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 4)

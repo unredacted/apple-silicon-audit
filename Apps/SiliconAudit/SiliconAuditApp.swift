@@ -9,6 +9,7 @@ struct SiliconAuditApp: App {
     private let bridge: ReportTransferBridge
 
     init() {
+        LocalNotifications.installPresenter()
         let state = TransferState()
         let store = ReceivedReportStore()
         _transfer = State(initialValue: state)
@@ -16,6 +17,10 @@ struct SiliconAuditApp: App {
         bridge = ReportTransferBridge(state: state, store: store)
         // Activate at launch so files queued by the watch are received even in the background.
         bridge.activate()
+    }
+    #else
+    init() {
+        LocalNotifications.installPresenter()
     }
     #endif
 

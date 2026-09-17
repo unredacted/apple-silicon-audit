@@ -68,6 +68,7 @@ struct ChangeSummaryRow: View {
             Text(ChangeCopy.context(diff))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
@@ -97,6 +98,7 @@ struct FactChangeRow: View {
                 Text(ChangeCopy.plain(change))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
         }
         .padding(.vertical, 2)
@@ -177,9 +179,9 @@ struct ChangesCard: View {
                              : String(localized: "\(records.count) checks found changes", bundle: .module))
                             .font(.subheadline.weight(.semibold))
                         if let first = latest.diff.changes.first {
-                            Text(ChangeCopy.plain(first)).font(.caption).foregroundStyle(.secondary)
+                            Text(ChangeCopy.plain(first)).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                         } else {
-                            Text(ChangeCopy.context(latest.diff)).font(.caption).foregroundStyle(.secondary)
+                            Text(ChangeCopy.context(latest.diff)).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                         }
                         Text(String(localized: "See what changed", bundle: .module)).font(.caption.weight(.medium)).foregroundStyle(.tint)
                     }

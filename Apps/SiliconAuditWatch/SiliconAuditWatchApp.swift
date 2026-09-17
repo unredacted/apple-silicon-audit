@@ -7,6 +7,7 @@ struct SiliconAuditWatchApp: App {
     private let bridge: ReportTransferBridge
 
     init() {
+        LocalNotifications.installPresenter()
         let state = TransferState()
         _transfer = State(initialValue: state)
         bridge = ReportTransferBridge(state: state, store: nil)

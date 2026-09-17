@@ -17,6 +17,7 @@ public struct FactRow: View {
                 Text("\(StateStyle.label(fact.state, provenance: fact.provenance)) · \(Image(systemName: ProvenanceStyle.symbol(fact.provenance))) \(ProvenanceStyle.label(fact.provenance))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             if let short = FactRow.shortValue(fact) {
                 Spacer(minLength: 12)

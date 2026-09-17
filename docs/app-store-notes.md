@@ -34,7 +34,8 @@ notification the user turns on).
 
 Only public APIs: `sysctlbyname(3)`, `sysctlnametomib(3)`, `sysctl(2)`, WatchConnectivity,
 SwiftUI, Compression, CoreImage (the QR code on Apple TV), UserNotifications (local notifications
-only, opt-in), BackgroundTasks / WatchKit background refresh (to repeat the same reads
+only: a changed reading, or a report delivered from Apple Watch; permission requested at first launch
+on iPhone and iPad, opt-in elsewhere), BackgroundTasks / WatchKit background refresh (to repeat the same reads
 periodically), and on macOS `SecTaskCopyValueForEntitlement` to read the app's own entitlements.
 No private frameworks.
 
