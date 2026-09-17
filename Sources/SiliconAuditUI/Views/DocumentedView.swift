@@ -107,6 +107,13 @@ struct ChainRow: View {
     let detail: String
 
     var body: some View {
+        content
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(Text("Step \(step), \(title): \(value). \(detail)"))
+    }
+
+    @ViewBuilder
+    private var content: some View {
         #if os(watchOS)
         // One column: the step and value on the first line, then the detail, then the badge.
         VStack(alignment: .leading, spacing: 4) {
@@ -130,8 +137,6 @@ struct ChainRow: View {
         }
         .padding(.vertical, 2)
         #endif
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text("Step \(step), \(title): \(value). \(detail)"))
     }
 
     private var stepCircle: some View {
