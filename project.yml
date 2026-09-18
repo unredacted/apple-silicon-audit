@@ -35,7 +35,7 @@ settings:
     SWIFT_STRICT_CONCURRENCY: complete
     GENERATE_INFOPLIST_FILE: YES
     ENABLE_USER_SCRIPT_SANDBOXING: YES
-    CURRENT_PROJECT_VERSION: 5
+    CURRENT_PROJECT_VERSION: 6
     MARKETING_VERSION: 0.2.0
     INFOPLIST_KEY_CFBundleDisplayName: Silicon Audit
     INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.utilities
