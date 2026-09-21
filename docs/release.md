@@ -156,7 +156,18 @@ Scripts/screenshots.sh tvOS; Scripts/screenshots.sh visionOS; Scripts/screenshot
 The script boots a simulator, launches the app once per screen with `-initialSelection <route>`
 (SPEC §6; the routes are in `Route.init(launchArgument:)`) and captures each with
 `xcrun simctl io … screenshot` into `build/screenshots/<platform>/<device>/`. Pass a device-name
-substring as a second argument to pick a different simulator.
+substring as a second argument to pick a different simulator; a substring that matches nothing is an
+error rather than a fallback, because the wrong device means the wrong pixel size.
+
+It builds the configuration that ships — `ReleaseHardened` where Apple's Enhanced Security applies,
+`Release` for tvOS and watchOS — so the app's own self-test screen reports what the App Store build
+reports. It also passes `-monitor.promptDismissed YES` on iPhone and iPad, because those two ask for
+notification permission at first launch and the system alert would otherwise sit over every capture.
+
+**iPhone captures only the Overview.** At compact width `AuditRootView` renders `compactLayout`,
+which always shows the Overview and never reads `selection`, so `-initialSelection` has no effect
+there and asking for six screens would write six identical files. Deeper iPhone screens are
+navigated to by hand. Every other platform uses the split layout and honours the argument.
 
 A simulator reports the host Mac's CPU, so the app shows its "Running in the Simulator" banner on
 the Overview. Apple has accepted that banner in shipped screenshots, but the tvOS and visionOS sets

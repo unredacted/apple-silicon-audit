@@ -32,12 +32,21 @@ guard !sources.isEmpty else {
     exit(1)
 }
 try? fm.createDirectory(atPath: outDir, withIntermediateDirectories: true)
+// A capture deleted or renamed in raw/ must not leave its composed twin behind: the release
+// checklist says to upload everything in store/, so a stale file there ships silently.
+for stale in (try? fm.contentsOfDirectory(atPath: outDir))?.filter({ $0.lowercased().hasSuffix(".png") }) ?? [] {
+    try? fm.removeItem(atPath: URL(fileURLWithPath: outDir).appendingPathComponent(stale).path)
+}
+
+var written = 0
+var failed: [String] = []
 
 for name in sources {
     let url = URL(fileURLWithPath: inDir).appendingPathComponent(name)
     guard let src = CGImageSourceCreateWithURL(url as CFURL, nil),
           let image = CGImageSourceCreateImageAtIndex(src, 0, nil) else {
-        FileHandle.standardError.write(Data("Skipping unreadable \(name)\n".utf8))
+        FileHandle.standardError.write(Data("Cannot read \(name)\n".utf8))
+        failed.append(name)
         continue
     }
     let size = CGSize(width: image.width, height: image.height)
@@ -53,6 +62,7 @@ for name in sources {
                               space: CGColorSpace(name: CGColorSpace.sRGB)!,
                               bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue) else {
         FileHandle.standardError.write(Data("Could not make a canvas for \(name)\n".utf8))
+        failed.append(name)
         continue
     }
     ctx.setFillColor(background)
@@ -60,12 +70,28 @@ for name in sources {
     ctx.interpolationQuality = .high
     ctx.draw(image, in: CGRect(origin: origin, size: drawn))
 
-    guard let out = ctx.makeImage() else { continue }
     let outURL = URL(fileURLWithPath: outDir).appendingPathComponent(name)
-    guard let dest = CGImageDestinationCreateWithURL(outURL as CFURL, UTType.png.identifier as CFString, 1, nil) else { continue }
+    guard let out = ctx.makeImage(),
+          let dest = CGImageDestinationCreateWithURL(outURL as CFURL, UTType.png.identifier as CFString, 1, nil) else {
+        FileHandle.standardError.write(Data("Could not write \(name)\n".utf8))
+        failed.append(name)
+        continue
+    }
     CGImageDestinationAddImage(dest, out, nil)
-    CGImageDestinationFinalize(dest)
+    // Finalize is where a full disk or an unwritable directory actually shows up.
+    guard CGImageDestinationFinalize(dest) else {
+        FileHandle.standardError.write(Data("Could not finish writing \(name)\n".utf8))
+        failed.append(name)
+        continue
+    }
+    written += 1
     let note = fit < 1 ? String(format: " (scaled to %.0f%%)", fit * 100) : ""
-    print("  \(name)  \(image.width)x\(image.height) -> 2880x1800\(note)")
+    print("  \(name)  \(image.width)x\(image.height) -> \(Int(canvas.width))x\(Int(canvas.height))\(note)")
 }
-print("Wrote \(sources.count) screenshots to \(outDir)")
+
+print("Wrote \(written) of \(sources.count) screenshots to \(outDir)")
+// A partial set must not look like success: the next step is an upload.
+if !failed.isEmpty {
+    FileHandle.standardError.write(Data("Failed: \(failed.joined(separator: ", "))\n".utf8))
+    exit(1)
+}
