@@ -134,7 +134,56 @@ Apple references: [App Store provisioning profiles](https://developer.apple.com/
 Paste `docs/app-store-notes.md` into App Store Connect's review notes and re-check its Required Reason
 API list against Apple's current one (open item in `docs/spec-review.md`).
 
-## 4. Direct download of the Mac app (optional)
+## 4. Screenshots
+
+App Store Connect takes only exact pixel sizes, one set per platform:
+
+| Platform | Accepted sizes |
+| --- | --- |
+| iPhone | 1320 × 2868 or 1290 × 2796 (6.9"), 1242 × 2688 (6.5") |
+| iPad | 2064 × 2752 or 2048 × 2732 (13") |
+| Mac | 1280 × 800, 1440 × 900, 2560 × 1600, 2880 × 1800 |
+| Apple TV | 1920 × 1080 or 3840 × 2160 |
+| Apple Vision Pro | 3840 × 2160 |
+
+Everything with a simulator comes out at the right size on its own:
+
+```bash
+Scripts/screenshots.sh iOS; Scripts/screenshots.sh iPadOS
+Scripts/screenshots.sh tvOS; Scripts/screenshots.sh visionOS; Scripts/screenshots.sh watchOS
+```
+
+The script boots a simulator, launches the app once per screen with `-initialSelection <route>`
+(SPEC §6; the routes are in `Route.init(launchArgument:)`) and captures each with
+`xcrun simctl io … screenshot` into `build/screenshots/<platform>/<device>/`. Pass a device-name
+substring as a second argument to pick a different simulator.
+
+A simulator reports the host Mac's CPU, so the app shows its "Running in the Simulator" banner on
+the Overview. Apple has accepted that banner in shipped screenshots, but the tvOS and visionOS sets
+start at the Memory tagging screen instead, because those two have no hardware to capture and the
+banner would otherwise lead their product pages. Change `ROUTES` in the script to include the
+Overview again.
+
+### The Mac
+
+There is no macOS simulator, and capturing this Mac's screen is out of scope for tooling here, so
+the Mac set is captured by hand and composed afterwards:
+
+```bash
+Scripts/screenshots-macos.sh                       # builds, then opens each screen in turn
+swift Scripts/compose-macos-screenshots.swift      # raw/ -> store/, exactly 2880 × 1800
+```
+
+Capture each window with **Cmd-Shift-4, then Space, then click the window** — the system screenshot
+UI, which needs no screen-recording permission — and save into `build/screenshots/macOS/raw`. Those
+captures include the window's drop shadow, so they are never one of the sizes above
+(a 1440 × 900 window lands around 2798 × 1836) and App Store Connect rejects them with "the
+dimensions of one or more screenshots are wrong". The compose step is what fixes that: it centres
+each capture on a 2880 × 1800 canvas, keeping the aspect ratio and never upscaling. **Upload from
+`build/screenshots/macOS/store`, not from `raw`.** Size the window near 16:10 on the first screen so
+it fills the canvas; macOS restores the frame for the rest.
+
+## 5. Direct download of the Mac app (optional)
 
 ```bash
 Scripts/archive.sh macOS --no-export
@@ -143,7 +192,7 @@ xcrun notarytool submit "Silicon Audit.zip" --keychain-profile "notary" --wait
 xcrun stapler staple "Silicon Audit.app"
 ```
 
-## 5. Tag
+## 6. Tag
 
 ```bash
 git tag -a v0.2.0 -m "Silicon Audit 0.2.0" && git push origin v0.2.0
