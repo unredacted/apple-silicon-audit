@@ -25,6 +25,14 @@ struct SiliconAuditApp: App {
     #endif
 
     var body: some Scene {
+        #if os(macOS)
+        // One window, not a group: SwiftUI lists a `Window` scene in the Window menu (and the Dock
+        // icon reopens it), so closing it never strands the app, and there is no File > New Window.
+        Window("Silicon Audit", id: "main") {
+            AuditRootView()
+        }
+        .defaultSize(width: 960, height: 680)
+        #else
         WindowGroup {
             #if os(iOS)
             AuditRootView(companion: { AnyView(WatchReportsSection()) })
@@ -36,14 +44,8 @@ struct SiliconAuditApp: App {
         }
         // Periodic change check (SPEC §6.5): the system wakes the app, the monitor compares a
         // fresh audit with the stored baseline and notifies if anything moved.
-        #if !os(macOS)
         .backgroundTask(.appRefresh(ChangeMonitor.refreshTaskID)) {
             await ChangeMonitor.performBackgroundCheck()
-        }
-        #else
-        .defaultSize(width: 960, height: 680)
-        .commands {
-            CommandGroup(replacing: .newItem) {}
         }
         #endif
     }

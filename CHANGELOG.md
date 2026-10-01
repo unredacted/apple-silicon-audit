@@ -10,6 +10,9 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 The first build intended for App Store review, after TestFlight testing on hardware. Two features
 and the Codex audit pass since 0.1.0; the export schema is unchanged (1.1.0).
 
+- Mac: the app is a single `Window` scene, listed in the Window menu, so a closed window can be
+  reopened from the menu bar or the Dock (App Review, guideline 4, build 6).
+
 - Change monitoring: the first reading becomes a baseline; checks on launch, on return to the
   foreground and in the background (`BGAppRefreshTask`, `WKApplication` refresh) record what moved,
   show it on the Overview and in a Changes screen at two depths (plain sentence, what it could mean,
