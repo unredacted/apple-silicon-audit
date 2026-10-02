@@ -114,7 +114,7 @@ struct TopicTests {
         let on27 = verdict("kernel_integrity", in: try m1("27.0.1"))
         #expect(on27.level == .partial)
         #expect(on27.word == "4 of 6")
-        #expect(on27.sentence.contains("for 2, Apple's firmware"))
+        #expect(on27.sentence.contains("for 2, Apple's firmware evidence leaves its table unsettled"))
     }
 
     @Test("a flag reported off is No with the honest sentence")

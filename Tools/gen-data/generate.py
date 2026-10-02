@@ -209,8 +209,11 @@ def row(id_, name, cols, desc, url=GUIDE, published="2026-01-28", verified=VERIF
 # chips lists Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor. Re-check each OS release
 # with Tools/gen-data/sptm-firmware.py; the evidence is in docs/evidence/sptm-txm-firmware.md.
 SPTM_FIRMWARE = [
-    (["T8030", "T8101", "T8103"], "27.0", "from iOS, iPadOS and macOS 27 on",  # A13, A14, M1
-     "iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2"),
+    # Each entry cites only the platforms whose manifests were read for that chip.
+    (["T8030", "T8101"], "27.0", "from iOS and iPadOS 27 on",                  # A13, A14
+     "iOS 27.0 (24A437) and 27.0.1 (24A446) and iPadOS 27.0.1 (24A446); absent in iOS 26.6.2 (23G90)"),
+    (["T8103"], "27.0", "from iPadOS and macOS 27 on",                          # M1
+     "iPadOS 27.0 (24A437) and 27.0.1 (24A446) and macOS 27.0.1 (26A434); absent in iPadOS 26.6.2 (23G90) and macOS 26.6.2 (25G83)"),
     (["T6000", "T6001", "T6002"], "26.4", "from macOS 26.4 on",                # M1 Pro, Max, Ultra
      "macOS 26.4 (25E246); absent through 26.3.1"),
     # S9, S10. Watch restore images exist only for 10.0.x and 26.3 onward, so the start is bounded,
