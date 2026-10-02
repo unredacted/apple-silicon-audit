@@ -124,11 +124,17 @@
         {
           "soc_ids": [
             "T8030",
-            "T8101",
+            "T8101"
+          ],
+          "min_os_version": "27.0",
+          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip from iOS and iPadOS 27 on (BuildManifest Ap,SecurePageTableMonitor in iOS 27.0 (24A437) and 27.0.1 (24A446) and iPadOS 27.0.1 (24A446); absent in iOS 26.6.2 (23G90)), so whether PPL still runs here is undocumented."
+        },
+        {
+          "soc_ids": [
             "T8103"
           ],
           "min_os_version": "27.0",
-          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip from iOS, iPadOS and macOS 27 on (BuildManifest Ap,SecurePageTableMonitor in iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2), so whether PPL still runs here is undocumented."
+          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip from iPadOS and macOS 27 on (BuildManifest Ap,SecurePageTableMonitor in iPadOS 27.0 (24A437) and 27.0.1 (24A446) and macOS 27.0.1 (26A434); absent in iPadOS 26.6.2 (23G90) and macOS 26.6.2 (25G83)), so whether PPL still runs here is undocumented."
         },
         {
           "soc_ids": [
@@ -170,11 +176,17 @@
         {
           "soc_ids": [
             "T8030",
-            "T8101",
+            "T8101"
+          ],
+          "min_os_version": "27.0",
+          "note": "Apple's firmware disagrees from iOS and iPadOS 27 on: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in iOS 27.0 (24A437) and 27.0.1 (24A446) and iPadOS 27.0.1 (24A446); absent in iOS 26.6.2 (23G90)). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
+        },
+        {
+          "soc_ids": [
             "T8103"
           ],
           "min_os_version": "27.0",
-          "note": "Apple's firmware disagrees from iOS, iPadOS and macOS 27 on: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
+          "note": "Apple's firmware disagrees from iPadOS and macOS 27 on: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in iPadOS 27.0 (24A437) and 27.0.1 (24A446) and macOS 27.0.1 (26A434); absent in iPadOS 26.6.2 (23G90) and macOS 26.6.2 (25G83)). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
         },
         {
           "soc_ids": [

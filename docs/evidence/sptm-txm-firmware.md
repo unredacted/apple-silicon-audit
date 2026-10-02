@@ -16,7 +16,7 @@ using HTTP range requests against Apple's IPSW URLs (as listed by ipsw.me):
 
     python3 Tools/gen-data/sptm-firmware.py iPhone12,1 iPhone13,2 iPad13,4 MacBookPro18,1
     python3 Tools/gen-data/sptm-firmware.py MacBookPro18,1 --version 26.3.1
-    python3 Tools/gen-data/sptm-firmware.py --url <IPSW or full-OTA URL from AppleDB>
+    python3 Tools/gen-data/sptm-firmware.py --url <restore or full-OTA URL from AppleDB>
 
 ipsw.me doesn't list current Apple Watch firmware. Watch restore images are on Apple's CDN, and
 their URLs come from AppleDB (`https://api.appledb.dev/ios/watchOS;<build>.json`, which needs a
@@ -28,7 +28,9 @@ non-default User-Agent). AppleDB lists Watch7,1 restore images only for watchOS 
 | chip (soc_id) | device read | without SPTM and TXM | with SPTM and TXM |
 |---|---|---|---|
 | A13 (T8030) | iPhone12,1 | iOS 26.6.2 (23G90) | iOS 27.0 (24A437), 27.0.1 (24A446) |
+| A13 (T8030) | iPad (9th gen) image in iPadOS 27.0.1 | not checked | iPadOS 27.0.1 (24A446) |
 | A14 (T8101) | iPhone13,2 | iOS 26.6.2 (23G90) | iOS 27.0 (24A437), 27.0.1 (24A446) |
+| A14 (T8101) | iPad image in iPadOS 27.0.1 | not checked | iPadOS 27.0.1 (24A446) |
 | M1 (T8103) | iPad13,4 | iPadOS 26.6.2 (23G90) | iPadOS 27.0 (24A437), 27.0.1 (24A446) |
 | M1 (T8103) | Macmini9,1 | macOS 26.6.2 (25G83) | macOS 27.0.1 (26A434) |
 | M1 Pro/Max/Ultra (T6000/1/2) | MacBookPro18,1 | macOS 13.6 through 26.3.1 (25D2128) | macOS 26.4 (25E246) onward |
@@ -39,8 +41,8 @@ non-default User-Agent). AppleDB lists Watch7,1 restore images only for watchOS 
 
 ## What the app does with it
 
-Apple's table remains the documented source. Where the firmware contradicts it, from the version
-above on, the `sptm` row and the `ppl` row (the guide says SPTM replaces PPL) read `unknown` with
+Apple's table remains the documented source. Each exception's note cites only the platforms whose
+manifests were read for that chip. Where the firmware contradicts the table, from the version above on, the `sptm` row and the `ppl` row (the guide says SPTM replaces PPL) read `unknown` with
 the evidence in the note. For S9/S10 the start is bounded, not known: no restore image exists
 between 10.0.2 and 26.3, so the exception starts at 10.1, the first version not shown to lack SPTM.
 On those intermediate versions the claim reads unknown instead of repeating Apple's "not present".

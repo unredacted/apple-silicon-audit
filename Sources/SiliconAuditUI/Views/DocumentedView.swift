@@ -74,7 +74,7 @@ public struct DocumentedView: View {
                     ForEach(distinctSources, id: \.url) { s in
                         Text(String(localized: "Source: \(URL(string: s.url)?.host() ?? s.url), published \(s.published), last verified by this app \(s.verified).", bundle: .module))
                     }
-                    Text(String(localized: "Each row's detail names its own source. Rows marked unknown are either not tabulated by Apple or not applicable to an unmapped chip.", bundle: .module))
+                    Text(String(localized: "Each row's detail names its own source. Rows marked unknown are not tabulated by Apple, not applicable to an unmapped chip, or unsettled because Apple's own firmware evidence for this chip and OS version puts the table in doubt; the row's detail gives that evidence.", bundle: .module))
                 }
             }
         }

@@ -14,7 +14,7 @@
 //     never silently resolved, always shown in the matrix. Measured facts include unrecognized_keys.
 //   - legacy armv8_* aliases fill a FEAT_* column whose key the kernel does not register (SPEC §4.3)
 //   - the documented table shows, per device, the snapshot annotated with the newest documentation data
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdirSync } from "node:fs";
 import { join, dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
@@ -27,8 +27,9 @@ const write = args.includes("--write");
 let resultsDir = join(root, "results");
 const ri = args.indexOf("--results");
 if (ri >= 0) resultsDir = resolve(args[ri + 1]);
-const outMatrix = join(root, "MATRIX.md");
-const outSite = join(root, "site", "index.html");
+const oi = args.indexOf("--out-dir");   // tests write elsewhere; CI writes the committed files
+const outMatrix = oi >= 0 ? join(resolve(args[oi + 1]), "MATRIX.md") : join(root, "MATRIX.md");
+const outSite = oi >= 0 ? join(resolve(args[oi + 1]), "site", "index.html") : join(root, "site", "index.html");
 
 const schema = JSON.parse(readFileSync(join(root, "Schema", "export-v1.schema.json"), "utf8"));
 const ajv = new Ajv2020({ allErrors: true, strict: false });
@@ -203,28 +204,41 @@ function documentedDataDate(doc) {
 }
 
 function documentedTable(rs) {
-  const head = ["SoC", "identity", "column", ...DOCUMENTED_COLUMNS.map(([, n]) => n), "guide published", "data verified", "results"];
+  const head = ["SoC", "identity", "column", "OS builds", ...DOCUMENTED_COLUMNS.map(([, n]) => n), "guide published", "data verified", "results"];
   const lines = ["| " + head.join(" | ") + " |", "|" + head.map(() => "---").join("|") + "|"];
-  // One row per (soc_id, identity). Documented facts are Apple's table as the app's bundled data
-  // understood it at export time, so among several results pick the one annotated with the newest
-  // documentation data; the row says how many results it stands for and how many distinct snapshots.
-  const byDevice = new Map();
+  // Documented facts are Apple's table as the app's bundled data understood it at export time, and
+  // they can differ between OS builds of one device (an OS-gated exception, SPEC §5). So: per
+  // (soc_id, identity, OS build) keep the result annotated with the newest documentation data, then
+  // give each distinct set of documented states its own row, naming the builds it covers and how many
+  // results and data snapshots it stands for.
+  const byBuild = new Map();
   for (const r of rs) {
-    const k = `${r.doc.device.soc_id}|${r.doc.device.identity}`;
-    if (!byDevice.has(k)) byDevice.set(k, []);
-    byDevice.get(k).push(r);
+    const k = `${r.doc.device.soc_id}|${r.doc.device.identity}|${r.doc.environment.os_build}`;
+    if (!byBuild.has(k)) byBuild.set(k, []);
+    byBuild.get(k).push(r);
   }
-  for (const members of byDevice.values()) {
+  const rows = new Map();
+  for (const members of byBuild.values()) {
     const newest = members.reduce((best, r) => (documentedDataDate(r.doc) > documentedDataDate(best.doc) ? r : best), members[0]);
-    const snapshots = new Set(members.map((m) => documentedDataDate(m.doc)));
     const d = newest.doc;
+    const states = DOCUMENTED_COLUMNS.map(([id]) => factState(d, id) ?? "");
+    const k = `${d.device.soc_id}|${d.device.identity}|${states.join(",")}`;
+    if (!rows.has(k)) rows.set(k, { pick: newest, builds: [], members: [] });
+    const row = rows.get(k);
+    row.builds.push(d.environment.os_build);
+    row.members.push(...members);
+    if (documentedDataDate(d) > documentedDataDate(row.pick.doc)) row.pick = newest;
+  }
+  for (const { pick, builds, members } of rows.values()) {
+    const d = pick.doc;
+    const snapshots = new Set(members.map((m) => documentedDataDate(m.doc)));
     const cells = DOCUMENTED_COLUMNS.map(([id]) => GLYPH[factState(d, id)] ?? "·");
     const kip = d.facts.find((f) => f.id === "kip");
     const column = /column ([A-Za-z0-9-]+)/.exec(kip?.source?.note ?? "")?.[1] ?? "none";
     const published = kip?.source?.published ?? "";
     const verified = documentedDataDate(d) || "?";
     const count = members.length === 1 ? "1" : `${members.length} (${snapshots.size} data snapshot${snapshots.size === 1 ? "" : "s"})`;
-    lines.push(`| ${d.device.soc_name_inferred} (${d.device.soc_id ?? "?"}) | ${d.device.identity} | ${column} | ${cells.join(" | ")} | ${published} | ${verified} | ${count} |`);
+    lines.push(`| ${d.device.soc_name_inferred} (${d.device.soc_id ?? "?"}) | ${d.device.identity} | ${column} | ${builds.sort().join(", ")} | ${cells.join(" | ")} | ${published} | ${verified} | ${count} |`);
   }
   return lines.join("\n");
 }
@@ -263,7 +277,7 @@ Generated ${now} from ${rows.length} accepted result(s) in \`results/\` by \`Too
 
 Legend: ● reported present · ○ reported off · – key absent from that kernel · ⊘ restricted by the sandbox · × not applicable (other architecture) · ! read error · ? unknown · ᴬ read through the legacy \`armv8_*\` alias because the kernel does not register the \`FEAT_*\` key · ⚠ conflict between submissions for the same device and build.
 
-**Measured** means the kernel on that device reported it, not that the silicon has it. **Documented** rows are Apple's published table applied through the chip family the app inferred from the kernel target, as the app's bundled data understood it when the result was exported; where a device has several results, the row shows the one annotated with the newest documentation data. See each result's own provenance fields.
+**Measured** means the kernel on that device reported it, not that the silicon has it. **Documented** rows are Apple's published table applied through the chip family the app inferred from the kernel target, as the app's bundled data understood it when the result was exported; where a device has several results for one OS build, the row shows the one annotated with the newest documentation data, and builds whose documented states differ (an OS-gated exception) get separate rows. See each result's own provenance fields.
 
 ## Measured security flags
 
@@ -313,6 +327,7 @@ td:nth-child(n+5){text-align:center;font-size:1.05rem}
 `;
 
 if (write && !problems.length) {
+  mkdirSync(dirname(outSite), { recursive: true });
   writeFileSync(outMatrix, matrix);
   writeFileSync(outSite, site);
   console.log(`wrote ${outMatrix} and ${outSite}`);

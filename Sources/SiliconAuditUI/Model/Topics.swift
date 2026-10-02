@@ -135,13 +135,14 @@ public struct Topic: Identifiable, Equatable, Sendable {
                                     provenance: .documented, source: first.source)
             }
             let present = facts.filter { $0.state == .present }.count
-            // Some claims can read unknown on a mapped chip: Apple's firmware contradicts the table there.
+            // Some claims can read unknown on a mapped chip: Apple's firmware contradicts the table there,
+            // or (between checked releases) cannot be ruled out to; each fact's note says which.
             let unsettled = facts.filter { $0.state == .unknown }.count
             return TopicVerdict(level: present == facts.count ? .yes : (present == 0 ? .no : .partial),
                                 word: String(localized: "\(present) of \(facts.count)", bundle: .module),
                                 sentence: unsettled == 0
                                     ? String(localized: "Apple documents \(present) of these \(facts.count) protections for this chip family.", bundle: .module)
-                                    : String(localized: "Apple documents \(present) of these \(facts.count) protections for this chip family; for \(unsettled), Apple's firmware for this OS version disagrees with its table.", bundle: .module),
+                                    : String(localized: "Apple documents \(present) of these \(facts.count) protections for this chip family; for \(unsettled), Apple's firmware evidence leaves its table unsettled on this OS version.", bundle: .module),
                                 provenance: .documented, source: first.source)
         case .selfTest(let id):
             guard let f = fact(id) else { return unreadable() }
