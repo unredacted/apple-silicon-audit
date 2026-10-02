@@ -39,6 +39,12 @@ class Data:
     def cpufamily_names(self) -> set[str]:
         return {e["name"] for e in self.cpufamily["entries"]}
 
+    def cpufamily_map(self) -> dict[str, str]:
+        return {e["name"]: e["value"] for e in self.cpufamily["entries"]}
+
+    def cpusubfamily_map(self) -> dict[str, int]:
+        return {e["name"]: e["value"] for e in self.cpufamily.get("subfamilies", [])}
+
     def cpufamily_values(self) -> set[str]:
         return {e["value"] for e in self.cpufamily["entries"]}
 

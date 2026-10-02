@@ -44,7 +44,7 @@ def appledb(keys, sources_for):
 
 
 def observe(state, client, date=DATE):
-    b = envelope.Builder("observe", "1", "1", date)
+    b = envelope.Builder("observe", str(versions.ordinal(date)), "1", date)   # one run per day
     with mock.patch.object(manifest, "read", return_value=(None, {"BuildIdentities": []}, "")):
         firmware.observe(client, state, CFG, b, date, 40, 0)
     return b.doc
@@ -61,6 +61,36 @@ class BuildRecords(unittest.TestCase):
         ]), devices)
         self.assertEqual([(c["device"], c["unsupported"]) for c in rec["candidates"]],
                          [("AppleTV14,1", "aea-encrypted"), ("iPhone12,1", None)])
+
+    def test_candidates_sharing_a_first_device_get_distinct_ids(self):
+        devices = {"MacA": "T8103", "MacB": "T6000"}
+        rec = firmware.build_record(build_doc("macOS;26A1", [
+            source(["MacA"], "https://updates.cdn-apple.com/one.ipsw"),
+            source(["MacA", "MacB"], "https://updates.cdn-apple.com/two.ipsw"),
+            source(["MacA"], "https://updates.cdn-apple.com/three.ipsw") | {"type": "ipsw"},
+        ]), {"MacA": "T8103", "MacB": "T6000", "MacC": "T8112"})
+        doc = build_doc("macOS;26A2", [source(["MacA", "MacB"], "https://updates.cdn-apple.com/a.ipsw"),
+                                        source(["MacA", "MacC"], "https://updates.cdn-apple.com/b.ipsw")])
+        rec = firmware.build_record(doc, {"MacA": "T8103", "MacB": "T6000", "MacC": "T8112"})
+        self.assertEqual(len(rec["candidates"]), 2)
+        self.assertEqual({c["device"] for c in rec["candidates"]}, {"MacA"})
+        self.assertEqual(len({c["id"] for c in rec["candidates"]}), 2)
+
+    def test_link_flags_change_the_fingerprint(self):
+        a = build_doc("iOS;24A1", [source(["iPhone12,1"], "https://updates.cdn-apple.com/a.ipsw")])
+        b = build_doc("iOS;24A1", [source(["iPhone12,1"], "https://updates.cdn-apple.com/a.ipsw")])
+        b["sources"][0]["links"][0]["active"] = False
+        self.assertNotEqual(firmware.build_record(a, {})["source_fp"], firmware.build_record(b, {})["source_fp"])
+
+    def test_index_of_the_wrong_shape_or_missing_os_fails(self):
+        with self.assertRaises(ValueError):
+            firmware.index_keys({"iOS;24A1": {}}, ["iOS"], 22)
+        docs = appledb(["iOS;24A1"], lambda k: [source(["iPhone12,1"], "https://updates.cdn-apple.com/a.ipsw")])
+        state = fresh_state()
+        doc = observe(state, FakeClient(docs))
+        failed = {s["key"] for s in doc["scopes"] if s.get("status") == "failed"}
+        self.assertIn("firmware:index:iPadOS", failed, "the iOS index listed no iPadOS builds")
+        self.assertIn("firmware:index:macOS", failed)
 
     def test_index_filter_drops_sim_sdk_and_duplicate_rc(self):
         keys = ["iOS;24A446", "iOS;24A446-RC", "iOS;24A94403-27A9269-SDK", "iOS;24A1-sim", "iOS;22A1", "iPadOS;24A446"]
@@ -99,16 +129,17 @@ class Observe(unittest.TestCase):
         merge.apply(state, envelope.Builder("observe", "0", "1", DATE).doc, CFG)
         target = next(k for k in keys if k not in firmware.queue.rotation(keys, DATE))   # not in today's slice
         aea_only[target] = False                                                # an IPSW appears for it
-        wid = f"manifest:{target};AppleTV14,1"
-        self.assertEqual(state["queue"][wid]["status"], "unsupported")
+        work = lambda: {w: q for w, q in state["queue"].items() if q["build"] == target}   # noqa: E731
+        self.assertEqual([q["status"] for q in work().values()], ["unsupported"])
         day = DATE
-        for _ in range(7):
+        for i in range(7):
             client = FakeClient(appledb(keys, docs_sources))
             merge.apply(state, observe(state, client, day), CFG)
             day = versions.add_days(day, 1)
-            if state["queue"][wid]["status"] != "unsupported":
+            if any(q["url"].endswith(".ipsw") for q in work().values()):
                 break
-        self.assertIn(state["queue"][wid]["status"], ("pending", "done"))
+        self.assertEqual([(q["status"], q["url"].endswith(".ipsw")) for q in work().values()], [("done", True)],
+                         "the IPSW was queued and read; the encrypted-only work was superseded")
 
 
 if __name__ == "__main__":

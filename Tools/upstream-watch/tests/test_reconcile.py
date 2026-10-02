@@ -117,6 +117,28 @@ class OtherGaps(unittest.TestCase):
         self.assertEqual(topics["v1:gap/caps-bits"].items["nb"]["row"]["upstream"], "97")
         self.assertIn("family/CPUFAMILY_ARM_NEVIS", topics["v1:gap/cpufamily"].items)
 
+    def test_known_cpufamily_with_a_different_value(self):
+        state = fresh_state()
+        name, value = next(iter(data().cpufamily_map().items()))
+        sdk = {"name": "macosx27.0", "cap_bit_nb": 92, "caps": {}, "cpufamily": {name: "0xdeadbeef"}, "cpusubfamily": {}}
+        state["scopes"]["headers@macos-26:/Applications/Xcode.app"] = {"data": {"xcode": "x", "sdks": {"macosx": sdk}},
+                                                                     "first_seen": DATE, "changed_on": DATE}
+        item = run(state)["topics"]["v1:gap/cpufamily"].items[f"family/{name}"]
+        self.assertEqual(item["row"]["data"], value)
+
+    def test_guide_rows_and_columns_removed_upstream(self):
+        from upstream_watch.detectors import docs
+        from helpers import FIXTURES
+        g = docs.parse_guide((FIXTURES / "guide.html").read_text())
+        del g["rows"]["Secure Page Table Monitor"]
+        g["columns"] = g["columns"][:-1]
+        g["rows"] = {k: v[:-1] for k, v in g["rows"].items()}
+        state = fresh_state()
+        state["scopes"]["docs:guide"] = {"data": g, "first_seen": DATE, "changed_on": DATE}
+        items = run(state)["topics"]["v1:gap/guide-table"].items
+        self.assertIn("row/Secure-Page-Table-Monitor", items)
+        self.assertIn("no longer printed: A19 | M5", items["columns"]["row"]["data"])
+
     def test_ignore_list(self):
         rec = reconcile.reconcile(fresh_state(), data(), CFG,
                                   {"v1:gap/known-keys#key/hw.optional.arm.FEAT_FP8": {"reason": "tracked elsewhere"}})

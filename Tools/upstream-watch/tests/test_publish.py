@@ -237,6 +237,25 @@ class ExpectedProducers(unittest.TestCase):
         self.assertEqual(watch.expected_producers("push", "", "all", obs, CFG), [])
         self.assertEqual(watch.expected_producers("workflow_dispatch", "", "headers", None, CFG), CFG["headers"]["producers"])
         self.assertEqual(watch.expected_producers("workflow_dispatch", "", "docs", obs, CFG), ["observe"])
+        self.assertEqual(watch.expected_producers("workflow_dispatch", "", "kernelcache", obs, CFG),
+                         ["observe", "kernelcache"], "a kernelcache-only dispatch still runs observe to schedule")
+
+    def test_kernelcache_only_observe_schedules_from_the_committed_queue(self):
+        import json
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            state = fresh_state()
+            state["queue"]["kc:iOS;24A446"] = {"kind": "kernelcache", "build": "iOS;24A446", "os": "iOS", "version": "27.0.1",
+                                               "beta": False, "url": "https://updates.cdn-apple.com/x.ipsw",
+                                               "member": "kernelcache.release.x", "source_fp": "f", "status": "pending",
+                                               "attempts": 0, "not_before": None, "priority": [0, 0], "discovered": DATE,
+                                               "evidence": None, "chips": ["T8150"], "reason": None}
+            statefile.save(base / "state", state)
+            with contextlib.redirect_stdout(io.StringIO()):
+                watch.main(["observe", "--producer", "observe", "--detectors", "kernelcache", "--state-dir",
+                            str(base / "state"), "--out", str(base / "art"), "--run-date", DATE])
+            doc = json.loads((base / "art/observe.json").read_text())
+            self.assertEqual([k["work_id"] for k in doc["kernelcache_scheduled"]], ["kc:iOS;24A446"])
 
 
 if __name__ == "__main__":

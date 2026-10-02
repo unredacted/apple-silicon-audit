@@ -178,6 +178,52 @@ class Idempotence(unittest.TestCase):
             self.assertEqual(statefile.save(d, again), [], "no file changed, so no commit")
 
 
+class ReviewFixes(unittest.TestCase):
+    def test_replaying_an_applied_envelope_overwrites_nothing(self):
+        state = fresh_state()
+        old = env("observe", [snap("docs:pdf", {"etag": "old"}), snap("docs:blog", {"items": []})], run="1.1")
+        merge.apply(state, old, CFG)
+        merge.apply(state, env("observe", [snap("docs:pdf", {"etag": "new"}), failed("docs:blog", "parse")], run="2.1"), CFG)
+        before = statefile.snapshot(state)
+        merge.apply(state, old, CFG)   # a retry that meets newer state
+        self.assertEqual(statefile.snapshot(state), before)
+        self.assertEqual(state["scopes"]["docs:pdf"]["data"], {"etag": "new"})
+        self.assertTrue(state["health"]["scope/docs:blog"]["open"])
+
+    def test_observe_is_applied_before_kernelcache(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            art = pathlib.Path(tmp)
+            s = build("iOS;24A446", "27.0.1", [cand("iPhone18,2", ["T8150"])])
+            w = work_id(s)
+            observe = env("observe", [s, outcome(w, data=manifest_data("iOS;24A446", "27.0.1", [row("T8150")]))], run="3.1")
+            kc = env("kernelcache", [outcome("kc:iOS;24A446", data={"type": "kernelcache", "os": "iOS", "build": "iOS;24A446",
+                                                                    "version": "27.0.1", "beta": False, "tokens": [],
+                                                                    "target": "T8150", "xnu": None})], run="3.1")
+            write_envs(art, observe, kc)
+            state = fresh_state()
+            merge.merge(state, art, ["observe", "kernelcache"], CFG, run_id="3", run_attempt="1", run_date=DATE)
+            self.assertEqual(state["queue"]["kc:iOS;24A446"]["status"], "done", "the same-run extraction was kept")
+
+    def test_metadata_changes_refresh_unfinished_work_and_correct_finished_evidence(self):
+        state = fresh_state()
+        merge.apply(state, env("observe", [build("iOS;24A1", "27.0", [cand("a", ["T1"])]),
+                                           build("iOS;24A2", "27.0", [cand("b", ["T2"])])], run="1.1"), CFG)
+        w1, w2 = "manifest:iOS;24A1;a", "manifest:iOS;24A2;b"
+        merge.apply(state, env("observe", [outcome(w2, data=manifest_data("iOS;24A2", "27.0", [row("T2")]))], run="2.1"), CFG)
+        merge.apply(state, env("observe", [build("iOS;24A1", "27.0.1", [cand("a", ["T1"])]),
+                                           build("iOS;24A2", "27.0.1", [cand("b", ["T2"])])], run="3.1"), CFG)
+        self.assertEqual(state["queue"][w1]["version"], "27.0.1")
+        self.assertEqual(state["queue"][w2]["status"], "done")
+        self.assertEqual(state["evidence"][state["queue"][w2]["evidence"]]["data"]["version"], "27.0.1")
+
+    def test_a_detector_crash_clears_when_it_completes_again(self):
+        state = fresh_state()
+        merge.apply(state, env("observe", [failed("firmware:run", "parse", "KeyError: 'sources'")], run="1.1"), CFG)
+        self.assertTrue(state["health"]["scope/firmware:run"]["open"])
+        merge.apply(state, env("observe", [snap("firmware:run", {"completed": True})], run="2.1"), CFG)
+        self.assertNotIn("scope/firmware:run", state["health"])
+
+
 class Queues(unittest.TestCase):
     def test_order_is_deterministic_and_prioritises_representatives_then_releases(self):
         state = fresh_state()

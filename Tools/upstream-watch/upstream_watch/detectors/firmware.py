@@ -62,6 +62,8 @@ def kdk_targets(client: Client) -> dict:
 
 def index_keys(raw: list, oses: list[str], floor_train: int) -> dict[str, list[str]]:
     """Build keys per OS in the newest two trains, without simulator, SDK or duplicate RC entries."""
+    if not isinstance(raw, list):
+        raise ValueError(f"index is a {type(raw).__name__}, not a list")
     by_os: dict[str, set] = {}
     for key in raw:
         if not isinstance(key, str):
@@ -94,8 +96,9 @@ def build_record(doc: dict, devices: dict) -> dict:
     """A tracked build: its sources' fingerprint and the smallest set of images covering every chip."""
     usable, fp_material = [], []
     for s in doc.get("sources") or []:
-        links = [l["url"] for l in s.get("links", []) if isinstance(l.get("url"), str)]
-        fp_material.append([s.get("type"), sorted(s.get("deviceMap") or []), sorted(links), s.get("prerequisiteBuild")])
+        links = sorted([str(l.get("url")), bool(l.get("preferred")), bool(l.get("active", True))]
+                       for l in s.get("links", []) if isinstance(l.get("url"), str))
+        fp_material.append([s.get("type"), sorted(s.get("deviceMap") or []), links, s.get("prerequisiteBuild")])
         if s.get("type") not in ("ipsw", "ota") or s.get("prerequisiteBuild"):
             continue
         https = [l["url"] for l in s.get("links", []) if str(l.get("url", "")).startswith("https://")
@@ -112,13 +115,16 @@ def build_record(doc: dict, devices: dict) -> dict:
     for u in usable:
         if set(u["chips"]) - covered:
             covered |= set(u["chips"])
-            candidates.append({"device": "universal" if len(u["devices"]) > 8 else u["devices"][0],
-                               "url": u["url"], "type": u["type"], "chips": u["chips"], "unsupported": u["unsupported"]})
+            device = "universal" if len(u["devices"]) > 8 else u["devices"][0]
+            # The URL hash keeps two images that share a first device (or are both universal) apart.
+            candidates.append({"id": f"{device}-{hashlib.sha256(u['url'].encode()).hexdigest()[:8]}",
+                               "device": device, "url": u["url"], "type": u["type"], "chips": u["chips"],
+                               "unsupported": u["unsupported"]})
     fp = hashlib.sha256(json.dumps(sorted(fp_material, key=json.dumps)).encode()).hexdigest()[:16]
     return {"key": doc["key"], "os": doc.get("osStr", ""), "build": doc.get("build", ""),
             "version": str(doc.get("version", "")), "beta": bool(doc.get("beta") or doc.get("rc")),
             "released": doc.get("released"), "track": True, "source_fp": fp,
-            "candidates": sorted(candidates, key=lambda c: c["device"])}
+            "candidates": sorted(candidates, key=lambda c: c["id"])}
 
 
 def observe(client: Client, state: dict, config: dict, b, run_date: str, manifest_cap: int, kc_cap: int) -> None:
@@ -152,6 +158,9 @@ def observe(client: Client, state: dict, config: dict, b, run_date: str, manifes
             for os in oses:
                 b.failed(f"firmware:index:{os}", e, "parse")
             continue
+        for os in oses:
+            if os not in per_os:   # a schema change or partial outage must not leave the old index looking current
+                b.failed(f"firmware:index:{os}", f"the {index} index lists no {os} builds in its newest trains", "parse")
         for os, keys in per_os.items():
             b.snapshot(f"firmware:index:{os}", {"keys": keys})
             prev = state["scopes"].get(f"firmware:index:{os}")
@@ -168,7 +177,7 @@ def observe(client: Client, state: dict, config: dict, b, run_date: str, manifes
 
     # Manifest work: the committed queue plus what this run's builds derive, scheduled deterministically.
     effective = statefile.clone(state)
-    merge.apply(effective, {**b.doc, "application_id": "0.0.observe"}, config)
+    merge.apply(effective, b.doc, config, scratch=True)
     for wid in queue.schedule(effective, "manifest", manifest_cap, run_date):
         q = effective["queue"][wid]
         try:
@@ -181,8 +190,12 @@ def observe(client: Client, state: dict, config: dict, b, run_date: str, manifes
             b.outcome(wid, q["source_fp"], "unsupported", error=str(e))
         except FetchError as e:
             b.outcome(wid, q["source_fp"], "retryable" if e.retryable else "unsupported", error=str(e))
-    merge.apply(effective, {**b.doc, "application_id": "0.0.observe"}, config)
-    for wid in queue.schedule(effective, "kernelcache", kc_cap, run_date):
-        q = effective["queue"][wid]
+    merge.apply(effective, b.doc, config, scratch=True)
+    schedule_kernelcaches(effective, b, run_date, kc_cap)
+
+
+def schedule_kernelcaches(state: dict, b, run_date: str, cap: int) -> None:
+    for wid in queue.schedule(state, "kernelcache", cap, run_date):
+        q = state["queue"][wid]
         b.doc["kernelcache_scheduled"].append({k: q[k] for k in ("url", "member", "source_fp", "os", "build",
                                                                  "version", "beta")} | {"work_id": wid})

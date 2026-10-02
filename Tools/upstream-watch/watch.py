@@ -52,7 +52,8 @@ def expected_producers(event: str, schedule: str, detectors: str, observe_env, c
             return list(config["headers"]["producers"])
         exp, fams = ["observe"], set(OBSERVE_DETECTORS) | {"kernelcache"}
     elif event == "workflow_dispatch":
-        exp = (["observe"] if fams & set(OBSERVE_DETECTORS) else []) + \
+        # observe also schedules queued kernelcache work, so a kernelcache-only dispatch needs it
+        exp = (["observe"] if fams & (set(OBSERVE_DETECTORS) | {"kernelcache"}) else []) + \
               (list(config["headers"]["producers"]) if "headers" in fams else [])
     else:
         return []
@@ -71,10 +72,14 @@ def cmd_observe(a) -> int:
     limits = config["limits"]
 
     def guarded(name, fn):
+        """Run one detector. A crash becomes the health item `scope/<name>:run` instead of a lost
+        envelope; a run that completes reports `<name>:run` ok, which clears that item."""
         try:
             fn()
-        except Exception as e:   # an unexpected crash becomes a health item, not a lost envelope
+        except Exception as e:
             b.failed(f"{name}:run", f"{type(e).__name__}: {e}", "parse")
+        else:
+            b.snapshot(f"{name}:run", {"completed": True})
 
     if a.producer == "observe":
         fams = families(a.detectors)
@@ -85,6 +90,9 @@ def cmd_observe(a) -> int:
             guarded("docs", lambda: docs.observe(client, b))
         if "xnu" in fams:
             guarded("xnu", lambda: xnu.observe(client, state, b))
+        if "kernelcache" in fams and "firmware" not in fams:   # schedule from the committed queue only
+            guarded("kernelcache:schedule", lambda: firmware.schedule_kernelcaches(
+                state, b, a.run_date, limits["kernelcaches"]))
     elif a.producer.startswith("headers@"):
         guarded("headers", lambda: headers.observe(a.producer, b))
     elif a.producer == "kernelcache":

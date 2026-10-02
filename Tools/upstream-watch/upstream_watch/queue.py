@@ -24,9 +24,17 @@ def priority(chips, representatives, beta: bool) -> list[int]:
     return [0 if set(chips) & set(representatives) else 1, 1 if beta else 0]
 
 
+_REFRESH = ("url", "device", "chips", "version", "beta", "source_fp", "priority")
+
+
 def derive_manifests(state: dict, config: dict, run_date: str) -> None:
-    """Queue a manifest read for every candidate of every tracked build. A changed source
-    fingerprint re-queues work that was unsupported or not yet done; superseded work is dropped."""
+    """Queue a manifest read for every candidate of every tracked build.
+
+    - Unfinished work is replaced when anything about its candidate or build changed (a new URL, a
+      corrected version, a changed source fingerprint), so it never runs with stale metadata.
+    - Finished work keeps its evidence (the manifest of one build does not change), but a corrected
+      version or beta flag is carried into the queue entry and its evidence record.
+    - Unfinished work whose candidate disappeared is dropped."""
     reps = set(config["kernelcache"]["representatives"].values())
     for key, scope in state["scopes"].items():
         if not key.startswith("firmware:build:") or not scope["data"].get("track"):
@@ -34,20 +42,25 @@ def derive_manifests(state: dict, config: dict, run_date: str) -> None:
         b = scope["data"]
         wanted = {}
         for c in b["candidates"]:
-            wid = f"manifest:{b['key']};{c['device']}"
-            wanted[wid] = {"kind": "manifest", "build": b["key"], "os": b["os"], "version": b["version"],
-                           "beta": b["beta"], "url": c["url"], "device": c["device"], "chips": c["chips"],
-                           "source_fp": b["source_fp"], "priority": priority(c["chips"], reps, b["beta"])}
-            wanted[wid]["_unsupported"] = c.get("unsupported")
-        for wid, base in wanted.items():
-            unsupported = base.pop("_unsupported")
+            wid = f"manifest:{b['key']};{c.get('id', c['device'])}"
+            wanted[wid] = ({"kind": "manifest", "build": b["key"], "os": b["os"], "version": b["version"],
+                            "beta": b["beta"], "url": c["url"], "device": c["device"], "chips": c["chips"],
+                            "source_fp": b["source_fp"], "priority": priority(c["chips"], reps, b["beta"])},
+                           c.get("unsupported"))
+        for wid, (base, unsupported) in wanted.items():
             q = state["queue"].get(wid)
             fresh = {**base, "status": "unsupported" if unsupported else "pending", "reason": unsupported,
                      "attempts": 0, "not_before": None, "evidence": None}
             if q is None:
                 state["queue"][wid] = {**fresh, "discovered": run_date}
-            elif q["source_fp"] != base["source_fp"] and q["status"] != "done":
-                state["queue"][wid] = {**fresh, "discovered": q["discovered"]}
+            elif q["status"] != "done":
+                if any(q.get(f) != base[f] for f in _REFRESH):
+                    state["queue"][wid] = {**fresh, "discovered": q["discovered"]}
+            elif (q["version"], q["beta"]) != (base["version"], base["beta"]):
+                q.update(version=base["version"], beta=base["beta"])
+                ev = state["evidence"].get(q.get("evidence") or "")
+                if ev:
+                    ev["data"] = {**ev["data"], "version": base["version"], "beta": base["beta"]}
         for wid in [w for w, q in state["queue"].items()
                     if q["kind"] == "manifest" and q["build"] == b["key"] and w not in wanted and q["status"] != "done"]:
             del state["queue"][wid]

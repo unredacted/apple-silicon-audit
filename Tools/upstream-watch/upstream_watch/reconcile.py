@@ -200,7 +200,7 @@ def _header_sources(state: dict):
 
 def _caps_and_families(caps: Topic, fam: Topic, data: Data, state: dict) -> None:
     nb, bits = data.cap_bit_nb(), data.cap_bits()
-    names, subs, values = data.cpufamily_names(), data.cpusubfamily_names(), data.cpufamily_values()
+    fams, subs, values = data.cpufamily_map(), data.cpusubfamily_map(), data.cpufamily_values()
     highest = {}
     for label, src, lab in _header_sources(state):
         if src["cap_bit_nb"] > nb:
@@ -210,14 +210,14 @@ def _caps_and_families(caps: Topic, fam: Topic, data: Data, state: dict) -> None
             if bits.get(name) != bit:
                 caps.add(f"bit/{bit}", {"bit": bit, "name": name}, {"subject": f"bit {bit}", "upstream": name,
                          "data": "absent" if name not in bits else f"bit {bits[name]}", "source": label}, [lab])
-        for name, value in src["cpufamily"].items():
-            if name not in names:
+        for name, value in src["cpufamily"].items():   # a new name, or a known name whose value differs
+            if fams.get(name) != value:
                 fam.add(f"family/{name}", {"name": name, "value": value}, {"subject": name, "upstream": value,
-                        "source": label}, [lab])
+                        "data": fams.get(name, "absent"), "source": label}, [lab])
         for name, value in src["cpusubfamily"].items():
-            if name not in subs:
+            if subs.get(name) != value:
                 fam.add(f"subfamily/{name}", {"name": name, "value": value}, {"subject": name,
-                        "upstream": str(value), "source": label}, [lab])
+                        "upstream": str(value), "data": str(subs.get(name, "absent")), "source": label}, [lab])
     if highest:
         top = max(highest)
         caps.add("nb", {"cap_bit_nb": top}, {"subject": "cap_bit_nb", "upstream": str(top), "data": str(nb),
@@ -277,9 +277,16 @@ def _guide(topic: Topic, data: Data, state: dict, config: dict) -> None:
         return
     g, cols, rows = scope["data"], config["guide"]["columns"], config["guide"]["rows"]
     unknown_cols = [c for c in g["columns"] if c not in cols]
-    if unknown_cols:
+    removed_cols = [c for c in cols if c not in g["columns"]]   # both directions: a deletion is a change too
+    if unknown_cols or removed_cols:
+        what = (["unmapped: " + ", ".join(unknown_cols)] if unknown_cols else []) + \
+               (["no longer printed: " + ", ".join(removed_cols)] if removed_cols else [])
         topic.add("columns", {"columns": g["columns"]}, {"subject": "columns", "upstream": " / ".join(g["columns"]),
-                  "data": "unmapped: " + ", ".join(unknown_cols)})
+                  "data": "; ".join(what)})
+    for label, entry_id in rows.items():
+        if label not in g["rows"]:
+            topic.add(f"row/{slug(label)}", {"row": label, "removed": True},
+                      {"subject": label, "upstream": "row no longer printed", "data": f"maps to {entry_id}"})
     for label, cells in g["rows"].items():
         entry_id = rows.get(label)
         if entry_id is None:
@@ -345,7 +352,7 @@ def reconcile(state: dict, data: Data, config: dict, ignore: dict, *, ignore_exc
     caps = gap("v1:gap/caps-bits", "caps-bits.json is behind the SDK or XNU headers", "watch:headers",
                ["subject", "upstream", "data", "source"], G_CAPS)
     fam = gap("v1:gap/cpufamily", "cpufamily-names.json is behind the SDK or XNU headers", "watch:headers",
-              ["subject", "upstream", "source"], G_CPUFAMILY)
+              ["subject", "upstream", "data", "source"], G_CPUFAMILY)
     keys = gap("v1:gap/known-keys", "known-keys.json lacks keys seen in results, XNU or kernelcaches",
                "watch:results", ["subject", "note", "source"], G_KEYS)
     kc = Topic("v1:gap/kernelcache", "gap", "Kernelcache strings name features known-keys.json lacks (heuristic)",
