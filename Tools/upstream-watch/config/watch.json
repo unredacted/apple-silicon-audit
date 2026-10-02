@@ -1,0 +1,52 @@
+{
+  "firmware": {
+    "indexes": {
+      "iOS": ["iOS", "iPadOS"],
+      "macOS": ["macOS"],
+      "watchOS": ["watchOS"],
+      "tvOS": ["tvOS"],
+      "visionOS": ["visionOS"]
+    },
+    "floor_train": {"iOS": 22, "macOS": 24, "watchOS": 22, "tvOS": 22, "visionOS": 22}
+  },
+  "kernelcache": {
+    "representatives": {"iOS": "T8150", "macOS": "T6050", "watchOS": "T8310", "tvOS": "T8020"}
+  },
+  "headers": {"producers": ["headers@macos-26", "headers@xcode-27"]},
+  "required": {
+    "headers@xcode-27": ["macosx27*", "iphoneos27*"],
+    "headers@macos-26": ["macosx26*"]
+  },
+  "guide": {
+    "columns": {
+      "A10": ["A10"],
+      "A11, S3": ["A11-S3"],
+      "A12-A14 | S4-S10": ["A12-A14", "S4-S10"],
+      "A15-A18": ["A15-A18"],
+      "M1": ["M1"],
+      "M2-M4": ["M2-M4"],
+      "A19 | M5": ["A19", "M5"]
+    },
+    "rows": {
+      "Kernel Integrity Protection": "kip",
+      "Fast Permission Restrictions": "fast_permission_restrictions",
+      "System Coprocessor Integrity Protection": "scip",
+      "Pointer Authentication Codes": "pac",
+      "Page Protection Layer": "ppl",
+      "Secure Page Table Monitor": "sptm",
+      "Memory Integrity Enforcement with Enhanced Memory Tagging Extension": "mie"
+    }
+  },
+  "chip_ignore": ["T8012", "TFE00", "VMAPPLE"],
+  "limits": {
+    "new_issues": 6,
+    "health_issues": 3,
+    "comments": 15,
+    "manifests": 40,
+    "kernelcaches": 4,
+    "refetch_floor": 25,
+    "refetch_ceiling": 100,
+    "health_threshold": 3
+  },
+  "schedules": {"daily": "23 5 * * *", "weekly": "47 6 * * 1"}
+}

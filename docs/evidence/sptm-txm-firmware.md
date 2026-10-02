@@ -8,9 +8,11 @@ only: the "Operating system integrity" page (published 2026-01-28) and the Augus
 
 An IPSW's `BuildManifest.plist` lists the firmware images each board is personalized to boot. A
 chip that boots SPTM and TXM has `Ap,SecurePageTableMonitor` and `Ap,TrustedExecutionMonitor`
-entries in its erase-install identity. `Tools/gen-data/sptm-firmware.py` reads only the zip
-directory and the manifest, using HTTP range requests against Apple's IPSW URLs (as listed by
-ipsw.me). Re-run it for each OS release:
+entries in its erase-install identity. The upstream watcher (`Tools/upstream-watch`, SPEC §15)
+reads the manifest of every new build, betas included, and opens a `gap/sptm` issue when a chip
+boots SPTM where documented-matrix.json disagrees. `Tools/gen-data/sptm-firmware.py` is the manual
+version, for bisecting a chip's first build. It reads only the zip directory and the manifest,
+using HTTP range requests against Apple's IPSW URLs (as listed by ipsw.me):
 
     python3 Tools/gen-data/sptm-firmware.py iPhone12,1 iPhone13,2 iPad13,4 MacBookPro18,1
     python3 Tools/gen-data/sptm-firmware.py MacBookPro18,1 --version 26.3.1
@@ -49,7 +51,8 @@ The guide says SPTM relies on silicon primitives only its listed chips have, so 
 on these chips is undocumented, and the app does not claim it. The exceptions live in
 `SPTM_FIRMWARE` in `Tools/gen-data/generate.py`.
 
-Not checked: tvOS. Current Apple TVs have no restore images, and some of their OTAs are encrypted.
+tvOS: current Apple TVs have no restore images. The full OTA for AppleTV11,1 (A12) on tvOS 27.0
+(24J361) boots no SPTM. The OTAs for A15 Apple TVs are encrypted (`.aea`) and cannot be read this way.
 
 ## Also found: the PPL row was read one column off
 

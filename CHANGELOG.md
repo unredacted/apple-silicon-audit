@@ -5,6 +5,15 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+- Upstream watcher: a scheduled GitHub Actions workflow watches Apple's firmware (AppleDB build
+  indexes and restore manifests, betas included), the Platform Security guide and the Security
+  Research blog, XNU source, SDK headers, kernelcache strings, and the results database. When any of
+  them moves ahead of the data files, it opens a deduplicated GitHub issue with the evidence. It
+  never edits the data. See SPEC §15 and `Tools/upstream-watch/README.md`.
+- `generate.py`: `--check`, `--only` and `--sdk`. Unchanged files keep their dates. It now refuses
+  to give a key whose name looks security-relevant the default "not security-relevant" annotation.
+  The header parsers are shared with the watcher (`Tools/gen-data/sdk_headers.py`).
+
 - Documented matrix: Apple's firmware boots the Secure Page Table Monitor and Trusted Execution
   Monitor on A13, A14 and M1 from iOS, iPadOS and macOS 27, on M1 Pro/Max/Ultra from macOS 26.4, and
   on S9/S10 by watchOS 26.3 at the latest, but the Platform Security guide still lists them without SPTM. On those chips and versions, SPTM

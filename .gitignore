@@ -17,3 +17,6 @@ Apps/SiliconAudit/Info.plist
 
 # Archives and exports from Scripts/archive.sh
 build/
+
+# Python (Tools/gen-data, Tools/upstream-watch)
+__pycache__/

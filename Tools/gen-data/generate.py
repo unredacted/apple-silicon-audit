@@ -8,53 +8,81 @@ Sources of truth:
 - ANNOTATIONS below                 -> display names, kinds, categories, descriptions
 - MATRIX below                      -> documented-matrix.json (Apple Platform Security guide)
 
-soc-map.json is curated by hand and left alone. Run from the repo root:
-    python3 Tools/gen-data/generate.py
+soc-map.json is curated by hand and left alone. A file whose content is unchanged keeps its dates.
+caps-bits and cpufamily-names depend on the SDK in use. Run from the repo root:
+    python3 Tools/gen-data/generate.py                      # regenerate all four
+    python3 Tools/gen-data/generate.py --only documented-matrix
+    python3 Tools/gen-data/generate.py --check              # exit 1 if any content differs
 """
-import json, re, subprocess, sys, pathlib, datetime
+import argparse, datetime, difflib, json, pathlib, re, subprocess, sys
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from sdk_headers import SECURITY_HINT, parse_caps_bits, parse_cpufamily  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 OUT = ROOT / "Sources/SiliconAuditCore/Resources"
 TODAY = datetime.date.today().isoformat()
+_SDK = None
 
 def sdk():
-    try:
-        return pathlib.Path(subprocess.check_output(["xcrun", "--show-sdk-path", "--sdk", "macosx"], text=True).strip())
-    except Exception:
-        return pathlib.Path("/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk")
-
-SDK = sdk()
+    """The macOS SDK, looked up on first use so importing this file runs nothing."""
+    global _SDK
+    if _SDK is None:
+        try:
+            _SDK = pathlib.Path(subprocess.check_output(["xcrun", "--show-sdk-path", "--sdk", "macosx"], text=True).strip())
+        except Exception:
+            _SDK = pathlib.Path("/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk")
+    return _SDK
 
 def header(rel):
-    return (SDK / "usr/include" / rel).read_text()
+    return (sdk() / "usr/include" / rel).read_text()
+
+def content(obj):
+    """A data file without its top-level dates, for comparing content."""
+    return {k: v for k, v in obj.items() if k not in ("version", "verified")}
+
+def shown(path):
+    return path.relative_to(ROOT) if ROOT in path.parents else path
+
+def dumps(obj):
+    return json.dumps(obj, indent=2, ensure_ascii=False) + "\n"
 
 def write(name, obj):
+    """Write `obj` unless only its dates would change; an unchanged file keeps its dates."""
     path = OUT / name
-    path.write_text(json.dumps(obj, indent=2, ensure_ascii=False) + "\n")
-    print(f"wrote {path.relative_to(ROOT)} ({len(obj.get('entries', []))} entries)")
+    old = json.loads(path.read_text()) if path.exists() else None
+    if old is not None and content(old) == content(obj):
+        print(f"unchanged {shown(path)}")
+        return
+    path.write_text(dumps(obj))
+    print(f"wrote {shown(path)} ({len(obj.get('entries', []))} entries)")
+
+def check(name, obj):
+    """True when the file on disk has the same content as `obj`, dates aside; else print a diff."""
+    path = OUT / name
+    old = content(json.loads(path.read_text())) if path.exists() else {}
+    new = content(obj)
+    if old == new:
+        print(f"ok {shown(path)}")
+        return True
+    diff = difflib.unified_diff(dumps(old).splitlines(), dumps(new).splitlines(),
+                                f"{name} (committed)", f"{name} (generated)", lineterm="")
+    print("\n".join(diff))
+    return False
 
 # ---------------------------------------------------------------- caps-bits
 def caps_bits():
-    text = header("arm/cpu_capabilities_public.h")
-    nb = int(re.search(r"#define CAP_BIT_NB\s+(\d+)", text).group(1))
-    # CAP_BIT_NB is the bit count, not a capability; everything else below it is a real bit.
-    entries = [{"bit": int(b), "name": n} for n, b in re.findall(r"#define CAP_BIT_(\w+)\s+(\d+)\n", text)
-               if n != "NB" and int(b) < nb]
+    nb, entries = parse_caps_bits(header("arm/cpu_capabilities_public.h"))
     return {
         "schema_version": "1", "version": TODAY, "verified": TODAY,
         "source": "<arm/cpu_capabilities_public.h>, macOS SDK; bit positions are ABI and never change",
         "cap_bit_nb": nb,
-        "entries": sorted(entries, key=lambda e: e["bit"]),
+        "entries": entries,
     }
 
 # ---------------------------------------------------------- cpufamily-names
 def cpufamily_names():
-    text = header("mach/machine.h")
-    fams = []
-    for name, val in re.findall(r"#define CPUFAMILY_(\w+)\s+(0x[0-9a-fA-F]+)", text):
-        fams.append({"value": f"0x{int(val, 16):08x}", "name": f"CPUFAMILY_{name}",
-                     "arch": "arm64" if name.startswith("ARM") else "x86_64" if name.startswith("INTEL") else "other"})
-    subs = [{"value": int(v), "name": f"CPUSUBFAMILY_{n}"} for n, v in re.findall(r"#define CPUSUBFAMILY_(\w+)\s+(\d+)", text)]
+    fams, subs = parse_cpufamily(header("mach/machine.h"))
     return {
         "schema_version": "1", "version": TODAY, "verified": TODAY,
         "source": "<mach/machine.h>, macOS SDK. hw.cpufamily identifies the core microarchitecture, not the SoC.",
@@ -179,6 +207,11 @@ def known_keys():
         a = A.get(key)
         leaf = key.split(".")[-1]
         if a is None:
+            # The default annotation folds a key into the non-security ISA shelf, so a name that looks
+            # security-relevant must be curated by hand first (SPEC §15).
+            if SECURITY_HINT.search(leaf):
+                sys.exit(f"{key} needs a curated annotation: its name looks security-relevant")
+            print(f"warning: {key} has no curated annotation; using the isa_misc default", file=sys.stderr)
             a = dict(display_name=leaf, category="isa_misc", kind="flag", security_relevant=False,
                      description=f"Arm ISA feature {leaf}; observed in the kernel's hw.optional table, no curated description yet.", alias_of=None, format=None)
         fmt = a["format"] or ("I" if key.startswith("hw.optional.") else None)
@@ -249,8 +282,34 @@ def matrix():
         ],
     }
 
+FILES = {
+    "caps-bits": ("caps-bits.json", caps_bits),
+    "cpufamily-names": ("cpufamily-names.json", cpufamily_names),
+    "known-keys": ("known-keys.json", known_keys),
+    "documented-matrix": ("documented-matrix.json", matrix),
+}
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="Regenerate or check the bundled data files.")
+    ap.add_argument("--only", help="comma-separated subset of: " + ", ".join(FILES))
+    ap.add_argument("--sdk", type=pathlib.Path, help="SDK root to read headers from (default: xcrun's macOS SDK)")
+    ap.add_argument("--check", action="store_true", help="compare content with the committed files; exit 1 on a difference")
+    args = ap.parse_args(argv)
+    global _SDK
+    if args.sdk:
+        _SDK = args.sdk
+    names = args.only.split(",") if args.only else list(FILES)
+    unknown = [n for n in names if n not in FILES]
+    if unknown:
+        ap.error(f"unknown file: {', '.join(unknown)}")
+    clean = True
+    for n in names:
+        filename, build = FILES[n]
+        if args.check:
+            clean = check(filename, build()) and clean
+        else:
+            write(filename, build())
+    return 0 if clean else 1
+
 if __name__ == "__main__":
-    write("caps-bits.json", caps_bits())
-    write("cpufamily-names.json", cpufamily_names())
-    write("known-keys.json", known_keys())
-    write("documented-matrix.json", matrix())
+    sys.exit(main())
