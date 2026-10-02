@@ -131,6 +131,7 @@ Personal Team is enough for every platform, including the Enhanced Security enti
 | `Apps/` | the app entry points and entitlements; `project.yml` describes the Xcode project |
 | `Schema/` | the export JSON Schema (2020-12) |
 | `Tools/` | data generators, the results-matrix generator, the icon generator |
+| `Tools/upstream-watch/` | the scheduled watcher that opens issues when Apple's firmware, docs, headers or source move ahead of the data files (SPEC §15) |
 | `results/`, `MATRIX.md`, `site/` | the community results database and what is generated from it |
 
 ## License

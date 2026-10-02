@@ -37,6 +37,32 @@ jobs:
           .build/debug/silicon-audit export --fault-test > /tmp/live-hardened.json
           Scripts/validate-export.sh /tmp/live-hardened.json
 
+  python:
+    name: Data generator and upstream watcher (Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: macos-26      # /usr/bin/python3 is 3.9, the floor maintainers run locally
+            python: system
+          - runner: ubuntu-latest
+            python: "3.13"
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: matrix.python != 'system'
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Watcher unit tests (offline)
+        run: |
+          PY=$([ "${{ matrix.python }}" = system ] && echo /usr/bin/python3 || echo python3)
+          $PY --version
+          $PY -m unittest discover -s Tools/upstream-watch/tests -t Tools/upstream-watch/tests
+      - name: SDK-independent data files match their generator
+        # caps-bits and cpufamily-names depend on the runner's SDK; the watcher reports those.
+        run: python3 Tools/gen-data/generate.py --check --only known-keys,documented-matrix
+
   simulators:
     name: Build UI for iOS, tvOS, visionOS, watchOS simulators
     runs-on: macos-26

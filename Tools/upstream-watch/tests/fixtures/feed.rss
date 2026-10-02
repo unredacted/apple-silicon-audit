@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>Apple Security Research</title><link>https://security.apple.com</link>
+<item><title><![CDATA[Post one]]></title><link>https://security.apple.com/blog/post-one</link></item>
+<item><title><![CDATA[Post two @someone #12]]></title><link>https://security.apple.com/blog/post-two</link></item>
+<item><title>Elsewhere</title><link>https://example.com/blog/x</link></item>
+</channel></rss>

@@ -1,0 +1,4 @@
+{
+  "notes": "Findings a human has triaged and decided not to act on, keyed '<issue fingerprint>#<item key>'. Each needs a reason, who and when. Changed only by PR.",
+  "items": {}
+}

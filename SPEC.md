@@ -467,7 +467,9 @@ silicon-audit/
 │   └── export-v1.schema.json      # also the CI privacy allowlist
 ├── results/                       # community submissions, results/<hw_product>/
 ├── Tools/
-│   └── generate-matrix/           # CI: results → Markdown + static site
+│   ├── gen-data/                  # data-file generator and shared header parsers
+│   ├── generate-matrix/           # CI: results → Markdown + static site
+│   └── upstream-watch/            # CI: upstream changes → evidence issues (§15)
 ├── docs/
 │   ├── spec-review.md
 │   └── evidence/                  # raw sysctl dumps behind spec claims
@@ -515,3 +517,34 @@ Mitigations, all of them: detect each condition at runtime and set the correspon
 - Accessibility audit with VoiceOver on iPhone and watch; Dynamic Type at the largest accessibility size.
 
 **A note on interpretation.** The app should be careful in its own copy not to overclaim. "This kernel reports FEAT_MTE4" is a true statement the app can make. "This device has Memory Integrity Enforcement" is not, unless the enforcement self-test measured it. Write the UI strings with the same discipline as the data model.
+
+---
+
+## 15. Upstream watcher
+
+The data files go stale when Apple ships a new chip, a new architectural feature, a revised guide or a quiet firmware change, and nobody may notice. The SPTM/TXM backport (§5) arrived as a rumor, two weeks after Apple shipped it. A scheduled GitHub Actions workflow (`.github/workflows/watch.yml`, code in `Tools/upstream-watch/`) watches the upstream sources and **reports**. It never changes what the app says.
+
+**Sources.**
+- *Firmware:* AppleDB build indexes, betas included, and their restore manifests, read by HTTP range request. Which chips boot SPTM and TXM, which chip ids and kernel targets exist (with the KDK mirror's macOS targets).
+- *Apple's documentation:* the "Operating system integrity" table, decoded from its icons; its published date and footnotes; the guide PDF; the revision history; the Security Research blog.
+- *XNU source* at its newest tag, and *SDK headers* from every Xcode on the macOS runners.
+- *The results database's* unrecognized keys, SoC ids and CPU families.
+- *Kernelcache strings,* as a heuristic.
+
+**Findings become issues, never data.** Each data file gets one deduplicated issue listing the items it is behind on. Each one-off upstream event gets an issue, and each detector gets a health issue. The bot closes a gap issue when a human's PR makes the data match. Nothing is applied automatically, because every finding needs judgment the generator cannot make:
+- whether a firmware observation justifies a documented-matrix exception (a booted monitor is not a documented guarantee, §3);
+- how to annotate a new key (the default annotation marks it not security-relevant and would hide it from the headline sections);
+- whether a capability-count bump is safe (`cap_bit_nb` is coupled to the caps decoder and tests);
+- whether a heuristic string is real.
+
+**The watcher reads no sysctl values.** The macOS runners are VMAPPLE guests (§14). The watcher reads only header files there, and the network detectors run on Linux.
+
+**Guarantees.** Each one is a tested contract (`Tools/upstream-watch/README.md`):
+- Evidence merges scope by scope. A failed, skipped or empty run keeps all earlier evidence, and missing data is never read as an empty finding.
+- Capped work is queued with date-based backoff, never dropped.
+- Every producer reports its own health and coverage.
+- Every outcome is applied once, by application id.
+- Committed state and issue bodies carry no per-run metadata, so an unchanged upstream produces no commit and no issue API call.
+- An upstream event is recorded before publication and acknowledged only after its issue exists.
+- Only scheduled, dispatched or push runs on `main` may write. Pull-request runs show a dry-run plan with read-only permissions.
+

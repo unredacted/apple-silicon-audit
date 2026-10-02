@@ -17,6 +17,9 @@ generated [MATRIX.md](../MATRIX.md) (and the static site) is built from them.
    the privacy allowlist: only the approved sysctl keys may appear), checks the path, and
    regenerates the matrix.
 
+A result whose walk found keys the inventory does not annotate, or whose SoC or CPU family is not in
+the data files, adds an item to the upstream watcher's issue for that data file (SPEC §15).
+
 ## What the file contains, and does not
 
 The export carries measured sysctl readings, Apple's documented claims for the chip family, the

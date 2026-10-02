@@ -1,0 +1,197 @@
+# Upstream change watcher (SPEC §15, Tools/upstream-watch/README.md).
+# Read-only jobs observe Apple's firmware, docs, headers and source and upload one envelope each;
+# only `publish` can write, and only from main: it commits the watcher state and opens or updates
+# issues. Nothing here changes the app's data files.
+name: upstream-watch
+
+on:
+  schedule:
+    - cron: "23 5 * * *"   # daily: firmware, docs, XNU, and queued kernelcaches
+    - cron: "47 6 * * 1"   # Mondays: SDK headers on the macOS runners
+  workflow_dispatch:
+    inputs:
+      detectors:
+        description: "all, or a comma list of firmware, docs, xnu, headers, kernelcache"
+        type: string
+        default: all
+      dry_run:
+        description: "Plan only: no state commit and no issue changes"
+        type: boolean
+        default: true
+  push:   # a curation merged: reconcile right away so resolved issues close
+    branches: [main]
+    paths:
+      - "Sources/SiliconAuditCore/Resources/**"
+      - "results/**"
+      - "Tools/upstream-watch/**"
+      - "!Tools/upstream-watch/state/**"
+      - "Tools/gen-data/**"
+      - ".github/workflows/watch.yml"
+  pull_request:
+    paths:
+      - "Sources/SiliconAuditCore/Resources/**"
+      - "Tools/upstream-watch/**"
+      - "Tools/gen-data/**"
+      - ".github/workflows/watch.yml"
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('upstream-watch-pr-{0}', github.ref) || 'upstream-watch' }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  IPSW_VERSION: "3.1.723"   # bump deliberately: verify checksums.txt.sig, then update the hash
+  IPSW_SHA256: "9ed2a84e47e96bf1ae554a955da9df53363093a9580eb281783ae46bef269b12"
+
+jobs:
+  observe:
+    if: >-
+      github.repository == 'unredacted/apple-silicon-audit' &&
+      ((github.event_name == 'schedule' && github.event.schedule == '23 5 * * *') ||
+       github.event_name == 'pull_request' ||
+       (github.event_name == 'workflow_dispatch' && (inputs.detectors == 'all' ||
+         contains(inputs.detectors, 'firmware') || contains(inputs.detectors, 'docs') || contains(inputs.detectors, 'xnu'))))
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    outputs:
+      kernelcache_queue: ${{ steps.observe.outputs.kernelcache_queue }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - id: observe
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DETECTORS: ${{ github.event_name == 'workflow_dispatch' && inputs.detectors || 'all' }}
+        run: python3 Tools/upstream-watch/watch.py observe --producer observe --detectors "$DETECTORS" --out "$RUNNER_TEMP/watch"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: watch-observe
+          path: ${{ runner.temp }}/watch/observe.json
+          retention-days: 7
+
+  kernelcache:
+    needs: observe
+    if: >-
+      github.event_name != 'pull_request' && needs.observe.result == 'success' &&
+      needs.observe.outputs.kernelcache_queue != '' && needs.observe.outputs.kernelcache_queue != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Install the pinned ipsw (decompression only)
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/ipsw.tgz" \
+            "https://github.com/blacktop/ipsw/releases/download/v${IPSW_VERSION}/ipsw_${IPSW_VERSION}_linux_x86_64.tar.gz"
+          echo "${IPSW_SHA256}  $RUNNER_TEMP/ipsw.tgz" | sha256sum -c -
+          mkdir -p "$RUNNER_TEMP/ipsw" && tar -xzf "$RUNNER_TEMP/ipsw.tgz" -C "$RUNNER_TEMP/ipsw"
+          echo "IPSW_BIN=$(find "$RUNNER_TEMP/ipsw" -type f -name ipsw | head -1)" >> "$GITHUB_ENV"
+      - env:
+          KERNELCACHE_QUEUE: ${{ needs.observe.outputs.kernelcache_queue }}
+        run: python3 Tools/upstream-watch/watch.py observe --producer kernelcache --ipsw "$IPSW_BIN" --out "$RUNNER_TEMP/watch"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: watch-kernelcache
+          path: ${{ runner.temp }}/watch/kernelcache.json
+          retention-days: 7
+
+  headers:
+    if: >-
+      github.repository == 'unredacted/apple-silicon-audit' &&
+      ((github.event_name == 'schedule' && github.event.schedule == '47 6 * * 1') ||
+       (github.event_name == 'workflow_dispatch' && (inputs.detectors == 'all' || contains(inputs.detectors, 'headers'))))
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [macos-26, xcode-27]
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - env:
+          RUNNER_LABEL: ${{ matrix.runner }}
+        run: python3 Tools/upstream-watch/watch.py observe --producer "headers@${RUNNER_LABEL}" --out "$RUNNER_TEMP/watch"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: watch-headers-${{ matrix.runner }}
+          path: ${{ runner.temp }}/watch/headers_${{ matrix.runner }}.json
+          retention-days: 7
+
+  plan:   # pull requests: show what the watcher would do, with read-only permissions
+    if: github.event_name == 'pull_request' && !cancelled()
+    needs: observe
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      issues: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true   # a missing envelope is the watcher's finding, not a job error
+        with:
+          pattern: watch-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/artifacts
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 Tools/upstream-watch/watch.py publish-job --dry-run --event pull_request --artifacts "$RUNNER_TEMP/artifacts"
+
+  publish:
+    needs: [observe, kernelcache, headers]
+    # always(): runs when a producer failed, so its health issue can still be posted.
+    if: >-
+      always() && !cancelled() &&
+      github.repository == 'unredacted/apple-silicon-audit' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.event_name == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      issues: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        continue-on-error: true
+        with:
+          pattern: watch-*
+          merge-multiple: true
+          path: ${{ runner.temp }}/artifacts
+      - name: Reconcile, commit state, publish issues
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          DETECTORS: ${{ inputs.detectors || 'all' }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          mkdir -p "$RUNNER_TEMP/artifacts"
+          args=(--artifacts "$RUNNER_TEMP/artifacts" --event "$EVENT" --schedule "$SCHEDULE" --detectors "$DETECTORS"
+                --plan-out "$RUNNER_TEMP/watch-plan.json")
+          if [ "$DRY_RUN" = "true" ]; then args+=(--dry-run); fi
+          python3 Tools/upstream-watch/watch.py publish-job "${args[@]}"
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: watch-plan
+          path: ${{ runner.temp }}/watch-plan.json
+          retention-days: 30
+          if-no-files-found: ignore
