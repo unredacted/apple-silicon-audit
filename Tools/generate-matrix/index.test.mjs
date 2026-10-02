@@ -53,3 +53,22 @@ test('validation failures never overwrite generated artifacts', () => {
   assert.deepEqual(readFileSync(matrix), before[0]);
   assert.deepEqual(readFileSync(site), before[1]);
 });
+test('documented rows stay separate when OS builds of one device differ', () => {
+  const out = mkdtempSync(join(tmpdir(), 'silicon-audit-matrix-out-'));
+  try {
+    const older = structuredClone(fixture);
+    const newer = structuredClone(fixture);
+    newer.environment.os_build = '26A428';
+    const sptm = newer.facts.find((f) => f.id === 'sptm');
+    sptm.state = 'unknown';
+    const same = structuredClone(fixture);
+    same.environment.os_build = '25G90';
+    const result = check([older, newer, same], ['--write', '--out-dir', out]);
+    assert.equal(result.status, 0, result.stderr);
+    const md = readFileSync(join(out, 'MATRIX.md'), 'utf8');
+    const rows = md.split('\n').filter((l) => l.includes('| Mac17,7 | M5 |'));
+    assert.equal(rows.length, 2);
+    assert.ok(rows.some((l) => l.includes('| 25G83, 25G90 |')));
+    assert.ok(rows.some((l) => l.includes('| 26A428 |')));
+  } finally { rmSync(out, { recursive: true, force: true }); }
+});

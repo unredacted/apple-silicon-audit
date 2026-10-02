@@ -228,7 +228,7 @@ public struct Auditor: Sendable {
         }
 
         // Documented claims via soc_id → column.
-        facts.append(contentsOf: data.matrix.facts(forColumn: identity.securityGuideColumn, socId: identity.socId))
+        facts.append(contentsOf: data.matrix.facts(forColumn: identity.securityGuideColumn, socId: identity.socId, osVersion: raw.environment.osVersion))
 
         return Report(
             appVersion: appVersion,

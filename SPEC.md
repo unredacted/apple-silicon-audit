@@ -189,14 +189,16 @@ Do not invent probes for these. Do not guess. Show them as documented claims sou
 
 Ship the Apple-published chip-family matrix as **data, not code** — a versioned JSON file bundled as a SwiftPM resource (§12).
 
-Schema per entry: feature ID, chip families it applies to, source URL, source publication date, date the maintainer last verified it.
+Schema per entry: feature ID, chip families it applies to, source URL, source publication date, date the maintainer last verified it, and optional exceptions (below).
 
-**Primary sources, as verified 2026-09-10:**
+**Primary sources, as verified 2026-10-01:**
 
-- Platform Security guide, "Operating system integrity" (published 2026-01-28). Columns: A10 | A11, S3 | A12–A14 | S4–S10 | A15–A18 | M1 | M2–M4 | A19 | M5. Rows: Kernel Integrity Protection, Fast Permission Restrictions, System Coprocessor Integrity Protection, Pointer Authentication Codes, Page Protection Layer, Secure Page Table Monitor, Memory Integrity Enforcement (EMTE). S11 and later are not in the table — that is the motivating `unknown`.
+- Platform Security guide, "Operating system integrity" (published 2026-01-28; the August 2026 PDF agrees). Columns: A10 | A11, S3 | A12–A14 | S4–S10 | A15–A18 | M1 | M2–M4 | A19 | M5. The guide prints A12–A14 and S4–S10 in one shared column, and A19 and M5 in another; the data splits them so each chip family maps to one column. Rows: Kernel Integrity Protection, Fast Permission Restrictions, System Coprocessor Integrity Protection, Pointer Authentication Codes, Page Protection Layer, Secure Page Table Monitor, Memory Integrity Enforcement (EMTE). S11 and later are not in the table — that is the motivating `unknown`.
 - Apple Security Research, "Memory Integrity Enforcement" (published 2025-09-09). MIE = secure typed allocators (kalloc_type, xzone malloc, libpas) + EMTE in synchronous mode + Tag Confidentiality Enforcement; shipped on A19 and A19 Pro. Apple names three EMTE-over-MTE improvements: synchronous-only, protection of non-tagged memory access, and speculative-execution defenses.
 
 **Mapping this device to a column** is a two-step inference and the UI must show both steps: measured `soc_id` → `soc-map.json` gives SoC family → the guide's column. cpufamily alone cannot do this. Where `soc_id` is not in the map, every documented row becomes `unknown` with the note "SoC not yet in the map."
+
+**Exceptions: where Apple's firmware contradicts the table.** An entry may list `exceptions`: soc_ids plus a first OS version from which Apple's own firmware disagrees with the table. The first case: SPTM and TXM boot on A13, A14 and M1 from OS 27.0, on M1 Pro/Max/Ultra from macOS 26.4, and on S9/S10 by watchOS 26.3 at the latest, while the guide still lists them without SPTM ([evidence](docs/evidence/sptm-txm-firmware.md)). On a matching device the claim reads `unknown`, never `present`. The table is still the documented source and its answer stays in the note, beside the firmware evidence. Apple says SPTM relies on silicon primitives only its listed chips have, so what the monitor provides there is undocumented. Exceptions key on soc_id, not column, because chips that share a column can diverge (A13 boots SPTM from OS 27; no A12 firmware checked does). An unreadable OS version applies the exception, since it cannot rule it out.
 
 Two requirements:
 

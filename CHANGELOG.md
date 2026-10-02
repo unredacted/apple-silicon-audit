@@ -5,6 +5,16 @@ The export schema has its own version (`schema_version` in every export; 1.1.0 t
 
 ## Unreleased
 
+- Documented matrix: Apple's firmware boots the Secure Page Table Monitor and Trusted Execution
+  Monitor on A13, A14 and M1 from iOS, iPadOS and macOS 27, on M1 Pro/Max/Ultra from macOS 26.4, and
+  on S9/S10 by watchOS 26.3 at the latest, but the Platform Security guide still lists them without SPTM. On those chips and versions, SPTM
+  and PPL now read unknown, with the firmware evidence in the note, instead of repeating the guide.
+  Entries gain OS-gated `exceptions`; the kernel-protections card says when firmware disagrees.
+  Evidence and a re-check script: `docs/evidence/sptm-txm-firmware.md`, `Tools/gen-data/sptm-firmware.py`.
+- Documented matrix: fix the Page Protection Layer row, which was read one column off. The guide
+  prints seven columns, not nine. PPL is now present for A11/S3 and M1, and not present for A15–A18
+  (replaced by SPTM). Data re-verified against the guide on 2026-10-01.
+
 ## 0.2.0 — 2026-09-17
 
 The first build intended for App Store review, after TestFlight testing on hardware. Two features
