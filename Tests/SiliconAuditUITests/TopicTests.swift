@@ -102,6 +102,21 @@ struct TopicTests {
         #expect(verdict("memory_tagging", in: r).level == .yes)
     }
 
+    @Test("M1 on 27: the kernel card counts what Apple documents and says why the rest is unsettled")
+    func firmwareDisagrees() throws {
+        func m1(_ os: String) throws -> Report {
+            try Self.report { $0.replacingOccurrences(of: "RELEASE_ARM64_T6050", with: "RELEASE_ARM64_T8103")
+                .replacingOccurrences(of: "kern.osproductversion: 26.6.2", with: "kern.osproductversion: \(os)") }
+        }
+        let on26 = verdict("kernel_integrity", in: try m1("26.6.2"))
+        #expect(on26.word == "5 of 6")
+        #expect(!on26.sentence.contains("disagrees"))
+        let on27 = verdict("kernel_integrity", in: try m1("27.0.1"))
+        #expect(on27.level == .partial)
+        #expect(on27.word == "4 of 6")
+        #expect(on27.sentence.contains("for 2, Apple's firmware"))
+    }
+
     @Test("a flag reported off is No with the honest sentence")
     func flagOff() throws {
         let r = try Self.report { $0.replacingOccurrences(of: "hw.optional.arm.FEAT_MTE4: 1", with: "hw.optional.arm.FEAT_MTE4: 0") }

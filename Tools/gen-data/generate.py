@@ -197,24 +197,48 @@ def known_keys():
 GUIDE = "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web"
 MIE_BLOG = "https://security.apple.com/blog/memory-integrity-enforcement/"
 COLUMNS = ["A10", "A11-S3", "A12-A14", "S4-S10", "A15-A18", "M1", "M2-M4", "A19", "M5"]
-def row(id_, name, cols, desc, url=GUIDE, published="2026-01-28", verified="2026-09-10", tabulated=True, note=None):
+VERIFIED = "2026-10-01"
+def row(id_, name, cols, desc, url=GUIDE, published="2026-01-28", verified=VERIFIED, tabulated=True, note=None, exceptions=None):
     r = {"id": id_, "display_name": name, "category": "kernel_integrity", "tabulated": tabulated, "columns_present": cols,
          "description": desc, "source": {"url": url, "published": published, "verified": verified}}
     if note: r["source"]["note"] = note
+    if exceptions: r["exceptions"] = exceptions
     return r
+
+# Where Apple's own firmware contradicts the table: from `since`, the BuildManifest for these
+# chips lists Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor. Re-check each OS release
+# with Tools/gen-data/sptm-firmware.py; the evidence is in docs/evidence/sptm-txm-firmware.md.
+SPTM_FIRMWARE = [
+    (["T8030", "T8101", "T8103"], "27.0", "from iOS, iPadOS and macOS 27 on",  # A13, A14, M1
+     "iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2"),
+    (["T6000", "T6001", "T6002"], "26.4", "from macOS 26.4 on",                # M1 Pro, Max, Ultra
+     "macOS 26.4 (25E246); absent through 26.3.1"),
+    # S9, S10. Watch restore images exist only for 10.0.x and 26.3 onward, so the start is bounded,
+    # not known: the exception begins at the first version not shown to lack SPTM.
+    (["T8310"], "10.1", "by watchOS 26.3 at the latest",
+     "watchOS 26.3 (23S620) through 27.0.1 (24R365); absent through 10.0.2; releases in between have no restore image to check"),
+]
+def sptm_exceptions():
+    return [{"soc_ids": socs, "min_os_version": since,
+             "note": f"Apple's firmware disagrees {when}: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in {evidence}). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."}
+            for socs, since, when, evidence in SPTM_FIRMWARE]
+def ppl_exceptions():
+    return [{"soc_ids": socs, "min_os_version": since,
+             "note": f"The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip {when} (BuildManifest Ap,SecurePageTableMonitor in {evidence}), so whether PPL still runs here is undocumented."}
+            for socs, since, when, evidence in SPTM_FIRMWARE]
 def matrix():
     all_ = COLUMNS
     return {
-        "schema_version": "1", "version": TODAY, "verified": "2026-09-10",
+        "schema_version": "1", "version": TODAY, "verified": VERIFIED,
         "columns": COLUMNS,
-        "notes": "Apple's Platform Security guide, 'Operating system integrity', runtime-protection table as read on 2026-09-10 (page published 2026-01-28). A chip family not in `columns` is unknown to the guide and every row reads unknown for it.",
+        "notes": "Apple's Platform Security guide, 'Operating system integrity', runtime-protection table as read on 2026-10-01 (page published 2026-01-28; the August 2026 PDF agrees). The guide prints seven columns, two of them shared: A12-A14 with S4-S10, and A19 with M5; they are split here so each chip family maps to one column. A chip family not in `columns` is unknown to the guide and every row reads unknown for it. `exceptions` name chips and OS versions where Apple's own firmware contradicts the table; the claim reads unknown there.",
         "entries": [
             row("kip", "Kernel Integrity Protection", all_, "Hardware prevents modification of kernel code and read-only data after boot."),
             row("fast_permission_restrictions", "Fast Permission Restrictions", [c for c in all_ if c != "A10"], "Hardware register that quickly restricts memory permissions, used by the kernel and by JIT hardening."),
             row("scip", "System Coprocessor Integrity Protection", [c for c in all_ if c not in ("A10", "A11-S3")], "Coprocessor firmware (including the Secure Enclave's) is protected against runtime modification."),
             row("pac", "Pointer Authentication Codes (OS use)", [c for c in all_ if c not in ("A10", "A11-S3")], "Apple's documented use of PAC across the OS. The measured FEAT_PAuth rows say what the kernel reports; this row says what Apple documents."),
-            row("ppl", "Page Protection Layer", ["A12-A14", "S4-S10", "A15-A18"], "Higher-privileged kernel layer guarding page tables and code signing, predecessor of SPTM.", note="Footnoted for S4-S10 in the guide."),
-            row("sptm", "Secure Page Table Monitor (with TXM)", ["A15-A18", "M2-M4", "A19", "M5"], "Page-table monitor running above the kernel, paired with the Trusted Execution Monitor."),
+            row("ppl", "Page Protection Layer", ["A11-S3", "A12-A14", "S4-S10", "M1"], "Higher-privileged kernel layer guarding page tables and code signing, predecessor of SPTM.", note="The guide footnotes A15-A18 (SPTM replaces PPL there) and M1 (no code-signing enforcement on macOS).", exceptions=ppl_exceptions()),
+            row("sptm", "Secure Page Table Monitor (with TXM)", ["A15-A18", "M2-M4", "A19", "M5"], "Page-table monitor running above the kernel, paired with the Trusted Execution Monitor.", note="The guide footnotes M2-M4, A19 and M5: no code-signing enforcement on macOS.", exceptions=sptm_exceptions()),
             row("mie", "Memory Integrity Enforcement", ["A19", "M5"], "EMTE in synchronous mode plus secure typed allocators plus Tag Confidentiality Enforcement. A hardware FEAT_MTE4 flag alone does not make this true.", note="Composition per the Apple Security Research post of 2025-09-09 (" + MIE_BLOG + ")."),
             row("tce", "Tag Confidentiality Enforcement", [], "Policies protecting allocator tags against side-channel and speculative-execution leaks; part of MIE, not tabulated per chip.", url=MIE_BLOG, published="2025-09-09", tabulated=False),
             row("secure_exclaves", "Secure Exclaves", [], "Isolated execution domains introduced alongside SPTM; not tabulated per chip in the guide.", tabulated=False),

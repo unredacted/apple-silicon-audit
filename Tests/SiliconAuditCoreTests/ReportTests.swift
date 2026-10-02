@@ -260,7 +260,7 @@ struct ExportTests {
         #expect(object["collected_at"] as? String == "2027-01-15T08:00:00Z")
         let collection = try #require(object["collection"] as? [String: Any])
         let versions = try #require(collection["data_versions"] as? [String: Any])
-        #expect(versions["documented_matrix"] as? String == "2026-09-10")
+        #expect(versions["documented_matrix"] as? String == "2026-10-01")
         #expect(versions.count == 5)
 
         // `description` is UI-only and never exported; compare with it stripped.

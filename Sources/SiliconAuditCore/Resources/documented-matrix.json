@@ -1,7 +1,7 @@
 {
   "schema_version": "1",
-  "version": "2026-09-10",
-  "verified": "2026-09-10",
+  "version": "2026-10-01",
+  "verified": "2026-10-01",
   "columns": [
     "A10",
     "A11-S3",
@@ -13,7 +13,7 @@
     "A19",
     "M5"
   ],
-  "notes": "Apple's Platform Security guide, 'Operating system integrity', runtime-protection table as read on 2026-09-10 (page published 2026-01-28). A chip family not in `columns` is unknown to the guide and every row reads unknown for it.",
+  "notes": "Apple's Platform Security guide, 'Operating system integrity', runtime-protection table as read on 2026-10-01 (page published 2026-01-28; the August 2026 PDF agrees). The guide prints seven columns, two of them shared: A12-A14 with S4-S10, and A19 with M5; they are split here so each chip family maps to one column. A chip family not in `columns` is unknown to the guide and every row reads unknown for it. `exceptions` name chips and OS versions where Apple's own firmware contradicts the table; the claim reads unknown there.",
   "entries": [
     {
       "id": "kip",
@@ -35,7 +35,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -57,7 +57,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -78,7 +78,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -99,7 +99,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -108,17 +108,45 @@
       "category": "kernel_integrity",
       "tabulated": true,
       "columns_present": [
+        "A11-S3",
         "A12-A14",
         "S4-S10",
-        "A15-A18"
+        "M1"
       ],
       "description": "Higher-privileged kernel layer guarding page tables and code signing, predecessor of SPTM.",
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10",
-        "note": "Footnoted for S4-S10 in the guide."
-      }
+        "verified": "2026-10-01",
+        "note": "The guide footnotes A15-A18 (SPTM replaces PPL there) and M1 (no code-signing enforcement on macOS)."
+      },
+      "exceptions": [
+        {
+          "soc_ids": [
+            "T8030",
+            "T8101",
+            "T8103"
+          ],
+          "min_os_version": "27.0",
+          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip from iOS, iPadOS and macOS 27 on (BuildManifest Ap,SecurePageTableMonitor in iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2), so whether PPL still runs here is undocumented."
+        },
+        {
+          "soc_ids": [
+            "T6000",
+            "T6001",
+            "T6002"
+          ],
+          "min_os_version": "26.4",
+          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip from macOS 26.4 on (BuildManifest Ap,SecurePageTableMonitor in macOS 26.4 (25E246); absent through 26.3.1), so whether PPL still runs here is undocumented."
+        },
+        {
+          "soc_ids": [
+            "T8310"
+          ],
+          "min_os_version": "10.1",
+          "note": "The guide says SPTM replaces PPL where it runs, and Apple's firmware boots SPTM on this chip by watchOS 26.3 at the latest (BuildManifest Ap,SecurePageTableMonitor in watchOS 26.3 (23S620) through 27.0.1 (24R365); absent through 10.0.2; releases in between have no restore image to check), so whether PPL still runs here is undocumented."
+        }
+      ]
     },
     {
       "id": "sptm",
@@ -135,8 +163,36 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
-      }
+        "verified": "2026-10-01",
+        "note": "The guide footnotes M2-M4, A19 and M5: no code-signing enforcement on macOS."
+      },
+      "exceptions": [
+        {
+          "soc_ids": [
+            "T8030",
+            "T8101",
+            "T8103"
+          ],
+          "min_os_version": "27.0",
+          "note": "Apple's firmware disagrees from iOS, iPadOS and macOS 27 on: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in iOS and iPadOS 27.0 (24A437) and macOS 27.0.1 (26A434); absent through 26.6.2). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
+        },
+        {
+          "soc_ids": [
+            "T6000",
+            "T6001",
+            "T6002"
+          ],
+          "min_os_version": "26.4",
+          "note": "Apple's firmware disagrees from macOS 26.4 on: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in macOS 26.4 (25E246); absent through 26.3.1). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
+        },
+        {
+          "soc_ids": [
+            "T8310"
+          ],
+          "min_os_version": "10.1",
+          "note": "Apple's firmware disagrees by watchOS 26.3 at the latest: this chip's restore manifest boots the Secure Page Table Monitor and Trusted Execution Monitor (BuildManifest Ap,SecurePageTableMonitor and Ap,TrustedExecutionMonitor in watchOS 26.3 (23S620) through 27.0.1 (24R365); absent through 10.0.2; releases in between have no restore image to check). The guide says SPTM relies on silicon primitives only its listed chips have, so what SPTM provides on this chip is undocumented."
+        }
+      ]
     },
     {
       "id": "mie",
@@ -151,7 +207,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10",
+        "verified": "2026-10-01",
         "note": "Composition per the Apple Security Research post of 2025-09-09 (https://security.apple.com/blog/memory-integrity-enforcement/)."
       }
     },
@@ -165,7 +221,7 @@
       "source": {
         "url": "https://security.apple.com/blog/memory-integrity-enforcement/",
         "published": "2025-09-09",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -178,7 +234,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     },
     {
@@ -191,7 +247,7 @@
       "source": {
         "url": "https://support.apple.com/guide/security/operating-system-integrity-sec8b776536b/web",
         "published": "2026-01-28",
-        "verified": "2026-09-10"
+        "verified": "2026-10-01"
       }
     }
   ]
