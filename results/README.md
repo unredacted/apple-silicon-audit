@@ -1,5 +1,6 @@
 # Contributing a result
-
+cd Tools/generate-matrix && npm ci && npm run check      # validate everything under results/
+cd Tools/generate-matrix && npm run generate              # also rewrite MATRIX.md and site/
 The results database answers, once per chip, "which CPU security features does this device's
 kernel expose?" Each file here is one device's full JSON export from Silicon Audit, and the
 generated [MATRIX.md](../MATRIX.md) (and the static site) is built from them.
